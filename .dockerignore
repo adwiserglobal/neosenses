@@ -1,0 +1,42 @@
+# O que NÃO entra no contexto enviado ao Docker.
+#
+# Além de deixar o build mais rápido, isto é barreira de segurança: qualquer
+# arquivo daqui que passe vira camada de imagem, e camada de imagem vaza para
+# quem puxar a imagem — inclusive o que foi "removido" numa camada seguinte.
+
+node_modules
+.next
+out
+build
+
+# Segredo. Nunca.
+.env
+.env.*
+!.env.example
+*.pem
+*.p12
+*.pfx
+*-key.json
+*credential*.json
+*service-account*.json
+neosenses-*.json
+
+# Histórico do git levaria junto qualquer segredo já commitado um dia.
+.git
+.gitignore
+
+# Nada disso serve dentro do container.
+.claude
+.vscode
+.idea
+supabase/.branches
+supabase/.temp
+tests
+*.md
+!README.md
+Dockerfile
+.dockerignore
+infra
+npm-debug.log*
+.DS_Store
+*.tsbuildinfo

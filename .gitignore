@@ -1,0 +1,93 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# dependencies
+/node_modules
+/.pnp
+.pnp.*
+.yarn/*
+!.yarn/patches
+!.yarn/plugins
+!.yarn/releases
+!.yarn/versions
+
+# testing
+/coverage
+
+# next.js
+/.next/
+/out/
+
+# production
+/build
+
+# misc
+.DS_Store
+*.pem
+
+# Credenciais de infraestrutura
+#
+# Chave de service account (Google Cloud, Firebase, AWS) vem em JSON, e um
+# .gitignore de projeto Next não cobre *.json — package.json e tsconfig.json
+# precisam ser versionados. Sem estas linhas, um `git add -A` leva a
+# credencial para o commit, e commit publicado não se apaga: some do branch,
+# fica no histórico e nos clones.
+#
+# O lugar certo desses arquivos é FORA da pasta do projeto, com o caminho
+# apontado por variável de ambiente.
+#
+# ATENÇÃO — a lista por nome abaixo NÃO É SUFICIENTE, e isso não é teoria:
+# em 09/08/2026 uma chave chamada `neosenses-505200-56695b46ef38.json` entrou
+# num commit passando por baixo de todos estes padrões. É o formato que o
+# console do Google realmente gera — `<projeto>-<hash>.json` — e ele não tem
+# nenhuma palavra reconhecível para casar.
+#
+# Por isso a regra de verdade é a de baixo: **nenhum .json na raiz**, exceto
+# os quatro que o projeto precisa versionar. JSON de credencial cai na raiz
+# por padrão, então é lá que a rede tem que estar.
+/*.json
+!/package.json
+!/package-lock.json
+!/tsconfig.json
+!/components.json
+
+# Defesa por nome, para quando o arquivo não está na raiz.
+*-key.json
+*-keys.json
+*credential*.json
+*service-account*.json
+*serviceaccount*.json
+gcp-*.json
+firebase-adminsdk-*.json
+client_secret*.json
+.gcloud/
+.aws/
+*.p12
+*.pfx
+
+# SQL consolidado, gerado a partir de supabase/migrations/ para colar de uma
+# vez no SQL Editor. É derivado: versionar as duas cópias garante que uma
+# envelhece sem ninguém notar. A fonte são as migrations numeradas.
+supabase/aplicar-tudo.sql
+
+# debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# env files (can opt-in for committing if needed)
+.env*
+
+# vercel
+.vercel
+
+# typescript
+*.tsbuildinfo
+next-env.d.ts
+
+# Modelo público de configuração
+!.env.example
+
+# Estado local do Supabase
+supabase/.temp/
+supabase/.branches/
