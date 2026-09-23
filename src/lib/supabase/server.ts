@@ -16,9 +16,17 @@ import type { Database } from "@/types/database";
  * Continua sujeito ao RLS: só entrega o que é público de qualquer forma.
  */
 export function criarClientePublico() {
+  // O conteúdo público também é gerado durante `next build`. Em instalações
+  // sem Supabase configurado (por exemplo, um deploy inicial no Netlify), não
+  // podemos passar `undefined` ao SDK: ele aborta a coleta de dados das páginas.
+  // O endpoint reservado faz o build continuar; as consultas falham de forma
+  // tratável e as páginas exibem seus estados vazios até o banco ser conectado.
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
+  const chave = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-anon-key";
+
   return createClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    url,
+    chave,
     { auth: { persistSession: false, autoRefreshToken: false } }
   );
 }
