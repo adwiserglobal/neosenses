@@ -13,6 +13,7 @@ import Link from "next/link";
 import { listarExperiencias } from "@/lib/dal/experiences";
 import { listarCategorias } from "@/lib/dal/destinations";
 import { ExperienceCard } from "@/components/ui/Cards";
+import { MarrocosExperienceCard } from "@/components/experiences/MarrocosExperienceCard";
 import { t } from "@/lib/utils";
 import type { I18nField } from "@/types/models";
 import { Capa } from "@/components/templates/base";
@@ -43,6 +44,12 @@ export default async function ExperienciasPage({ searchParams }: Props) {
     listarExperiencias({ categoria, destino, pagina: paginaAtual, limite: POR_PAGINA }),
     listarCategorias(),
   ]);
+
+  // A landing de Marrocos ainda é independente do CMS principal. Ela aparece
+  // só na visão geral, sem interferir em filtros que dependem de category_id e
+  // destination_id do Supabase.
+  const exibirMarrocos = !categoria && !destino && paginaAtual === 1;
+  const totalExibido = total + (exibirMarrocos ? 1 : 0);
 
   /** Preserva os demais filtros ao montar cada link. */
   const url = (mudanca: Record<string, string | undefined>) => {
@@ -102,7 +109,7 @@ export default async function ExperienciasPage({ searchParams }: Props) {
 
       <section className="py-16 md:py-24">
         <div className="container-wide">
-          {itens.length === 0 ? (
+          {itens.length === 0 && !exibirMarrocos ? (
             <div className="mx-auto max-w-lg rounded-2xl border border-border bg-surface p-12 text-center">
               <h2 className="mb-2 font-heading text-xl text-primary-700">
                 {categoria || destino
@@ -137,13 +144,18 @@ export default async function ExperienciasPage({ searchParams }: Props) {
           ) : (
             <>
               <p className="mb-8 text-sm text-text-muted">
-                {total} {total === 1 ? "experiência" : "experiências"}
+                {totalExibido} {totalExibido === 1 ? "experiência" : "experiências"}
                 {categoriaAtiva ? ` em ${t(categoriaAtiva.name as I18nField, "pt")}` : ""}
               </p>
 
               <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
+                {exibirMarrocos && <MarrocosExperienceCard index={0} />}
                 {itens.map((exp, i) => (
-                  <ExperienceCard key={exp.id} experience={exp} index={i} />
+                  <ExperienceCard
+                    key={exp.id}
+                    experience={exp}
+                    index={i + (exibirMarrocos ? 1 : 0)}
+                  />
                 ))}
               </div>
 
