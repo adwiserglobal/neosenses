@@ -5,13 +5,13 @@
 # not secrets, and their literal values intentionally appear in source code.
 # We omit only those two config keys from value matching.
 #
-# The avatar SVG contains an embedded base64 image from a user-provided asset.
-# Netlify/Next can also serialize runtime environment values inside Turbopack's
-# private build cache. That cache is not published to visitors, so exclude only
-# those cache directories from scanning while keeping the actual app/server
-# output scanned normally.
+# The avatar and official-logo SVGs contain embedded base64 images created from
+# user-provided visual assets. Netlify/Next can also serialize runtime
+# environment values inside Turbopack's private build cache. Those files are
+# not published as source, so exclude only the known image wrappers and cache
+# directories while keeping the actual app/server output scanned normally.
 
 [build.environment]
   SECRETS_SCAN_OMIT_KEYS = "AI_PROVIDER,AI_MODEL"
-  SECRETS_SCAN_OMIT_PATHS = "public/images/concierge-monk-avatar.svg,.netlify/.next/cache/,.next/cache/"
+  SECRETS_SCAN_OMIT_PATHS = "public/images/concierge-monk-avatar.svg,public/images/neosenses-logo.svg,.netlify/.next/cache/,.next/cache/"
   SECRETS_SCAN_SMART_DETECTION_ENABLED = "false"
