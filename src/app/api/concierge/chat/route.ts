@@ -20,7 +20,11 @@ import {
   type ChatMessage,
 } from "@/lib/ai/provider";
 import { retrieveNeoSensesContext, formatContextForPrompt } from "@/lib/ai/retrieval";
-import { buildSiteKnowledgeContext } from "@/lib/ai/siteKnowledge";
+import {
+  buildSiteKnowledgeContext,
+  siteRecommendationsForResponse,
+  type SiteRecommendation,
+} from "@/lib/ai/siteKnowledge";
 import { buildConciergeSystemPrompt } from "@/lib/ai/prompt";
 import { verificarResposta, respostaSegura } from "@/lib/ai/guardas";
 import { identificar, verificarLimite, LIMITE_CHAT } from "@/lib/limite";
@@ -56,6 +60,7 @@ function conectarSupabase() {
 const RE_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_CARACTERES = 1500;
 const MAX_HISTORICO = 16;
+const MAX_CARDS = 8;
 
 function normalizarIdioma(valor: unknown): "pt" | "en" | "es" {
   const curto = String(valor ?? "pt").split("-")[0].toLowerCase();
@@ -71,6 +76,16 @@ function limpar(texto: string): string {
     if (!ehControle || ehQuebraOuTab) saida += ch;
   }
   return saida.trim();
+}
+
+function normalizarComparacao(texto: string): string {
+  return texto
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 const MENSAGENS: Record<string, Record<string, string>> = {
@@ -127,6 +142,21 @@ function extrairContato(textos: string[]) {
     /(?:me chamo|meu nome (?:é|e)|sou o|sou a|my name is|i am|me llamo|soy)\s+([A-ZÀ-ÖØ-Þ][a-zà-öø-ÿ]{1,20}(?:\s+[A-ZÀ-ÖØ-Þ][a-zà-öø-ÿ]{1,20}){0,2})/i
   )?.[1];
   return { nome, email, telefone };
+}
+
+function experienciaFoiMencionada(
+  conteudo: string,
+  experiencia: { title: string; slug: string; destination: string }
+): boolean {
+  const texto = normalizarComparacao(conteudo);
+  const titulo = normalizarComparacao(experiencia.title);
+  const slug = normalizarComparacao(experiencia.slug.replace(/-/g, " "));
+  const destino = normalizarComparacao(experiencia.destination);
+
+  if (titulo && texto.includes(titulo)) return true;
+  if (slug && texto.includes(slug)) return true;
+  if (destino.length >= 7 && texto.includes(destino)) return true;
+  return false;
 }
 
 export async function POST(request: NextRequest) {
@@ -224,23 +254,16 @@ export async function POST(request: NextRequest) {
     }
 
     // ── Contexto ───────────────────────────────────────────────────────────
-    // O conhecimento do próprio site existe independentemente do Supabase.
-    // Assim, um deploy sem variáveis do banco ainda conhece as jornadas que o
-    // visitante consegue abrir nas páginas públicas.
     const contextoSite = buildSiteKnowledgeContext(mensagem, paginaOrigem);
     let blocoContexto = contextoSite;
-    let experienciasRecomendadas: Awaited<ReturnType<typeof retrieveNeoSensesContext>>["experiences"] = [];
+    let experienciasDoContexto: Awaited<ReturnType<typeof retrieveNeoSensesContext>>["experiences"] = [];
 
     if (supabase) {
       try {
         const contexto = await retrieveNeoSensesContext(supabase, mensagem, idioma, paginaOrigem);
         const contextoBanco = formatContextForPrompt(contexto, idioma);
-        experienciasRecomendadas = contexto.experiences.slice(0, 3);
+        experienciasDoContexto = contexto.experiences.slice(0, MAX_CARDS);
 
-        // Se o banco não devolveu catálogo, não deixe a frase "nenhuma
-        // experiência" contradizer páginas que estão publicadas no próprio
-        // site. Caso haja dados no banco, usamos as duas fontes: o banco traz
-        // datas/vagas e as páginas trazem roteiro e narrativa detalhada.
         blocoContexto = contexto.catalogoVazio && contextoSite
           ? contextoSite
           : [contextoBanco, contextoSite].filter(Boolean).join("\n\n");
@@ -280,6 +303,56 @@ export async function POST(request: NextRequest) {
       conteudoFinal = respostaSegura(idioma);
     }
 
+    // ── Cards das jornadas realmente citadas ──────────────────────────────
+    const cardsSite = siteRecommendationsForResponse(
+      conteudoFinal,
+      mensagem,
+      paginaOrigem,
+      MAX_CARDS
+    );
+
+    const experienciasMencionadasBanco = experienciasDoContexto.filter((e) =>
+      experienciaFoiMencionada(conteudoFinal, e)
+    );
+
+    const imagemPorId = new Map<string, string>();
+    if (supabase && experienciasMencionadasBanco.length > 0) {
+      const ids = experienciasMencionadasBanco.map((e) => e.id);
+      const { data: fotos, error: erroFotos } = await supabase
+        .from("experiences")
+        .select("id, hero_image")
+        .in("id", ids);
+
+      if (erroFotos) {
+        console.error("[concierge] imagens dos cards:", erroFotos.message);
+      } else {
+        for (const item of fotos ?? []) {
+          if (item.hero_image) imagemPorId.set(item.id, item.hero_image);
+        }
+      }
+    }
+
+    const cardsPorSlug = new Map<string, SiteRecommendation>();
+    for (const card of cardsSite) cardsPorSlug.set(card.slug, card);
+
+    for (const e of experienciasMencionadasBanco) {
+      const anterior = cardsPorSlug.get(e.slug);
+      cardsPorSlug.set(e.slug, {
+        type: "experience",
+        id: e.id,
+        title: e.title,
+        slug: e.slug,
+        destination: e.destination,
+        duration: e.duration,
+        publishedPrice: e.priceFrom,
+        url: e.url,
+        image: imagemPorId.get(e.id) || anterior?.image || "",
+        summary: anterior?.summary || e.shortDescription,
+      });
+    }
+
+    const cards = Array.from(cardsPorSlug.values()).slice(0, MAX_CARDS);
+
     // ── Gravação da resposta ───────────────────────────────────────────────
     let mensagemId: string | null = null;
     if (supabase && convId) {
@@ -289,7 +362,7 @@ export async function POST(request: NextRequest) {
           conversation_id: convId,
           role: "assistant",
           content: conteudoFinal,
-          recommended_experiences: experienciasRecomendadas.map((e) => e.id),
+          recommended_experiences: experienciasMencionadasBanco.map((e) => e.id),
           metadata: {
             provider: resposta.provider,
             model: resposta.model,
@@ -304,9 +377,9 @@ export async function POST(request: NextRequest) {
       if (error) console.error("[concierge] gravar resposta:", error.message);
       else mensagemId = data.id;
 
-      if (mensagemId && experienciasRecomendadas.length > 0) {
+      if (mensagemId && experienciasMencionadasBanco.length > 0) {
         const { error: erroRec } = await supabase.from("ai_recommendations").insert(
-          experienciasRecomendadas.map((e, i) => ({
+          experienciasMencionadasBanco.map((e, i) => ({
             conversation_id: convId!,
             message_id: mensagemId!,
             experience_id: e.id,
@@ -356,7 +429,7 @@ export async function POST(request: NextRequest) {
     console.log(
       `[concierge] ${resposta.provider}/${resposta.model} · IA ${resposta.responseTimeMs}ms · total ${Date.now() - inicio}ms · ${
         resposta.tokensUsed ?? "?"
-      } tokens`
+      } tokens · ${cards.length} cards`
     );
 
     return NextResponse.json({
@@ -368,15 +441,8 @@ export async function POST(request: NextRequest) {
         content: conteudoFinal,
         createdAt: new Date().toISOString(),
       },
-      recommendations: experienciasRecomendadas.map((e, i) => ({
-        type: "experience" as const,
-        id: e.id,
-        title: e.title,
-        slug: e.slug,
-        destination: e.destination,
-        duration: e.duration,
-        publishedPrice: e.priceFrom,
-        url: e.url,
+      recommendations: cards.map((card, i) => ({
+        ...card,
         position: i + 1,
       })),
       handoffAvailable: true,
