@@ -1,12 +1,10 @@
 /**
  * POST /api/journey — gera um roteiro a partir do questionário.
  *
- * Fluxo: valida → limita → lê o catálogo → gera → confere → grava → devolve
- * o token de acesso.
- *
- * O roteiro fica salvo com um token aleatório na URL, para a pessoa voltar
- * depois sem precisar de conta. Gerar de novo custa tokens de IA e devolveria
- * um texto diferente do que ela leu.
+ * O catálogo do site é uma fonte de primeira parte e fica disponível mesmo
+ * quando o Supabase não está configurado no runtime. O banco enriquece o
+ * catálogo com preço/data e permite salvar o resultado, mas não é mais um
+ * pré-requisito para a pessoa conseguir montar o roteiro.
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -16,14 +14,19 @@ import { detectAIConfig, AIError } from "@/lib/ai/provider";
 import { validarRespostas, type Respostas } from "@/lib/journey/perguntas";
 import { gerarRoteiro, type ExperienciaDisponivel } from "@/lib/journey/gerador";
 import { identificar, verificarLimite, LIMITE_ROTEIRO } from "@/lib/limite";
+import { migratedExperiences } from "@/content/migratedExperiences";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
 
-// ── Limite de uso ──────────────────────────────────────────────────────────
-// Por IP. Ver src/lib/limite.ts.
+function conectarLeitura() {
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const chave = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !chave) return null;
+  return createClient<Database>(url, chave, { auth: { persistSession: false } });
+}
 
-function conectar() {
+function conectarEscrita() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const chave = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !chave) return null;
@@ -32,6 +35,35 @@ function conectar() {
 
 function erro(mensagem: string, codigo: string, status: number) {
   return NextResponse.json({ success: false, error: mensagem, errorCode: codigo }, { status });
+}
+
+function catalogoDoSite(): ExperienciaDisponivel[] {
+  return migratedExperiences.map((exp) => {
+    const ultimoDia = exp.itinerary.length > 0
+      ? Math.max(...exp.itinerary.map((d) => d.day))
+      : null;
+
+    const alvo = `${exp.kicker} ${exp.summary} ${exp.description}`.toLowerCase();
+    const intencoes: string[] = [];
+    if (/medita|espiritual|sagrado|peregrina/.test(alvo)) intencoes.push("espiritualidade");
+    if (/natureza|montanha|floresta|ilha|chapada|lagoa/.test(alvo)) intencoes.push("natureza");
+    if (/cultura|tradi|templo|hist[oó]ria/.test(alvo)) intencoes.push("cultura_local");
+    if (/autoconhecimento|reconex|transforma/.test(alvo)) intencoes.push("autoconhecimento");
+
+    return {
+      id: `site:${exp.slug}`,
+      titulo: exp.title,
+      slug: exp.slug,
+      destino: exp.destination,
+      pais: exp.country,
+      dias: ultimoDia,
+      precoTexto: "sob consulta",
+      resumo: exp.summary.slice(0, 300),
+      intencoes,
+      dificuldade: "all_levels",
+      proximasDatas: [],
+    };
+  });
 }
 
 export async function POST(request: NextRequest) {
@@ -80,32 +112,30 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const supabase = conectar();
-    if (!supabase) {
-      return erro("Serviço indisponível no momento.", "SEM_BANCO", 503);
-    }
-
     // ── Catálogo ───────────────────────────────────────────────────────────
+    const leitura = conectarLeitura();
     const hoje = new Date().toISOString().slice(0, 10);
-    const { data: brutas, error: erroCatalogo } = await supabase
-      .from("experiences")
-      .select(
-        `id, title, slug, short_description, duration_days, price_from, price_currency,
-         difficulty, intentions,
-         destination:destinations(name, country:countries(name)),
-         experience_dates(start_date, end_date, spots_total, spots_taken, status)`
-      )
-      .eq("status", "published")
-      // O roteiro gerado propõe experiências para a pessoa comprar. As de
-      // facilitador não são compráveis — não têm data nem vaga —, e entrar
-      // aqui faria o gerador oferecer como trecho de viagem uma página que
-      // vende parceria para quem leva o próprio grupo.
-      .eq("audience", "viajante")
-      .order("is_featured", { ascending: false })
-      .limit(30);
+    let brutas: any[] = [];
 
-    if (erroCatalogo) {
-      console.error("[journey] ler catálogo:", erroCatalogo.message);
+    if (leitura) {
+      const { data, error: erroCatalogo } = await leitura
+        .from("experiences")
+        .select(
+          `id, title, slug, short_description, duration_days, price_from, price_currency,
+           difficulty, intentions,
+           destination:destinations(name, country:countries(name)),
+           experience_dates(start_date, end_date, spots_total, spots_taken, status)`
+        )
+        .eq("status", "published")
+        .eq("audience", "viajante")
+        .order("is_featured", { ascending: false })
+        .limit(30);
+
+      if (erroCatalogo) {
+        console.error("[journey] ler catálogo do banco:", erroCatalogo.message);
+      } else {
+        brutas = data ?? [];
+      }
     }
 
     const i18n = (campo: unknown): string => {
@@ -115,7 +145,7 @@ export async function POST(request: NextRequest) {
       return o.pt || o.en || Object.values(o).find(Boolean) || "";
     };
 
-    const experiencias: ExperienciaDisponivel[] = (brutas ?? []).map((e) => {
+    const experienciasBanco: ExperienciaDisponivel[] = brutas.map((e) => {
       const destino = e.destination as { name: unknown; country: { name: unknown } | null } | null;
 
       const datas = ((e.experience_dates ?? []) as Array<Record<string, unknown>>)
@@ -149,6 +179,15 @@ export async function POST(request: NextRequest) {
       };
     });
 
+    // O banco sobrescreve a versão estática da mesma página quando existir,
+    // porque aí temos id real, datas e preço. As páginas que ainda não estão
+    // no banco continuam disponíveis para o montador.
+    const porSlug = new Map<string, ExperienciaDisponivel>();
+    for (const exp of catalogoDoSite()) porSlug.set(exp.slug, exp);
+    for (const exp of experienciasBanco) porSlug.set(exp.slug, exp);
+    const experiencias = Array.from(porSlug.values());
+    const idsDoBanco = new Set(experienciasBanco.map((e) => e.id));
+
     // ── Geração ────────────────────────────────────────────────────────────
     const resultado = await gerarRoteiro(experiencias, respostas, configIA);
 
@@ -160,8 +199,19 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // ── Gravação ───────────────────────────────────────────────────────────
-    const { data: gravado, error: erroGravar } = await supabase
+    // ── Gravação opcional ─────────────────────────────────────────────────
+    const escrita = conectarEscrita();
+    if (!escrita) {
+      console.warn("[journey] sem service role — roteiro gerado sem persistência");
+      return NextResponse.json({
+        success: true,
+        roteiro: resultado.roteiro,
+        token: null,
+        aviso: "Seu roteiro foi montado normalmente, mas não conseguimos gerar um link permanente agora.",
+      });
+    }
+
+    const { data: gravado, error: erroGravar } = await escrita
       .from("ai_journeys")
       .insert({
         visitor_id: sessionId,
@@ -178,24 +228,22 @@ export async function POST(request: NextRequest) {
       .select("id, access_token")
       .single();
 
-    if (erroGravar) {
-      // O roteiro existe e é bom; só não deu para salvar. Devolver o conteúdo
-      // é melhor que perder a geração — a pessoa só não conseguirá voltar
-      // pelo link depois.
-      console.error("[journey] gravar:", erroGravar.message);
+    if (erroGravar || !gravado) {
+      console.error("[journey] gravar:", erroGravar?.message ?? "sem retorno");
       return NextResponse.json({
         success: true,
         roteiro: resultado.roteiro,
         token: null,
-        aviso: "Não conseguimos salvar este roteiro. Guarde a página aberta ou copie o conteúdo.",
+        aviso: "Seu roteiro foi montado normalmente, mas não conseguimos gerar um link permanente agora.",
       });
     }
 
-    // Vínculo com as experiências citadas: permite medir depois quantos
-    // roteiros viraram conversa e reserva.
-    const citadas = resultado.roteiro.trechos.filter((t) => t.experienceId);
+    // Só IDs vindos do banco podem entrar na FK de ai_journey_experiences.
+    const citadas = resultado.roteiro.trechos.filter(
+      (t) => t.experienceId && idsDoBanco.has(t.experienceId)
+    );
     if (citadas.length > 0) {
-      const { error: erroVinculo } = await supabase.from("ai_journey_experiences").insert(
+      const { error: erroVinculo } = await escrita.from("ai_journey_experiences").insert(
         citadas.map((t, i) => ({
           journey_id: gravado.id,
           experience_id: t.experienceId!,
@@ -211,7 +259,7 @@ export async function POST(request: NextRequest) {
     console.log(
       `[journey] ${resultado.provider}/${resultado.model} · ${resultado.tempoMs}ms IA · ` +
         `${Date.now() - inicio}ms total · ${resultado.roteiro.trechos.length} trechos · ` +
-        `${citadas.length} do catálogo`
+        `${citadas.length} do banco · ${experiencias.length} opções no catálogo`
     );
 
     return NextResponse.json({
