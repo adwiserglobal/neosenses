@@ -1,16 +1,13 @@
 /**
  * Mapa do site.
  *
- * Antes listava só as páginas fixas, com um TODO no lugar do conteúdo. As
- * páginas de experiência — justamente as que trazem busca qualificada — nunca
- * eram anunciadas ao buscador.
- *
  * /admin, /login e /roteiro/[token] ficam fora de propósito: painel e roteiro
  * pessoal não são conteúdo de site.
  */
 
 import type { MetadataRoute } from "next";
 import { criarClientePublico } from "@/lib/supabase/server";
+import { migratedExperiences } from "@/content/migratedExperiences";
 
 export const revalidate = 3600;
 
@@ -18,6 +15,13 @@ const BASE = process.env.NEXT_PUBLIC_SITE_URL || "https://www.neosenses.com.br";
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const agora = new Date();
+
+  const paginasMigradas: MetadataRoute.Sitemap = migratedExperiences.map((experience) => ({
+    url: `${BASE}/experiencias/${experience.slug}`,
+    lastModified: agora,
+    changeFrequency: "weekly" as const,
+    priority: 0.9,
+  }));
 
   const fixas: MetadataRoute.Sitemap = [
     { url: BASE, lastModified: agora, changeFrequency: "weekly", priority: 1 },
@@ -28,6 +32,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       changeFrequency: "weekly",
       priority: 0.9,
     },
+    ...paginasMigradas,
     { url: `${BASE}/planejar`, lastModified: agora, changeFrequency: "monthly", priority: 0.9 },
     { url: `${BASE}/destinos`, lastModified: agora, changeFrequency: "monthly", priority: 0.8 },
     {
@@ -44,8 +49,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/legal/termos`, lastModified: agora, changeFrequency: "yearly", priority: 0.3 },
   ];
 
-  // Falha ao ler o banco não pode derrubar o sitemap inteiro: melhor publicar
-  // as páginas fixas do que devolver erro ao buscador.
   try {
     const supabase = criarClientePublico();
 
@@ -62,9 +65,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       return o.pt || o.en || null;
     };
 
+    const slugsFixos = new Set([
+      "marrocos-com-neosenses",
+      ...migratedExperiences.map((experience) => experience.slug),
+    ]);
+
     const doCatalogo: MetadataRoute.Sitemap = (experiencias.data ?? [])
       .map((e) => pt(e.slug))
-      .filter((s): s is string => !!s)
+      .filter((s): s is string => !!s && !slugsFixos.has(s))
       .map((slug) => ({
         url: `${BASE}/experiencias/${slug}`,
         lastModified: agora,
@@ -72,8 +80,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
         priority: 0.9,
       }));
 
-    // Categoria e destino são páginas de busca ("retiros", "peru") e
-    // costumam ser a porta de entrada de quem ainda não conhece a marca.
     const porCategoria: MetadataRoute.Sitemap = (categorias.data ?? []).map((c) => ({
       url: `${BASE}/experiencias?categoria=${c.slug}`,
       lastModified: agora,
@@ -81,10 +87,6 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       priority: 0.7,
     }));
 
-    // Cada destino tem página própria desde que `/destinos/[slug]` passou
-    // a existir. Ela é o conteúdo — a busca filtrada por destino continua
-    // no mapa, mas com prioridade menor: é uma listagem, não uma página
-    // sobre o lugar.
     const slugsDeDestino = (destinos.data ?? [])
       .map((d) => pt(d.slug))
       .filter((s): s is string => !!s);

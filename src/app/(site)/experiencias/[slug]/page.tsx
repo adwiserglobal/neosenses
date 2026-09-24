@@ -1,14 +1,8 @@
 /**
- * Página de uma experiência.
+ * Página de uma experiência do catálogo estruturado.
  *
- * Esta rota só busca os dados e escolhe o layout — os quatro moram em
- * `components/templates`. Antes o arquivo trazia o layout inteiro escrito
- * à mão, e um segundo layout significaria duplicar 460 linhas.
- *
- * A regra do conteúdo continua a mesma: mostra o que está cadastrado e diz
- * claramente quando algo não está. Datas, roteiro e valores ausentes viram
- * um convite a falar com a equipe, nunca um bloco vazio nem informação
- * inventada. É a mesma regra do Concierge.
+ * Roteiros legados que ganharam páginas explícitas ficam fora dos params
+ * estáticos desta rota para não disputar a mesma URL durante o build.
  */
 
 import type { Metadata } from "next";
@@ -22,6 +16,7 @@ import { listarGuias, lerConfiguracoesPublicas } from "@/lib/dal/content";
 import { JsonLd } from "@/components/seo/JsonLd";
 import * as schema from "@/lib/seo/dadosEstruturados";
 import { PaginaDaExperiencia, montarDados, fotosDaExperiencia } from "@/components/templates";
+import { migratedExperiences } from "@/content/migratedExperiences";
 import { t } from "@/lib/utils";
 import type { I18nField } from "@/types/models";
 
@@ -33,7 +28,8 @@ interface Props {
 
 export async function generateStaticParams() {
   const slugs = await listarSlugsDeExperiencias();
-  return slugs.map((slug) => ({ slug }));
+  const explicitas = new Set(migratedExperiences.map((experience) => experience.slug));
+  return slugs.filter((slug) => !explicitas.has(slug)).map((slug) => ({ slug }));
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
@@ -69,10 +65,6 @@ export default async function ExperienciaPage({ params }: Props) {
     lerConfiguracoesPublicas(),
   ]);
 
-  // Endereço da plataforma de reservas. Vem da configuração, não do código:
-  // é o link que fecha a venda, e no dia em que a plataforma mudar ninguém
-  // vai procurar por ele dentro de um JSX. Vazio esconde o botão — link
-  // morto no caminho da compra é pior que caminho mais curto.
   const urlReservas =
     typeof config["site.reservas_url"] === "string"
       ? (config["site.reservas_url"] as string).trim()
@@ -86,13 +78,6 @@ export default async function ExperienciaPage({ params }: Props) {
 
   return (
     <>
-      {/* Dados estruturados: é o que faz o buscador exibir data, valor e
-          disponibilidade no resultado, em vez de um link seco. Só declara o
-          que existe — sem saída publicada, nenhuma oferta é anunciada.
-
-          Nas páginas de facilitador não há oferta a declarar: elas não têm
-          preço, data nem vaga. Anunciá-las como produto poria no buscador
-          um resultado de compra para uma página que não vende nada. */}
       {!dados.ehFacilitador && (
         <>
           <JsonLd dados={schema.experiencia(experiencia)} />
