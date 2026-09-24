@@ -3,6 +3,34 @@ import { createClient } from "@supabase/supabase-js";
 import { cookies } from "next/headers";
 import type { Database } from "@/types/database";
 
+const PUBLIC_QUERY_TIMEOUT_MS = 3500;
+
+/**
+ * Evita que uma indisponibilidade/rede lenta do Supabase congele a navegação.
+ * O conteúdo público tem fallback visual; esperar dezenas de segundos por uma
+ * consulta que provavelmente vai falhar é pior do que renderizar a página sem
+ * aquele bloco e continuar navegável.
+ */
+const fetchPublicoComTimeout: typeof fetch = async (input, init) => {
+  const controller = new AbortController();
+  const sinalOriginal = init?.signal;
+  const abortar = () => controller.abort();
+
+  if (sinalOriginal) {
+    if (sinalOriginal.aborted) controller.abort();
+    else sinalOriginal.addEventListener("abort", abortar, { once: true });
+  }
+
+  const timer = setTimeout(() => controller.abort(), PUBLIC_QUERY_TIMEOUT_MS);
+
+  try {
+    return await fetch(input, { ...init, signal: controller.signal });
+  } finally {
+    clearTimeout(timer);
+    sinalOriginal?.removeEventListener("abort", abortar);
+  }
+};
+
 /**
  * Cliente para conteúdo público, sem sessão.
  *
@@ -24,11 +52,10 @@ export function criarClientePublico() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL || "https://placeholder.supabase.co";
   const chave = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || "placeholder-anon-key";
 
-  return createClient<Database>(
-    url,
-    chave,
-    { auth: { persistSession: false, autoRefreshToken: false } }
-  );
+  return createClient<Database>(url, chave, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: { fetch: fetchPublicoComTimeout },
+  });
 }
 
 /** Cliente que enxerga a sessão. Use quando o resultado depende de quem está logado. */
