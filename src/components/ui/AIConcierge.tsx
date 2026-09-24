@@ -5,7 +5,7 @@
  *
  * • Quick action buttons that send real messages
  * • Retry on failure
- * • Recommendation cards with links
+ * • Recommendation cards with image + deep link
  * • WhatsApp handoff with prefilled context
  * • Session ID persistence (localStorage)
  * • Conversation ID persistence across page navigations
@@ -39,7 +39,7 @@ interface Message {
   role: "user" | "assistant";
   content: string;
   isError?: boolean;
-  failedMessage?: string; // original message for retry
+  failedMessage?: string;
 }
 
 interface Recommendation {
@@ -51,6 +51,8 @@ interface Recommendation {
   duration: string;
   publishedPrice: string;
   url: string;
+  image?: string;
+  summary?: string;
 }
 
 // ── Translations ───────────────────────────────────────────────────────────
@@ -172,39 +174,24 @@ export function AIConcierge() {
   const [recommendations, setRecommendations] = useState<Recommendation[]>([]);
   const [input, setInput] = useState("");
   const [loading, setLoading] = useState(false);
-  // Retoma a conversa da aba na inicialização, não num efeito: assim navegar
-  // entre páginas não perde o fio da conversa nem dispara render em cascata.
-  // No servidor a função devolve null, e o id não aparece no HTML — sem risco
-  // de divergência na hidratação.
   const [conversationId, setConversationId] = useState<string | null>(getStoredConversationId);
   const [lang, setLang] = useState<Lang>("pt");
   const [showSettings, setShowSettings] = useState(false);
   const [sessionId] = useState(getSessionId);
-  // Traz os atalhos de volta no meio da conversa, sem apagar o que já foi
-  // dito. Fecha sozinho ao escolher uma opção.
   const [menuAberto, setMenuAberto] = useState(false);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const t = T[lang];
 
-  // ── Scroll to bottom ─────────────────────────────────────────────────────
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages, loading]);
+  }, [messages, loading, recommendations]);
 
-  // ── Foco e teclado ───────────────────────────────────────────────────────
   useEffect(() => {
     if (isOpen) setTimeout(() => textareaRef.current?.focus(), 120);
   }, [isOpen]);
 
-  /**
-   * Esc fecha o painel e devolve o foco ao botão que o abriu.
-   *
-   * Sem isso, quem navega por teclado ou leitor de tela entrava no chat e não
-   * tinha como sair: o único jeito de fechar era clicar no X, e o foco ficava
-   * perdido no fim da página depois.
-   */
   useEffect(() => {
     if (!isOpen) return;
 
@@ -219,31 +206,19 @@ export function AIConcierge() {
     return () => document.removeEventListener("keydown", aoTeclar);
   }, [isOpen]);
 
-  /**
-   * A saudação é derivada, não guardada no estado.
-   *
-   * Antes ela era gravada em `messages` por dois efeitos — um ao abrir, outro
-   * ao trocar de idioma —, o que disparava renderização em cascata e, na troca
-   * de idioma, apagava a conversa em andamento junto.
-   */
   const mensagensVisiveis: Message[] =
     messages.length === 0 ? [{ role: "assistant", content: t.welcome }] : messages;
 
-  // ── New conversation ─────────────────────────────────────────────────────
   const startNewConversation = useCallback(() => {
-    // Lista vazia faz a saudação voltar sozinha, já no idioma atual.
     setMessages([]);
     setConversationId(null);
     setRecommendations([]);
     clearStoredConversationId();
     setInput("");
-    // Sem isto o menu ficaria aberto por cima dos atalhos que a conversa
-    // nova já mostra sozinha — dois blocos iguais na tela.
     setMenuAberto(false);
     setTimeout(() => textareaRef.current?.focus(), 100);
   }, []);
 
-  // ── Auto-resize textarea ─────────────────────────────────────────────────
   const handleInputChange = useCallback((value: string) => {
     setInput(value);
     if (textareaRef.current) {
@@ -252,13 +227,13 @@ export function AIConcierge() {
     }
   }, []);
 
-  // ── Send message ─────────────────────────────────────────────────────────
   const sendMessage = useCallback(
     async (messageText: string) => {
       if (!messageText.trim() || loading) return;
 
       const userMsg = messageText.trim();
       setInput("");
+      setRecommendations([]);
       if (textareaRef.current) textareaRef.current.style.height = "auto";
       setMessages((prev) => [...prev, { role: "user", content: userMsg }]);
       setLoading(true);
@@ -279,7 +254,7 @@ export function AIConcierge() {
         const data = await res.json();
 
         if (!data.success) {
-          // Error from our API
+          setRecommendations([]);
           setMessages((prev) => [
             ...prev,
             {
@@ -292,13 +267,11 @@ export function AIConcierge() {
           return;
         }
 
-        // Store conversation ID for session persistence
         if (data.conversationId) {
           setConversationId(data.conversationId);
           storeConversationId(data.conversationId);
         }
 
-        // Add assistant message
         setMessages((prev) => [
           ...prev,
           {
@@ -308,12 +281,10 @@ export function AIConcierge() {
           },
         ]);
 
-        // Update recommendations
-        if (data.recommendations?.length > 0) {
-          setRecommendations(data.recommendations);
-        }
+        setRecommendations(Array.isArray(data.recommendations) ? data.recommendations : []);
       } catch (err) {
         console.error("[Concierge] Network error:", err);
+        setRecommendations([]);
         setMessages((prev) => [
           ...prev,
           {
@@ -330,12 +301,9 @@ export function AIConcierge() {
     [loading, conversationId, sessionId, lang, t]
   );
 
-  // ── Retry ────────────────────────────────────────────────────────────────
   const handleRetry = useCallback(
     (failedMessage: string) => {
-      // Remove the error message
       setMessages((prev) => prev.filter((m) => m.failedMessage !== failedMessage || !m.isError));
-      // Also remove the user's message that failed
       setMessages((prev) => {
         const lastUserIdx = prev.map((m) => m.content).lastIndexOf(failedMessage);
         if (lastUserIdx >= 0) {
@@ -343,17 +311,14 @@ export function AIConcierge() {
         }
         return prev;
       });
-      // Re-send
       sendMessage(failedMessage);
     },
     [sendMessage]
   );
 
-  // ── WhatsApp handoff with context ────────────────────────────────────────
   const getWhatsAppUrl = useCallback(() => {
     if (messages.length <= 1) return buildWhatsAppUrl();
 
-    // Build context from recent conversation
     const recentMsgs = messages.slice(-4);
     const context = recentMsgs
       .filter((m) => m.role === "user")
@@ -370,7 +335,6 @@ export function AIConcierge() {
     return buildWhatsAppUrl(prefill);
   }, [messages, lang]);
 
-  // ── Keyboard handling ────────────────────────────────────────────────────
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
       if (e.key === "Enter" && !e.shiftKey) {
@@ -381,13 +345,10 @@ export function AIConcierge() {
     [sendMessage, input]
   );
 
-  // ── Has user sent at least one message? ──────────────────────────────────
   const hasConversation = messages.some((m) => m.role === "user");
 
-  // ── Render ────────────────────────────────────────────────────────────────
   return (
     <>
-      {/* ── Toggle button ─────────────────────────────────────────────── */}
       <motion.button
         id="ai-concierge-toggle"
         onClick={() => setIsOpen(!isOpen)}
@@ -401,11 +362,23 @@ export function AIConcierge() {
       >
         <AnimatePresence mode="wait">
           {isOpen ? (
-            <motion.div key="close" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.12 }}>
+            <motion.div
+              key="close"
+              initial={{ rotate: -90, opacity: 0 }}
+              animate={{ rotate: 0, opacity: 1 }}
+              exit={{ rotate: 90, opacity: 0 }}
+              transition={{ duration: 0.12 }}
+            >
               <X className="h-6 w-6" />
             </motion.div>
           ) : (
-            <motion.div key="open" initial={{ rotate: -90, opacity: 0 }} animate={{ rotate: 0, opacity: 1 }} exit={{ rotate: 90, opacity: 0 }} transition={{ duration: 0.12 }}>
+            <motion.div
+              key="open"
+              initial={{ rotate: -90, opacity: 0 }}
+              animate={{ rotate: 0, opacity: 1 }}
+              exit={{ rotate: 90, opacity: 0 }}
+              transition={{ duration: 0.12 }}
+            >
               <Sparkles className="h-6 w-6" />
             </motion.div>
           )}
@@ -418,7 +391,6 @@ export function AIConcierge() {
         )}
       </motion.button>
 
-      {/* ── Chat panel ────────────────────────────────────────────────── */}
       <AnimatePresence>
         {isOpen && (
           <motion.div
@@ -436,7 +408,6 @@ export function AIConcierge() {
               height: "min(600px, calc(100dvh - 120px))",
             }}
           >
-            {/* ── Header ──────────────────────────────────────────────── */}
             <div className="flex shrink-0 items-center gap-3 border-b border-border bg-gradient-to-r from-primary-700 to-primary-600 px-4 py-3">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/15">
                 <Sparkles className="h-4 w-4 text-secondary-300" />
@@ -446,7 +417,6 @@ export function AIConcierge() {
                 <p className="text-xs text-white/60">{t.subtitle}</p>
               </div>
 
-              {/* Lang toggle */}
               <button
                 onClick={() => setShowSettings((v) => !v)}
                 className="flex shrink-0 items-center gap-1 rounded-full bg-white/10 px-2 py-1 text-xs text-white/70 transition hover:bg-white/20"
@@ -455,7 +425,6 @@ export function AIConcierge() {
                 <ChevronDown className={`h-3 w-3 transition-transform ${showSettings ? "rotate-180" : ""}`} />
               </button>
 
-              {/* Reset */}
               <button
                 onClick={startNewConversation}
                 className="flex shrink-0 items-center justify-center rounded-full bg-white/10 p-1.5 text-white/70 transition hover:bg-white/20"
@@ -465,7 +434,6 @@ export function AIConcierge() {
               </button>
             </div>
 
-            {/* ── Language picker ──────────────────────────────────────── */}
             <AnimatePresence>
               {showSettings && (
                 <motion.div
@@ -479,7 +447,10 @@ export function AIConcierge() {
                     {(["pt", "en", "es"] as Lang[]).map((l) => (
                       <button
                         key={l}
-                        onClick={() => { setLang(l); setShowSettings(false); }}
+                        onClick={() => {
+                          setLang(l);
+                          setShowSettings(false);
+                        }}
                         className={`flex-1 rounded px-2 py-1.5 text-xs font-medium transition ${
                           lang === l
                             ? "bg-primary-700 text-white"
@@ -494,9 +465,6 @@ export function AIConcierge() {
               )}
             </AnimatePresence>
 
-            {/* Região viva: o leitor de tela anuncia a resposta quando ela
-                chega. Sem isto, a mensagem aparecia na tela e quem não vê
-                continuava esperando em silêncio, sem saber que já respondeu. */}
             <p className="sr-only" role="status" aria-live="polite" aria-atomic="true">
               {loading
                 ? t.thinking
@@ -505,7 +473,6 @@ export function AIConcierge() {
                 : ""}
             </p>
 
-            {/* ── Messages ────────────────────────────────────────────── */}
             <div className="flex-1 overflow-y-auto p-4">
               <div className="space-y-3">
                 {mensagensVisiveis.map((msg, i) => (
@@ -528,14 +495,9 @@ export function AIConcierge() {
                       {msg.isError && (
                         <AlertTriangle className="mb-1 inline-block h-3.5 w-3.5 text-amber-500" />
                       )}{" "}
-                      {/* Antes: {msg.content} cru. O endereço do WhatsApp que
-                          o Concierge escreve na resposta ficava como texto
-                          morto — no celular, isso encerra a conversa. Só vira
-                          link o que é da casa; ver lib/ai/links.ts. */}
                       <TextoComLinks texto={msg.content} numeroWhatsApp={WA_NUMBER} />
                     </div>
 
-                    {/* Error action buttons */}
                     {msg.isError && msg.failedMessage && (
                       <div className="mt-1.5 flex gap-2">
                         <button
@@ -560,7 +522,6 @@ export function AIConcierge() {
                   </motion.div>
                 ))}
 
-                {/* Loading */}
                 {loading && (
                   <div className="flex items-start justify-start">
                     <div className="rounded-2xl rounded-bl-md bg-warm-gray px-4 py-3">
@@ -576,15 +537,6 @@ export function AIConcierge() {
                   </div>
                 )}
 
-                {/* Atalhos.
-                    Antes só apareciam antes da primeira mensagem e sumiam para
-                    sempre. Quem entrava numa linha de conversa e queria voltar
-                    ao começo não tinha caminho: ou digitava do zero, ou
-                    apagava a conversa inteira em "Nova conversa" — que joga
-                    fora o que já foi dito.
-
-                    Agora o botão Menu no rodapé traz de volta, sem perder
-                    nada. */}
                 {(!hasConversation || menuAberto) && !loading && (
                   <div className="mt-2">
                     {menuAberto && hasConversation && (
@@ -609,30 +561,58 @@ export function AIConcierge() {
                   </div>
                 )}
 
-                {/* Recommendation cards */}
                 {recommendations.length > 0 && !loading && (
                   <div className="mt-2 space-y-2">
                     {recommendations.map((rec) => (
                       <a
-                        key={rec.id}
+                        key={`${rec.id}-${rec.slug}`}
                         href={rec.url}
-                        className="flex items-start gap-3 rounded-xl border border-border bg-white p-3 shadow-sm transition hover:border-secondary-400 hover:shadow"
+                        className="group flex min-h-[92px] overflow-hidden rounded-xl border border-border bg-white shadow-sm transition hover:-translate-y-0.5 hover:border-secondary-400 hover:shadow-md"
                       >
-                        <div className="min-w-0 flex-1">
-                          <p className="text-sm font-semibold text-text-primary leading-snug">{rec.title}</p>
-                          <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-text-muted">
+                        {rec.image ? (
+                          <div
+                            className="w-24 shrink-0 bg-cover bg-center"
+                            style={{ backgroundImage: `url("${rec.image.replace(/"/g, "%22")}")` }}
+                            aria-hidden="true"
+                          />
+                        ) : (
+                          <div className="flex w-24 shrink-0 items-center justify-center bg-secondary-50 text-secondary-500">
+                            <Sparkles className="h-5 w-5" />
+                          </div>
+                        )}
+
+                        <div className="min-w-0 flex-1 px-3 py-2.5">
+                          <div className="flex items-start gap-2">
+                            <p className="min-w-0 flex-1 text-sm font-semibold leading-snug text-text-primary">
+                              {rec.title}
+                            </p>
+                            <ExternalLink className="mt-0.5 h-3.5 w-3.5 shrink-0 text-text-muted/50 transition group-hover:text-secondary-600" />
+                          </div>
+
+                          {rec.summary && (
+                            <p className="mt-1 line-clamp-2 text-[11px] leading-snug text-text-muted">
+                              {rec.summary}
+                            </p>
+                          )}
+
+                          <div className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-[10px] text-text-muted">
                             {rec.destination && (
-                              <span className="flex items-center gap-0.5"><MapPin className="h-3 w-3" />{rec.destination}</span>
+                              <span className="flex items-center gap-0.5">
+                                <MapPin className="h-3 w-3" />
+                                {rec.destination}
+                              </span>
                             )}
                             {rec.duration && (
-                              <span className="flex items-center gap-0.5"><Clock className="h-3 w-3" />{rec.duration}</span>
+                              <span className="flex items-center gap-0.5">
+                                <Clock className="h-3 w-3" />
+                                {rec.duration}
+                              </span>
                             )}
                             {rec.publishedPrice && (
                               <span className="font-medium text-primary-700">{rec.publishedPrice}</span>
                             )}
                           </div>
                         </div>
-                        <ExternalLink className="mt-0.5 h-3.5 w-3.5 shrink-0 text-text-muted/50" />
                       </a>
                     ))}
                   </div>
@@ -642,12 +622,8 @@ export function AIConcierge() {
               </div>
             </div>
 
-            {/* ── Menu e WhatsApp ─────────────────────────────────────── */}
             <div className="shrink-0 border-t border-border bg-warm-gray/50 px-4 py-2">
               <div className="flex gap-2">
-                {/* Só aparece depois que a conversa começou: antes disso os
-                    atalhos já estão na tela, e um botão para mostrar o que
-                    está visível confunde. */}
                 {hasConversation && (
                   <button
                     type="button"
@@ -678,10 +654,12 @@ export function AIConcierge() {
               </div>
             </div>
 
-            {/* ── Input ───────────────────────────────────────────────── */}
             <div className="shrink-0 border-t border-border p-3">
               <form
-                onSubmit={(e) => { e.preventDefault(); sendMessage(input); }}
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  sendMessage(input);
+                }}
                 className="flex items-end gap-2"
               >
                 <textarea
