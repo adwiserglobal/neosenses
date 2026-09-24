@@ -81,11 +81,11 @@ export function ConciergeMonkLauncher() {
         />
 
         <img
-          src="/images/concierge-monk.gif"
+          src="/images/concierge-monk.gif?v=2"
           alt=""
           aria-hidden="true"
           draggable={false}
-          className="pointer-events-none relative z-10 h-[68px] w-[68px] select-none object-contain drop-shadow-[0_7px_9px_rgba(12,42,34,0.22)]"
+          className="pointer-events-none relative z-10 h-[72px] w-[72px] select-none object-contain drop-shadow-[0_7px_9px_rgba(12,42,34,0.22)]"
         />
 
         {open ? (
