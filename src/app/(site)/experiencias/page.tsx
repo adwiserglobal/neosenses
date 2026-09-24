@@ -1,9 +1,6 @@
 /**
  * Catálogo de experiências.
  *
- * Antes era um array fixo no arquivo: seis cards que não abriam nada e seis
- * botões de filtro sem comportamento.
- *
  * Os filtros são links, não botões com JavaScript. Assim cada combinação tem
  * URL própria — compartilhável, indexável e funcional antes de o JS carregar.
  */
@@ -14,6 +11,8 @@ import { listarExperiencias } from "@/lib/dal/experiences";
 import { listarCategorias } from "@/lib/dal/destinations";
 import { ExperienceCard } from "@/components/ui/Cards";
 import { MarrocosExperienceCard } from "@/components/experiences/MarrocosExperienceCard";
+import { MigratedExperienceCard } from "@/components/experiences/MigratedExperience";
+import { migratedExperiences } from "@/content/migratedExperiences";
 import { t } from "@/lib/utils";
 import type { I18nField } from "@/types/models";
 import { Capa } from "@/components/templates/base";
@@ -22,12 +21,10 @@ import { ConviteAoFacilitador } from "@/components/templates/funil";
 export const metadata: Metadata = {
   title: "Experiências Transformadoras",
   description:
-    "Retiros, jornadas espirituais, peregrinações e imersões. Encontre a experiência ideal para a sua jornada.",
+    "Retiros, jornadas espirituais, peregrinações e imersões. Encontre a experiência ideal para sua jornada.",
   alternates: { canonical: "/experiencias" },
 };
 
-// Conteúdo publicado muda pelo admin; revalidar de hora em hora evita
-// republicar o site a cada edição sem deixar a página desatualizada por dias.
 export const revalidate = 3600;
 
 const POR_PAGINA = 12;
@@ -45,11 +42,17 @@ export default async function ExperienciasPage({ searchParams }: Props) {
     listarCategorias(),
   ]);
 
-  // A landing de Marrocos ainda é independente do CMS principal. Ela aparece
-  // só na visão geral, sem interferir em filtros que dependem de category_id e
-  // destination_id do Supabase.
-  const exibirMarrocos = !categoria && !destino && paginaAtual === 1;
-  const totalExibido = total + (exibirMarrocos ? 1 : 0);
+  // Marrocos e os cinco roteiros migrados ainda não vivem no CMS atual.
+  // Eles entram apenas na visão geral; filtros continuam representando
+  // exclusivamente o catálogo estruturado do Supabase.
+  const exibirEstaticas = !categoria && !destino && paginaAtual === 1;
+  const slugsMigrados = new Set(migratedExperiences.map((experience) => experience.slug));
+  const itensVisiveis = exibirEstaticas
+    ? itens.filter((experience) => !slugsMigrados.has(t(experience.slug as I18nField, "pt")))
+    : itens;
+  const duplicadosRemovidos = itens.length - itensVisiveis.length;
+  const totalExibido =
+    total + (exibirEstaticas ? 1 + migratedExperiences.length - duplicadosRemovidos : 0);
 
   /** Preserva os demais filtros ao montar cada link. */
   const url = (mudanca: Record<string, string | undefined>) => {
@@ -74,7 +77,6 @@ export default async function ExperienciasPage({ searchParams }: Props) {
         alinhamento="centro"
       />
 
-      {/* Filtros */}
       {categorias.length > 0 && (
         <section className="border-b border-border bg-surface py-6">
           <nav className="container-wide flex flex-wrap items-center gap-3" aria-label="Filtrar por categoria">
@@ -109,7 +111,7 @@ export default async function ExperienciasPage({ searchParams }: Props) {
 
       <section className="py-16 md:py-24">
         <div className="container-wide">
-          {itens.length === 0 && !exibirMarrocos ? (
+          {itensVisiveis.length === 0 && !exibirEstaticas ? (
             <div className="mx-auto max-w-lg rounded-2xl border border-border bg-surface p-12 text-center">
               <h2 className="mb-2 font-heading text-xl text-primary-700">
                 {categoria || destino
@@ -149,12 +151,20 @@ export default async function ExperienciasPage({ searchParams }: Props) {
               </p>
 
               <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-                {exibirMarrocos && <MarrocosExperienceCard index={0} />}
-                {itens.map((exp, i) => (
+                {exibirEstaticas && <MarrocosExperienceCard index={0} />}
+                {exibirEstaticas &&
+                  migratedExperiences.map((experience, index) => (
+                    <MigratedExperienceCard
+                      key={experience.slug}
+                      experience={experience}
+                      index={index + 1}
+                    />
+                  ))}
+                {itensVisiveis.map((exp, i) => (
                   <ExperienceCard
                     key={exp.id}
                     experience={exp}
-                    index={i + (exibirMarrocos ? 1 : 0)}
+                    index={i + (exibirEstaticas ? migratedExperiences.length + 1 : 0)}
                   />
                 ))}
               </div>
@@ -187,11 +197,7 @@ export default async function ExperienciasPage({ searchParams }: Props) {
         </div>
       </section>
 
-      {/* A ponte para o funil de facilitador, no fim da leitura. Quem conduz
-          grupo costuma chegar por aqui — pesquisando como cliente e pensando
-          como facilitador — e a listagem era a única página de viajante sem
-          essa porta. */}
-      <ConviteAoFacilitador imagem={itens[0]?.hero_image ?? null} />
+      <ConviteAoFacilitador imagem={itensVisiveis[0]?.hero_image ?? migratedExperiences[0]?.hero ?? null} />
     </>
   );
 }
