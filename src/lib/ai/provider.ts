@@ -1,13 +1,8 @@
 /**
  * Camada de acesso aos provedores de IA.
  *
- * Provedor e modelo vêm do ambiente:
- *   AI_PROVIDER  — "openrouter" | "gemini" | "openai" | "anthropic"
- *   AI_MODEL     — vazio = escolhe um padrão por provedor
- *   OPENROUTER_API_KEY / GOOGLE_GENERATIVE_AI_API_KEY /
- *   OPENAI_API_KEY / ANTHROPIC_API_KEY
- *
- * Nada aqui roda no navegador. A chave nunca sai do servidor.
+ * Funciona em Node/Next e também em runtimes Netlify que expõem secrets por
+ * `Netlify.env.get()`. A chave nunca é enviada ao navegador.
  */
 
 export interface ChatMessage {
@@ -60,7 +55,33 @@ export class AIError extends Error {
   }
 }
 
-const DEFAULT_TIMEOUT_MS = Number(process.env.AI_TIMEOUT_MS ?? 45_000);
+type NetlifyGlobal = {
+  Netlify?: {
+    env?: {
+      get?: (name: string) => string | undefined;
+    };
+  };
+};
+
+/**
+ * Netlify Functions/Next normalmente expõem `process.env`, mas secrets e
+ * Edge runtimes podem expor valores por `Netlify.env.get()`. Usar os dois
+ * evita o caso em que a secret existe no painel e o servidor não a enxerga.
+ */
+function lerEnv(nome: string): string | undefined {
+  const peloProcesso = typeof process !== "undefined" ? process.env[nome] : undefined;
+  if (peloProcesso && peloProcesso.trim()) return peloProcesso;
+
+  try {
+    const netlify = (globalThis as typeof globalThis & NetlifyGlobal).Netlify;
+    const valor = netlify?.env?.get?.(nome);
+    return valor && valor.trim() ? valor : undefined;
+  } catch {
+    return undefined;
+  }
+}
+
+const DEFAULT_TIMEOUT_MS = Number(lerEnv("AI_TIMEOUT_MS") ?? 45_000);
 const DEFAULT_MAX_TOKENS = 2048;
 const DEFAULT_TEMPERATURE = 0.7;
 
@@ -78,14 +99,14 @@ function ehPlaceholder(key: string | undefined): key is undefined {
 }
 
 export function detectAIConfig(): AIProviderConfig | null {
-  const explicito = process.env.AI_PROVIDER?.trim().toLowerCase();
-  const modelo = process.env.AI_MODEL?.trim() || "";
+  const explicito = lerEnv("AI_PROVIDER")?.trim().toLowerCase();
+  const modelo = lerEnv("AI_MODEL")?.trim() || "";
 
   const chaves = {
-    openrouter: process.env.OPENROUTER_API_KEY,
-    gemini: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
-    openai: process.env.OPENAI_API_KEY || process.env.AI_API_KEY,
-    anthropic: process.env.ANTHROPIC_API_KEY,
+    openrouter: lerEnv("OPENROUTER_API_KEY"),
+    gemini: lerEnv("GOOGLE_GENERATIVE_AI_API_KEY"),
+    openai: lerEnv("OPENAI_API_KEY") || lerEnv("AI_API_KEY"),
+    anthropic: lerEnv("ANTHROPIC_API_KEY"),
   } as const;
 
   const montar = (p: keyof typeof chaves): AIProviderConfig | null => {
@@ -99,8 +120,7 @@ export function detectAIConfig(): AIProviderConfig | null {
   if (explicito === "openai") return montar("openai");
   if (explicito === "anthropic" || explicito === "claude") return montar("anthropic");
 
-  // OpenRouter vem primeiro de propósito: ao configurar a chave, o Concierge
-  // passa a usá-lo sem apagar as chaves antigas de fallback.
+  // Se não houver AI_PROVIDER explícito, OpenRouter é a primeira opção.
   return montar("openrouter") || montar("gemini") || montar("openai") || montar("anthropic");
 }
 
@@ -116,7 +136,7 @@ export function validateAIConfig(): {
       valid: false,
       error:
         "Nenhum provedor de IA configurado. Defina OPENROUTER_API_KEY, " +
-        "GOOGLE_GENERATIVE_AI_API_KEY, OPENAI_API_KEY ou ANTHROPIC_API_KEY em .env.local",
+        "GOOGLE_GENERATIVE_AI_API_KEY, OPENAI_API_KEY ou ANTHROPIC_API_KEY.",
     };
   }
   return {
@@ -172,7 +192,7 @@ async function descobrirModeloGemini(apiKey: string): Promise<string> {
         .filter((n: string) => !GEMINI_INADEQUADO.test(n));
     }
   } catch {
-    // Cai no fallback estável abaixo.
+    // Cai no fallback conhecido abaixo.
   }
 
   const ordenar = (a: ModeloGemini, b: ModeloGemini) =>
@@ -207,9 +227,9 @@ async function resolverModelo(cfg: AIProviderConfig): Promise<string> {
 
   switch (cfg.provider) {
     case "openrouter":
-      // Router oficial gratuito: escolhe entre os modelos free disponíveis e
-      // filtra por recursos exigidos pela requisição.
-      return "openrouter/free";
+      // Modelo gratuito fixo e estável. Evita a variabilidade do router free
+      // como modelo primário; fallbacks continuam sendo aplicados abaixo.
+      return "google/gemma-4-31b-it:free";
     case "gemini":
       return descobrirModeloGemini(cfg.apiKey);
     case "openai":
@@ -228,7 +248,13 @@ function classificarErro(err: unknown, status?: number, corpo?: string): AIError
   if (err instanceof Error && (err.name === "TimeoutError" || err.name === "AbortError")) {
     return new AIError("AI_TIMEOUT", msg);
   }
-  if (status === 401 || status === 403 || texto.includes("api key") || texto.includes("unauthorized")) {
+  if (
+    status === 401 ||
+    status === 403 ||
+    texto.includes("api key") ||
+    texto.includes("unauthorized") ||
+    texto.includes("invalid key")
+  ) {
     return new AIError("AI_AUTH_FAILURE", corpo || msg);
   }
   if (
@@ -285,10 +311,27 @@ export async function generateAIResponse(
 
 async function lerCorpoErro(res: Response): Promise<string> {
   try {
-    return (await res.text()).slice(0, 500);
+    return (await res.text()).slice(0, 1000);
   } catch {
     return "";
   }
+}
+
+function extrairConteudoChat(content: unknown): string {
+  if (typeof content === "string") return content.trim();
+  if (!Array.isArray(content)) return "";
+
+  return content
+    .map((parte) => {
+      if (typeof parte === "string") return parte;
+      if (!parte || typeof parte !== "object") return "";
+      const p = parte as { text?: unknown; content?: unknown };
+      if (typeof p.text === "string") return p.text;
+      if (typeof p.content === "string") return p.content;
+      return "";
+    })
+    .join("")
+    .trim();
 }
 
 async function chamarGemini(
@@ -369,13 +412,32 @@ async function chamarGemini(
   };
 }
 
+function modelosOpenRouter(cfg: AIProviderConfig, json: boolean): string[] {
+  const preferido =
+    !cfg.model || cfg.model === "openrouter/free"
+      ? "google/gemma-4-31b-it:free"
+      : cfg.model;
+
+  const candidatos = json
+    ? [preferido, "google/gemma-4-31b-it:free", "openrouter/free"]
+    : [
+        preferido,
+        "google/gemma-4-31b-it:free",
+        "nvidia/nemotron-3-ultra-550b-a55b:free",
+        "openrouter/free",
+      ];
+
+  return [...new Set(candidatos)];
+}
+
 async function chamarOpenRouter(
   messages: ChatMessage[],
   cfg: AIProviderConfig,
   opts: GenerateOptions,
   inicio: number
 ): Promise<AIResponse> {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.neosenses.com.br";
+  const siteUrl = lerEnv("NEXT_PUBLIC_SITE_URL") || "https://www.neosenses.com.br";
+  const models = modelosOpenRouter(cfg, Boolean(opts.json));
 
   const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
@@ -383,32 +445,42 @@ async function chamarOpenRouter(
       "Content-Type": "application/json",
       Authorization: `Bearer ${cfg.apiKey}`,
       "HTTP-Referer": siteUrl,
-      "X-Title": "NeoSenses Concierge",
+      "X-OpenRouter-Title": "NeoSenses Concierge",
     },
     body: JSON.stringify({
-      model: cfg.model,
+      // O OpenRouter tenta a lista em ordem quando um modelo está fora do ar,
+      // rate-limited ou recusa a requisição.
+      models,
       messages,
       max_tokens: opts.maxTokens ?? DEFAULT_MAX_TOKENS,
       temperature: opts.temperature ?? DEFAULT_TEMPERATURE,
+      provider: { allow_fallbacks: true },
       ...(opts.json ? { response_format: { type: "json_object" } } : {}),
     }),
     signal: AbortSignal.timeout(opts.timeoutMs ?? DEFAULT_TIMEOUT_MS),
   });
 
-  if (!res.ok) throw classificarErro(null, res.status, await lerCorpoErro(res));
+  if (!res.ok) {
+    const corpo = await lerCorpoErro(res);
+    console.error(`[openrouter] HTTP ${res.status}: ${corpo}`);
+    throw classificarErro(null, res.status, corpo);
+  }
 
   const data = await res.json();
   const escolha = data.choices?.[0];
-  const content = escolha?.message?.content?.trim() ?? "";
+  const content = extrairConteudoChat(escolha?.message?.content);
 
   if (!content) {
-    throw new AIError("AI_EMPTY_RESPONSE", `finish_reason=${escolha?.finish_reason ?? "?"}`);
+    throw new AIError(
+      "AI_EMPTY_RESPONSE",
+      `model=${data.model ?? models[0]}; finish_reason=${escolha?.finish_reason ?? "?"}`
+    );
   }
 
   return {
     content,
     provider: "openrouter",
-    model: data.model || cfg.model,
+    model: data.model || models[0],
     tokensUsed: data.usage?.total_tokens,
     responseTimeMs: Date.now() - inicio,
     finishReason: escolha?.finish_reason,
@@ -441,7 +513,7 @@ async function chamarOpenAI(
 
   const data = await res.json();
   const escolha = data.choices?.[0];
-  const content = escolha?.message?.content?.trim() ?? "";
+  const content = extrairConteudoChat(escolha?.message?.content);
 
   if (!content) {
     throw new AIError("AI_EMPTY_RESPONSE", `finish_reason=${escolha?.finish_reason ?? "?"}`);
