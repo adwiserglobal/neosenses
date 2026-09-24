@@ -115,6 +115,8 @@ export async function POST(request: NextRequest) {
     // ── Catálogo ───────────────────────────────────────────────────────────
     const leitura = conectarLeitura();
     const hoje = new Date().toISOString().slice(0, 10);
+    // O formato vem de um select com relações aninhadas do PostgREST.
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let brutas: any[] = [];
 
     if (leitura) {
