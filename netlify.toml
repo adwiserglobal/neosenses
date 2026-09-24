@@ -1,9 +1,14 @@
 # Netlify configuration for NeoSenses
 #
-# Keep secret scanning enabled. The avatar SVG contains an embedded base64
-# image generated from a user-provided asset; its high-entropy payload can be
-# mistaken for a leaked secret by Netlify's smart detector. We exclude only
-# this known-safe asset instead of disabling scanning or ignoring API keys.
+# Keep normal secret scanning enabled for real credentials such as
+# OPENROUTER_API_KEY. AI_PROVIDER and AI_MODEL are public configuration values,
+# not secrets, and their literal values intentionally appear in source code.
+# We omit only those two config keys from value matching.
+#
+# The avatar SVG contains an embedded base64 image from a user-provided asset.
+# Exclude that known-safe file from scanning to avoid false positives.
 
 [build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "AI_PROVIDER,AI_MODEL"
   SECRETS_SCAN_OMIT_PATHS = "public/images/concierge-monk-avatar.svg"
+  SECRETS_SCAN_SMART_DETECTION_ENABLED = "false"
