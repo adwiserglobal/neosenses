@@ -4,12 +4,9 @@
  * Fluxo: valida → limita → busca contexto → chama a IA → grava → responde.
  *
  * Tudo roda no servidor. A chave da IA e a service_role nunca chegam ao
- * navegador, e a gravação usa service_role justamente porque a chave pública
- * não escreve nada (ver supabase/README.md).
- *
- * Princípio de degradação: falha de banco não impede o visitante de receber
- * resposta. Perder a gravação de uma conversa é ruim; deixar quem está na
- * tela sem resposta é pior.
+ * navegador. Falha do banco não impede o visitante de ser atendido: além do
+ * Supabase, o Concierge conhece o conteúdo confirmado que já está publicado
+ * nas páginas do próprio site.
  */
 
 import { NextRequest, NextResponse } from "next/server";
@@ -23,13 +20,13 @@ import {
   type ChatMessage,
 } from "@/lib/ai/provider";
 import { retrieveNeoSensesContext, formatContextForPrompt } from "@/lib/ai/retrieval";
+import { buildSiteKnowledgeContext } from "@/lib/ai/siteKnowledge";
 import { buildConciergeSystemPrompt } from "@/lib/ai/prompt";
 import { verificarResposta, respostaSegura } from "@/lib/ai/guardas";
 import { identificar, verificarLimite, LIMITE_CHAT } from "@/lib/limite";
 
 export const dynamic = "force-dynamic";
 
-// ── Estado da configuração, avaliado uma vez ───────────────────────────────
 const statusIA = validateAIConfig();
 if (statusIA.valid) {
   console.log(`[concierge] IA pronta: ${statusIA.provider} / ${statusIA.model}`);
@@ -45,24 +42,17 @@ function conectarSupabase() {
 
   if (!url) return null;
 
-  // Sem a service_role o RLS bloqueia toda escrita e nada é gravado. O
-  // visitante continua sendo atendido; o aviso fica no log para quem opera.
   const chave = secreta && secreta.length > 10 ? secreta : publica;
   if (!chave) return null;
   if (!secreta) {
     console.warn(
-      "[concierge] SUPABASE_SERVICE_ROLE_KEY ausente — a conversa não será gravada (RLS bloqueia escrita anônima)"
+      "[concierge] SUPABASE_SERVICE_ROLE_KEY ausente — a conversa não será gravada (RLS pode bloquear escrita anônima)"
     );
   }
 
   return createClient<Database>(url, chave, { auth: { persistSession: false } });
 }
 
-// ── Limite de uso ──────────────────────────────────────────────────────────
-// A chave é o IP, não a sessão. Ver src/lib/limite.ts: incluir o sessionId
-// permitia furar o limite trocando o identificador a cada requisição.
-
-// ── Validação ──────────────────────────────────────────────────────────────
 const RE_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_CARACTERES = 1500;
 const MAX_HISTORICO = 16;
@@ -72,13 +62,6 @@ function normalizarIdioma(valor: unknown): "pt" | "en" | "es" {
   return curto === "en" || curto === "es" ? curto : "pt";
 }
 
-/**
- * Remove caracteres de controle, preservando tab e quebra de linha.
- *
- * Feito por code point, e não por regex: a classe de caracteres com
- * escapes literais é ilegível na revisão e qualquer ferramenta que
- * reprocesse o arquivo pode corrompê-la sem que o tipo acuse nada.
- */
 function limpar(texto: string): string {
   let saida = "";
   for (const ch of texto) {
@@ -90,7 +73,6 @@ function limpar(texto: string): string {
   return saida.trim();
 }
 
-// ── Mensagens ao visitante ─────────────────────────────────────────────────
 const MENSAGENS: Record<string, Record<string, string>> = {
   AI_PROVIDER_NOT_CONFIGURED: {
     pt: "O Concierge ainda está sendo configurado. Fale com nossa equipe pelo WhatsApp que respondemos na hora.",
@@ -137,15 +119,9 @@ function respostaDeErro(idioma: string, codigo: string, status = 500) {
   );
 }
 
-// ── Identificação de contato ───────────────────────────────────────────────
-/**
- * Extrai contato do que a pessoa escreveu espontaneamente. Não é enriquecimento
- * de dado: só reconhece o que ela mesma digitou para ser contatada.
- */
 function extrairContato(textos: string[]) {
   const texto = textos.join("\n");
   const email = texto.match(/[\w.+-]+@[\w-]+\.[\w.]{2,}/)?.[0];
-  // Exige DDD para não capturar ano, CEP ou número de voo.
   const telefone = texto.match(/(?:\+?55[\s-]?)?\(?\d{2}\)?[\s-]?9?\d{4}[\s-]?\d{4}/)?.[0];
   const nome = texto.match(
     /(?:me chamo|meu nome (?:é|e)|sou o|sou a|my name is|i am|me llamo|soy)\s+([A-ZÀ-ÖØ-Þ][a-zà-öø-ÿ]{1,20}(?:\s+[A-ZÀ-ÖØ-Þ][a-zà-öø-ÿ]{1,20}){0,2})/i
@@ -153,7 +129,6 @@ function extrairContato(textos: string[]) {
   return { nome, email, telefone };
 }
 
-// ── Handler ────────────────────────────────────────────────────────────────
 export async function POST(request: NextRequest) {
   const inicio = Date.now();
   let idioma: "pt" | "en" | "es" = "pt";
@@ -192,8 +167,6 @@ export async function POST(request: NextRequest) {
       typeof corpo.conversationId === "string" && RE_UUID.test(corpo.conversationId)
         ? corpo.conversationId
         : undefined;
-    // ID malformado é ignorado em silêncio: começa uma conversa nova em vez
-    // de devolver erro para quem só está com sessionStorage antigo.
 
     const paginaOrigem = limpar(String(corpo.sourcePage ?? "/")).slice(0, 200);
 
@@ -247,22 +220,33 @@ export async function POST(request: NextRequest) {
         .eq("conversation_id", convId)
         .order("created_at", { ascending: false })
         .limit(MAX_HISTORICO);
-      // Busca em ordem decrescente para pegar as mais recentes numa conversa
-      // longa, e reinverte — ordem crescente com limite traria o começo.
       historico = (data ?? []).reverse();
     }
 
     // ── Contexto ───────────────────────────────────────────────────────────
-    let blocoContexto = "";
+    // O conhecimento do próprio site existe independentemente do Supabase.
+    // Assim, um deploy sem variáveis do banco ainda conhece as jornadas que o
+    // visitante consegue abrir nas páginas públicas.
+    const contextoSite = buildSiteKnowledgeContext(mensagem, paginaOrigem);
+    let blocoContexto = contextoSite;
     let experienciasRecomendadas: Awaited<ReturnType<typeof retrieveNeoSensesContext>>["experiences"] = [];
 
     if (supabase) {
       try {
         const contexto = await retrieveNeoSensesContext(supabase, mensagem, idioma, paginaOrigem);
-        blocoContexto = formatContextForPrompt(contexto, idioma);
+        const contextoBanco = formatContextForPrompt(contexto, idioma);
         experienciasRecomendadas = contexto.experiences.slice(0, 3);
+
+        // Se o banco não devolveu catálogo, não deixe a frase "nenhuma
+        // experiência" contradizer páginas que estão publicadas no próprio
+        // site. Caso haja dados no banco, usamos as duas fontes: o banco traz
+        // datas/vagas e as páginas trazem roteiro e narrativa detalhada.
+        blocoContexto = contexto.catalogoVazio && contextoSite
+          ? contextoSite
+          : [contextoBanco, contextoSite].filter(Boolean).join("\n\n");
       } catch (err) {
         console.error("[concierge] busca de contexto:", err instanceof Error ? err.message : err);
+        blocoContexto = contextoSite;
       }
     }
 
@@ -270,8 +254,6 @@ export async function POST(request: NextRequest) {
     const whatsapp = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "5511947188319";
     const promptSistema = buildConciergeSystemPrompt(idioma, blocoContexto, whatsapp);
 
-    // A última mensagem do histórico é a que acabou de ser gravada; ela entra
-    // separadamente para garantir que o turno termine no visitante.
     const anteriores = historico
       .filter((m) => m.role === "user" || m.role === "assistant")
       .slice(0, -1);
@@ -288,10 +270,6 @@ export async function POST(request: NextRequest) {
       thinking: "low",
     });
 
-    // ── Guarda de saída ────────────────────────────────────────────────────
-    // Última barreira antes de a resposta chegar ao visitante. O modelo só
-    // recebe contexto público, mas instrução no prompt é orientação, não
-    // garantia: aqui se verifica o que ele de fato escreveu.
     const guarda = verificarResposta(resposta.content);
     let conteudoFinal = resposta.content;
 
@@ -346,10 +324,6 @@ export async function POST(request: NextRequest) {
 
     // ── Contato ────────────────────────────────────────────────────────────
     if (supabase && convId) {
-      // Lê a conversa inteira, não a janela de contexto. O nome costuma
-      // aparecer nas primeiras mensagens e o telefone lá na frente; com a
-      // janela de 16, a apresentação já saiu do alcance quando o telefone
-      // chega, e o contato ficava pela metade.
       const { data: tudo } = await supabase
         .from("messages")
         .select("content")
@@ -361,12 +335,6 @@ export async function POST(request: NextRequest) {
       const contato = extrairContato([...(tudo ?? []).map((m) => m.content), mensagem]);
 
       if (contato.email || contato.telefone) {
-        // Só os campos encontrados entram no upsert.
-        //
-        // Mandar `campo: null` fazia o PostgREST gerar
-        // `DO UPDATE SET email = excluded.email`, e o null sobrescrevia o que
-        // já estava gravado: quem se apresentava no começo e passava o
-        // telefone depois tinha nome e e-mail apagados na segunda passada.
         const registro: Record<string, unknown> = {
           conversation_id: convId,
           language: idioma,
@@ -415,7 +383,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (err) {
     if (err instanceof AIError) {
-      // O detalhe técnico fica no log; o visitante recebe texto humano.
       console.error(`[concierge] ${err.code}: ${err.detail ?? ""}`);
       const status = err.code === "AI_RATE_LIMIT" ? 429 : err.code === "AI_TIMEOUT" ? 504 : 502;
       return respostaDeErro(idioma, err.code, status);
