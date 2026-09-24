@@ -16,6 +16,7 @@ import { Header } from "@/components/layout/Header";
 import { Footer } from "@/components/layout/Footer";
 import { WhatsAppButton } from "@/components/ui/WhatsAppButton";
 import { AIConcierge } from "@/components/ui/AIConcierge";
+import { ConciergeMonkLauncher } from "@/components/ui/ConciergeMonkLauncher";
 import { listarCategoriasEmArvore } from "@/lib/dal/destinations";
 import { t } from "@/lib/utils";
 import type { I18nField } from "@/types/models";
@@ -60,6 +61,7 @@ export default async function SiteLayout({ children }: { children: React.ReactNo
       </div>
       <WhatsAppButton />
       <AIConcierge />
+      <ConciergeMonkLauncher />
     </>
   );
 }
