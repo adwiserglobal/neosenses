@@ -2,14 +2,14 @@
  * Camada de acesso aos provedores de IA.
  *
  * Provedor e modelo vêm do ambiente:
- *   AI_PROVIDER  — "gemini" | "openai" | "anthropic" (vazio = detecta pela chave)
- *   AI_MODEL     — vazio = escolhe sozinho o melhor modelo disponível na conta
- *   GOOGLE_GENERATIVE_AI_API_KEY / OPENAI_API_KEY / ANTHROPIC_API_KEY
+ *   AI_PROVIDER  — "openrouter" | "gemini" | "openai" | "anthropic"
+ *   AI_MODEL     — vazio = escolhe um padrão por provedor
+ *   OPENROUTER_API_KEY / GOOGLE_GENERATIVE_AI_API_KEY /
+ *   OPENAI_API_KEY / ANTHROPIC_API_KEY
  *
  * Nada aqui roda no navegador. A chave nunca sai do servidor.
  */
 
-// ── Tipos ──────────────────────────────────────────────────────────────────
 export interface ChatMessage {
   role: "system" | "user" | "assistant";
   content: string;
@@ -21,13 +21,11 @@ export interface AIResponse {
   model: string;
   tokensUsed?: number;
   responseTimeMs: number;
-  /** Motivo do fim da geração. "length" indica resposta cortada por limite. */
   finishReason?: string;
 }
 
 export interface AIProviderConfig {
-  provider: "gemini" | "openai" | "anthropic";
-  /** Vazio quando o modelo ainda será descoberto na primeira chamada. */
+  provider: "openrouter" | "gemini" | "openai" | "anthropic";
   model: string;
   apiKey: string;
 }
@@ -36,24 +34,10 @@ export interface GenerateOptions {
   maxTokens?: number;
   temperature?: number;
   timeoutMs?: number;
-  /** Pede resposta em JSON. Usado pelo Journey Builder e pelo Packing. */
   json?: boolean;
-  /**
-   * Esforço de raciocínio interno (Gemini 3+).
-   *
-   * Esse raciocínio é cobrado como token de saída e sai do mesmo orçamento
-   * do maxTokens: medido em gemini-3.6-flash, ~110 tokens são gastos antes
-   * da primeira letra da resposta. "low" reduz latência e custo e serve para
-   * conversa; deixe no padrão do modelo quando a tarefa exigir planejamento,
-   * como montar um roteiro de 10 dias.
-   *
-   * Modelo que não conheça o parâmetro responde HTTP 400 — nesse caso a
-   * chamada é repetida sem ele automaticamente.
-   */
   thinking?: "low" | "medium" | "high";
 }
 
-/** Erros que a aplicação sabe traduzir para o visitante. */
 export type AIErrorCode =
   | "AI_PROVIDER_NOT_CONFIGURED"
   | "AI_AUTH_FAILURE"
@@ -66,7 +50,6 @@ export type AIErrorCode =
 
 export class AIError extends Error {
   readonly code: AIErrorCode;
-  /** Detalhe técnico — vai para o log, nunca para o visitante. */
   readonly detail?: string;
 
   constructor(code: AIErrorCode, detail?: string) {
@@ -77,34 +60,10 @@ export class AIError extends Error {
   }
 }
 
-/**
- * Tempo máximo de espera pelo provedor.
- *
- * Medido em gemini-3.5-flash: pergunta comum responde em 1,4 a 4,5 s, mas
- * pedido de resposta detalhada passa de 25 s e era abortado — o visitante
- * recebia "a resposta demorou mais que o esperado" numa chamada que teria
- * dado certo.
- *
- * Atenção ao publicar: a hospedagem impõe o seu próprio limite por requisição
- * (na Vercel, 10 s no plano gratuito). Um valor aqui maior que o da
- * hospedagem não adianta nada — quem corta é ela.
- */
 const DEFAULT_TIMEOUT_MS = Number(process.env.AI_TIMEOUT_MS ?? 45_000);
-/**
- * Orçamento de saída folgado de propósito. Nos modelos com raciocínio
- * interno ele sai deste mesmo total, e um valor apertado devolve resposta
- * vazia com finishReason=MAX_TOKENS — falha silenciosa, difícil de ligar à
- * causa. O tamanho da resposta é controlado pelo prompt, não por aqui.
- */
 const DEFAULT_MAX_TOKENS = 2048;
 const DEFAULT_TEMPERATURE = 0.7;
 
-// ── Detecção de configuração ───────────────────────────────────────────────
-
-/**
- * Chave de placeholder é pior que chave ausente: passa na validação e falha
- * só na chamada, quando o visitante já está esperando resposta.
- */
 function ehPlaceholder(key: string | undefined): key is undefined {
   if (!key) return true;
   const k = key.trim();
@@ -123,6 +82,7 @@ export function detectAIConfig(): AIProviderConfig | null {
   const modelo = process.env.AI_MODEL?.trim() || "";
 
   const chaves = {
+    openrouter: process.env.OPENROUTER_API_KEY,
     gemini: process.env.GOOGLE_GENERATIVE_AI_API_KEY,
     openai: process.env.OPENAI_API_KEY || process.env.AI_API_KEY,
     anthropic: process.env.ANTHROPIC_API_KEY,
@@ -134,13 +94,14 @@ export function detectAIConfig(): AIProviderConfig | null {
     return { provider: p, model: modelo, apiKey: key.trim() };
   };
 
-  // Provedor declarado no ambiente tem precedência.
+  if (explicito === "openrouter" || explicito === "router") return montar("openrouter");
   if (explicito === "gemini" || explicito === "google") return montar("gemini");
   if (explicito === "openai") return montar("openai");
   if (explicito === "anthropic" || explicito === "claude") return montar("anthropic");
 
-  // Sem declaração: usa a primeira chave válida.
-  return montar("gemini") || montar("openai") || montar("anthropic");
+  // OpenRouter vem primeiro de propósito: ao configurar a chave, o Concierge
+  // passa a usá-lo sem apagar as chaves antigas de fallback.
+  return montar("openrouter") || montar("gemini") || montar("openai") || montar("anthropic");
 }
 
 export function validateAIConfig(): {
@@ -154,68 +115,35 @@ export function validateAIConfig(): {
     return {
       valid: false,
       error:
-        "Nenhum provedor de IA configurado. Defina GOOGLE_GENERATIVE_AI_API_KEY, " +
-        "OPENAI_API_KEY ou ANTHROPIC_API_KEY em .env.local",
+        "Nenhum provedor de IA configurado. Defina OPENROUTER_API_KEY, " +
+        "GOOGLE_GENERATIVE_AI_API_KEY, OPENAI_API_KEY ou ANTHROPIC_API_KEY em .env.local",
     };
   }
   return {
     valid: true,
     provider: cfg.provider,
-    model: cfg.model || "(descoberto na primeira chamada)",
+    model: cfg.model || "(padrão do provedor)",
   };
 }
 
-// ── Descoberta de modelo ───────────────────────────────────────────────────
-
-/**
- * Cache do modelo resolvido por provedor.
- *
- * Fixar o nome do modelo no código envelhece mal: o provedor lança versão
- * nova e aposenta a antiga sem avisar, e o chat quebra em produção. Aqui a
- * lista real da conta é consultada uma vez e a melhor opção fica em cache
- * pelo tempo do processo.
- */
 const modeloResolvido = new Map<string, { model: string; expiraEm: number }>();
-const CACHE_MODELO_MS = 60 * 60 * 1000; // 1 hora
+const CACHE_MODELO_MS = 60 * 60 * 1000;
 
-/**
- * Descarta o modelo em cache e força nova descoberta na próxima chamada.
- * Útil quando o provedor publica um modelo melhor e não se quer reiniciar o
- * servidor para passar a usá-lo.
- */
 export function limparCacheDeModelo(provider?: string): void {
   if (provider) modeloResolvido.delete(provider);
   else modeloResolvido.clear();
 }
 
-/**
- * Modelos que não servem para conversa de texto, ou que mudam sem aviso.
- *
- * A conta traz dezenas de variantes na mesma família — imagem, áudio,
- * embedding, preview. Escolher um deles por engano quebra o chat de um jeito
- * difícil de diagnosticar: o modelo existe, a chave é válida, e mesmo assim
- * a resposta não vem em texto.
- */
 const GEMINI_INADEQUADO =
   /(-image|-tts|-audio|-embedding|-customtools|-exp\b|thinking|aqa|learnlm|imagen|veo)/;
-
-/** Preview e experimental somem sem aviso; só entram se não sobrar nada. */
 const GEMINI_INSTAVEL = /(-preview|-latest|-\d{3,})/;
 
 interface ModeloGemini {
   nome: string;
-  versao: number;   // 3.6 → 3.6
-  familia: number;  // maior = preferido
+  versao: number;
+  familia: number;
 }
 
-/**
- * Preferência: flash > pro > flash-lite.
- *
- * Flash na frente de propósito. O Concierge é conversa curta com o visitante
- * esperando na tela: latência e custo pesam mais que a capacidade extra do
- * pro, que rende em tarefa longa de raciocínio. Para fixar outro,
- * use AI_MODEL.
- */
 function classificarGemini(nome: string): ModeloGemini | null {
   const m = nome.match(/^gemini-(\d+(?:\.\d+)?)-(pro|flash)(-lite)?$/);
   if (!m) return null;
@@ -244,7 +172,7 @@ async function descobrirModeloGemini(apiKey: string): Promise<string> {
         .filter((n: string) => !GEMINI_INADEQUADO.test(n));
     }
   } catch {
-    // Sem lista (rede, cota, chave nova): cai no fallback abaixo.
+    // Cai no fallback estável abaixo.
   }
 
   const ordenar = (a: ModeloGemini, b: ModeloGemini) =>
@@ -258,7 +186,6 @@ async function descobrirModeloGemini(apiKey: string): Promise<string> {
 
   let escolhido = estaveis[0]?.nome ?? "";
 
-  // Conta só com preview (acontece quando uma geração acabou de sair).
   if (!escolhido) {
     escolhido =
       disponiveis
@@ -269,7 +196,6 @@ async function descobrirModeloGemini(apiKey: string): Promise<string> {
         .find(Boolean) ?? "";
   }
 
-  // Lista indisponível: nome estável conhecido, para ao menos tentar.
   if (!escolhido) escolhido = "gemini-2.0-flash";
 
   modeloResolvido.set("gemini", { model: escolhido, expiraEm: Date.now() + CACHE_MODELO_MS });
@@ -280,6 +206,10 @@ async function resolverModelo(cfg: AIProviderConfig): Promise<string> {
   if (cfg.model) return cfg.model;
 
   switch (cfg.provider) {
+    case "openrouter":
+      // Router oficial gratuito: escolhe entre os modelos free disponíveis e
+      // filtra por recursos exigidos pela requisição.
+      return "openrouter/free";
     case "gemini":
       return descobrirModeloGemini(cfg.apiKey);
     case "openai":
@@ -289,25 +219,32 @@ async function resolverModelo(cfg: AIProviderConfig): Promise<string> {
   }
 }
 
-// ── Classificação de erro ──────────────────────────────────────────────────
-
 function classificarErro(err: unknown, status?: number, corpo?: string): AIError {
   if (err instanceof AIError) return err;
 
   const msg = err instanceof Error ? err.message : String(err ?? "");
   const texto = `${status ?? ""} ${corpo ?? ""} ${msg}`.toLowerCase();
 
-  // AbortSignal.timeout dispara TimeoutError; abort manual dispara AbortError.
   if (err instanceof Error && (err.name === "TimeoutError" || err.name === "AbortError")) {
     return new AIError("AI_TIMEOUT", msg);
   }
   if (status === 401 || status === 403 || texto.includes("api key") || texto.includes("unauthorized")) {
     return new AIError("AI_AUTH_FAILURE", corpo || msg);
   }
-  if (status === 429 || texto.includes("rate limit") || texto.includes("quota") || texto.includes("resource_exhausted")) {
+  if (
+    status === 429 ||
+    texto.includes("rate limit") ||
+    texto.includes("quota") ||
+    texto.includes("resource_exhausted")
+  ) {
     return new AIError("AI_RATE_LIMIT", corpo || msg);
   }
-  if (status === 404 || texto.includes("not found") || texto.includes("does not exist") || texto.includes("unsupported model")) {
+  if (
+    status === 404 ||
+    texto.includes("not found") ||
+    texto.includes("does not exist") ||
+    texto.includes("unsupported model")
+  ) {
     return new AIError("AI_UNSUPPORTED_MODEL", corpo || msg);
   }
   if (texto.includes("safety") || texto.includes("blocked") || texto.includes("content_filter")) {
@@ -318,8 +255,6 @@ function classificarErro(err: unknown, status?: number, corpo?: string): AIError
   }
   return new AIError("AI_PROVIDER_ERROR", corpo || msg);
 }
-
-// ── Chamada ────────────────────────────────────────────────────────────────
 
 export async function generateAIResponse(
   messages: ChatMessage[],
@@ -334,6 +269,8 @@ export async function generateAIResponse(
 
   try {
     switch (cfg.provider) {
+      case "openrouter":
+        return await chamarOpenRouter(messages, { ...cfg, model }, options, inicio);
       case "gemini":
         return await chamarGemini(messages, { ...cfg, model }, options, inicio);
       case "openai":
@@ -346,7 +283,6 @@ export async function generateAIResponse(
   }
 }
 
-/** Lê o corpo do erro sem estourar quando a resposta não é JSON. */
 async function lerCorpoErro(res: Response): Promise<string> {
   try {
     return (await res.text()).slice(0, 500);
@@ -355,7 +291,6 @@ async function lerCorpoErro(res: Response): Promise<string> {
   }
 }
 
-// ── Google Gemini ──────────────────────────────────────────────────────────
 async function chamarGemini(
   messages: ChatMessage[],
   cfg: AIProviderConfig,
@@ -365,8 +300,6 @@ async function chamarGemini(
   const system = messages.find((m) => m.role === "system");
   const conversa = messages.filter((m) => m.role !== "system");
 
-  // O Gemini exige alternância user/model começando por user. Histórico que
-  // comece com assistant (a mensagem de boas-vindas do widget) é rejeitado.
   const contents = conversa
     .map((m) => ({
       role: m.role === "assistant" ? "model" : "user",
@@ -399,20 +332,12 @@ async function chamarGemini(
     });
 
   let res = await chamar(true);
-
-  // Modelo que não conhece thinkingConfig devolve 400. Repete sem ele em vez
-  // de derrubar a conversa por causa de um parâmetro opcional.
-  if (!res.ok && res.status === 400 && opts.thinking) {
-    res = await chamar(false);
-  }
-
+  if (!res.ok && res.status === 400 && opts.thinking) res = await chamar(false);
   if (!res.ok) throw classificarErro(null, res.status, await lerCorpoErro(res));
 
   const data = await res.json();
   const candidato = data.candidates?.[0];
 
-  // Bloqueio de segurança devolve HTTP 200 com candidato vazio — sem este
-  // tratamento o visitante recebe uma resposta em branco e nada é logado.
   if (data.promptFeedback?.blockReason) {
     throw new AIError("AI_CONTENT_BLOCKED", `prompt: ${data.promptFeedback.blockReason}`);
   }
@@ -427,13 +352,9 @@ async function chamarGemini(
 
   if (!content) {
     const motivo = candidato?.finishReason ?? "?";
-    // MAX_TOKENS sem texto quase sempre é raciocínio interno consumindo todo
-    // o orçamento. Sem essa nota, o log só diz "resposta vazia".
     const detalhe =
       motivo === "MAX_TOKENS"
-        ? `finishReason=MAX_TOKENS — orçamento de saída consumido pelo raciocínio ` +
-          `do modelo (${data.usageMetadata?.thoughtsTokenCount ?? "?"} tokens). ` +
-          `Aumente maxTokens ou use thinking: "low".`
+        ? `finishReason=MAX_TOKENS — orçamento consumido pelo raciocínio (${data.usageMetadata?.thoughtsTokenCount ?? "?"} tokens)`
         : `finishReason=${motivo}`;
     throw new AIError("AI_EMPTY_RESPONSE", detalhe);
   }
@@ -448,7 +369,52 @@ async function chamarGemini(
   };
 }
 
-// ── OpenAI ─────────────────────────────────────────────────────────────────
+async function chamarOpenRouter(
+  messages: ChatMessage[],
+  cfg: AIProviderConfig,
+  opts: GenerateOptions,
+  inicio: number
+): Promise<AIResponse> {
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://www.neosenses.com.br";
+
+  const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${cfg.apiKey}`,
+      "HTTP-Referer": siteUrl,
+      "X-Title": "NeoSenses Concierge",
+    },
+    body: JSON.stringify({
+      model: cfg.model,
+      messages,
+      max_tokens: opts.maxTokens ?? DEFAULT_MAX_TOKENS,
+      temperature: opts.temperature ?? DEFAULT_TEMPERATURE,
+      ...(opts.json ? { response_format: { type: "json_object" } } : {}),
+    }),
+    signal: AbortSignal.timeout(opts.timeoutMs ?? DEFAULT_TIMEOUT_MS),
+  });
+
+  if (!res.ok) throw classificarErro(null, res.status, await lerCorpoErro(res));
+
+  const data = await res.json();
+  const escolha = data.choices?.[0];
+  const content = escolha?.message?.content?.trim() ?? "";
+
+  if (!content) {
+    throw new AIError("AI_EMPTY_RESPONSE", `finish_reason=${escolha?.finish_reason ?? "?"}`);
+  }
+
+  return {
+    content,
+    provider: "openrouter",
+    model: data.model || cfg.model,
+    tokensUsed: data.usage?.total_tokens,
+    responseTimeMs: Date.now() - inicio,
+    finishReason: escolha?.finish_reason,
+  };
+}
+
 async function chamarOpenAI(
   messages: ChatMessage[],
   cfg: AIProviderConfig,
@@ -491,7 +457,6 @@ async function chamarOpenAI(
   };
 }
 
-// ── Anthropic ──────────────────────────────────────────────────────────────
 async function chamarAnthropic(
   messages: ChatMessage[],
   cfg: AIProviderConfig,
@@ -541,9 +506,6 @@ async function chamarAnthropic(
   };
 }
 
-// ── Diagnóstico ────────────────────────────────────────────────────────────
-
-/** Usado por /api/health/ai para checar a integração sem abrir o chat. */
 export async function testAIConnection(): Promise<{
   success: boolean;
   provider?: string;
@@ -554,7 +516,11 @@ export async function testAIConnection(): Promise<{
 }> {
   const cfg = detectAIConfig();
   if (!cfg) {
-    return { success: false, errorCode: "AI_PROVIDER_NOT_CONFIGURED", error: "Nenhum provedor configurado" };
+    return {
+      success: false,
+      errorCode: "AI_PROVIDER_NOT_CONFIGURED",
+      error: "Nenhum provedor configurado",
+    };
   }
 
   try {
@@ -565,14 +531,21 @@ export async function testAIConnection(): Promise<{
         { role: "user", content: "teste" },
       ],
       { ...cfg, model },
-      // 256 e não um valor mínimo: em modelo com raciocínio interno, orçamento
-      // apertado devolve resposta vazia e o diagnóstico acusaria falha numa
-      // integração que está funcionando.
       { maxTokens: 256, temperature: 0, thinking: "low" }
     );
-    return { success: true, provider: r.provider, model: r.model, responseTimeMs: r.responseTimeMs };
+    return {
+      success: true,
+      provider: r.provider,
+      model: r.model,
+      responseTimeMs: r.responseTimeMs,
+    };
   } catch (err) {
     const e = err instanceof AIError ? err : classificarErro(err);
-    return { success: false, provider: cfg.provider, errorCode: e.code, error: e.detail || e.code };
+    return {
+      success: false,
+      provider: cfg.provider,
+      errorCode: e.code,
+      error: e.detail || e.code,
+    };
   }
 }
