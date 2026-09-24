@@ -18,7 +18,9 @@ function normalizar(texto: string): string {
     .toLowerCase()
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9\s-]/g, " ");
+    .replace(/[^a-z0-9\s-]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function termosDaPergunta(pergunta: string): string[] {
@@ -142,6 +144,85 @@ function detalheExperiencia(exp: MigratedExperience): string {
   }
 
   return partes.join("\n");
+}
+
+export interface SiteRecommendation {
+  type: "experience";
+  id: string;
+  title: string;
+  slug: string;
+  destination: string;
+  duration: string;
+  publishedPrice: string;
+  url: string;
+  image: string;
+  summary: string;
+}
+
+function duracaoDaExperiencia(exp: MigratedExperience): string {
+  if (exp.itinerary.length === 0) return "";
+  const ultimoDia = Math.max(...exp.itinerary.map((d) => d.day));
+  return Number.isFinite(ultimoDia) && ultimoDia > 0 ? `${ultimoDia} dias` : "";
+}
+
+function virouAssuntoDaResposta(exp: MigratedExperience, resposta: string): boolean {
+  const texto = normalizar(resposta);
+  if (!texto) return false;
+
+  const titulo = normalizar(exp.title);
+  const slug = normalizar(exp.slug.replace(/-/g, " "));
+  const destino = normalizar(exp.destination);
+
+  if (titulo && texto.includes(titulo)) return true;
+  if (slug && texto.includes(slug)) return true;
+
+  // Destinos muito genéricos geram falso positivo. Para nomes mais específicos,
+  // citar o destino já é suficiente para mostrar o card da jornada associada.
+  if (destino.length >= 7 && texto.includes(destino)) return true;
+
+  return false;
+}
+
+/**
+ * Cards que acompanham a resposta do Concierge.
+ *
+ * A lista é derivada do que a própria IA acabou de falar, não de todas as
+ * experiências que estavam no contexto. Assim um papo sobre bagagem não ganha
+ * cards aleatórios; quando a resposta cita duas jornadas, aparecem dois cards.
+ */
+export function siteRecommendationsForResponse(
+  resposta: string,
+  pergunta: string,
+  sourcePage: string,
+  limite = 8
+): SiteRecommendation[] {
+  const catalogo = pedeCatalogo(pergunta);
+  const slugPagina = slugDaPagina(sourcePage);
+
+  const selecionadas = migratedExperiences.filter((exp) => {
+    if (catalogo) return true;
+    if (virouAssuntoDaResposta(exp, resposta)) return true;
+
+    if (slugPagina === exp.slug) {
+      const r = normalizar(resposta);
+      return /\b(roteiro|jornada|experiencia|viagem|itinerario)\b/.test(r);
+    }
+
+    return false;
+  });
+
+  return selecionadas.slice(0, limite).map((exp) => ({
+    type: "experience" as const,
+    id: `site:${exp.slug}`,
+    title: exp.title,
+    slug: exp.slug,
+    destination: exp.destination,
+    duration: duracaoDaExperiencia(exp),
+    publishedPrice: "",
+    url: `/experiencias/${exp.slug}`,
+    image: exp.hero,
+    summary: exp.summary,
+  }));
 }
 
 /**
