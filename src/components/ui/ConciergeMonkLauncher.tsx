@@ -50,16 +50,15 @@ export function ConciergeMonkLauncher() {
   return (
     <>
       {/* Mantém toda a lógica do toggle original, escondendo apenas sua UI.
-          O segundo bloco troca SOMENTE o avatar do cabeçalho do chat pelo
-          monge, reaproveitando o GIF já publicado e um fundo verde escuro. */}
+          O segundo bloco troca SOMENTE o avatar do cabeçalho do chat. */}
       <style>{`
         #ai-concierge-toggle { display: none !important; }
         #ai-concierge-panel > div:first-child > div:first-child {
           background-color: #17352f !important;
-          background-image: url('/images/concierge-monk.gif?v=2') !important;
+          background-image: url('/images/concierge-monk-avatar.svg?v=1') !important;
           background-repeat: no-repeat !important;
           background-position: center !important;
-          background-size: 34px 34px !important;
+          background-size: cover !important;
           border: 1px solid rgba(255, 255, 255, 0.16);
           overflow: hidden;
         }
