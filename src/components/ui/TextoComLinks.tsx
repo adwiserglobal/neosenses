@@ -21,8 +21,19 @@ interface Props {
   numeroWhatsApp?: string;
 }
 
+/**
+ * O chat não usa um renderer Markdown completo. Se o modelo escapar um
+ * **negrito** apesar do prompt, mostramos o texto limpo em vez dos asteriscos
+ * literais que deixam a conversa com cara de resposta técnica.
+ */
+function limparMarkdownVisual(texto: string): string {
+  return texto
+    .replace(/\*\*([^*\n]+)\*\*/g, "$1")
+    .replace(/__([^_\n]+)__/g, "$1");
+}
+
 export function TextoComLinks({ texto, numeroWhatsApp }: Props) {
-  const trechos = partirEmLinks(texto, { numeroWhatsApp });
+  const trechos = partirEmLinks(limparMarkdownVisual(texto), { numeroWhatsApp });
 
   return (
     <>
