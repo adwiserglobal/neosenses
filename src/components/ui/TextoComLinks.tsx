@@ -29,6 +29,7 @@ export function TextoComLinks({ texto, numeroWhatsApp, animar }: Props) {
   const palavras = useMemo(() => limpo.match(/\S+\s*/g) ?? (limpo ? [limpo] : []), [limpo]);
   const [quantidadeVisivel, setQuantidadeVisivel] = useState(palavras.length);
   const [digitando, setDigitando] = useState(false);
+  const [prontoParaMostrar, setProntoParaMostrar] = useState(false);
 
   useEffect(() => {
     const classesDaBolha = raiz.current?.parentElement?.className ?? "";
@@ -45,11 +46,15 @@ export function TextoComLinks({ texto, numeroWhatsApp, animar }: Props) {
     ) {
       setQuantidadeVisivel(palavras.length);
       setDigitando(false);
+      setProntoParaMostrar(true);
       return;
     }
 
+    // Esconde o primeiro frame, zera o texto e só então inicia a composição.
+    // Assim o bloco completo não pisca por um instante antes da animação.
     setQuantidadeVisivel(0);
     setDigitando(true);
+    setProntoParaMostrar(true);
 
     let indice = 0;
     let timer: ReturnType<typeof setTimeout> | undefined;
@@ -65,8 +70,6 @@ export function TextoComLinks({ texto, numeroWhatsApp, animar }: Props) {
       }
 
       const anterior = palavras[indice - 1] ?? "";
-      // Pausas discretas em fim de frase deixam a leitura mais natural sem
-      // transformar respostas maiores numa espera longa.
       const pausa = /[.!?…]\s*$/.test(anterior) ? 85 : 26;
       timer = setTimeout(mostrarProxima, pausa);
     };
@@ -82,7 +85,7 @@ export function TextoComLinks({ texto, numeroWhatsApp, animar }: Props) {
   const trechos = partirEmLinks(textoVisivel, { numeroWhatsApp });
 
   return (
-    <span ref={raiz}>
+    <span ref={raiz} className={prontoParaMostrar ? undefined : "opacity-0"}>
       {trechos.map((t, i) => {
         if (t.tipo === "texto") return <span key={i}>{t.valor}</span>;
 
