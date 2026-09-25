@@ -26,6 +26,43 @@ interface Props {
   params: Promise<{ slug: string }>;
 }
 
+interface ConfiguracaoEspelho {
+  sourceUrl: string;
+  plataforma?: string;
+}
+
+function lerEspelho(metadata: unknown): ConfiguracaoEspelho | null {
+  if (!metadata || typeof metadata !== "object") return null;
+  const meta = metadata as Record<string, unknown>;
+  if (meta.render_mode !== "external_mirror") return null;
+
+  const bloco = meta.external_mirror;
+  if (!bloco || typeof bloco !== "object") return null;
+  const sourceUrl = (bloco as Record<string, unknown>).source_url;
+  if (typeof sourceUrl !== "string" || !/^https?:\/\//i.test(sourceUrl)) return null;
+
+  const plataforma = (bloco as Record<string, unknown>).plataforma;
+  return {
+    sourceUrl,
+    plataforma: typeof plataforma === "string" ? plataforma : undefined,
+  };
+}
+
+function ExperienciaEspelhada({ sourceUrl, titulo }: { sourceUrl: string; titulo: string }) {
+  return (
+    <div className="fixed inset-0 z-[2147483647] h-[100dvh] w-screen bg-white">
+      <iframe
+        src={sourceUrl}
+        title={titulo || "Experiência"}
+        className="block h-[100dvh] w-screen border-0 bg-white"
+        allow="accelerometer; autoplay; camera; clipboard-read; clipboard-write; encrypted-media; fullscreen; geolocation; gyroscope; microphone; payment; picture-in-picture; web-share"
+        allowFullScreen
+        referrerPolicy="strict-origin-when-cross-origin"
+      />
+    </div>
+  );
+}
+
 export async function generateStaticParams() {
   const slugs = await listarSlugsDeExperiencias();
   const explicitas = new Set(migratedExperiences.map((experience) => experience.slug));
@@ -58,6 +95,19 @@ export default async function ExperienciaPage({ params }: Props) {
   const experiencia = await buscarExperiencia(slug);
 
   if (!experiencia) notFound();
+
+  // Experiência criada pelo importador 1:1: não passa por nenhum template da
+  // NeoSenses. A página externa ocupa o viewport inteiro, inclusive por cima
+  // do header/footer do layout pai, preservando o site que a cliente montou.
+  const espelho = lerEspelho(experiencia.metadata);
+  if (espelho) {
+    return (
+      <ExperienciaEspelhada
+        sourceUrl={espelho.sourceUrl}
+        titulo={t(experiencia.title as I18nField, "pt")}
+      />
+    );
+  }
 
   const [guias, relacionadas, config] = await Promise.all([
     listarGuias({ destinoId: experiencia.destination_id ?? undefined, limite: 6 }),
