@@ -4,9 +4,9 @@
  * Autenticação da equipe.
  *
  * O login normal usa Supabase Auth. Para a primeira instalação, se
- * ADMIN_EMAIL e ADMIN_PASSWORD estiverem definidos no ambiente, o primeiro
- * login com essas credenciais cria/atualiza a conta no Supabase Auth e a
- * promove a admin usando a service_role. A senha nunca fica no repositório.
+ * ADMIN_EMAIL e ADMIN_PASSWORD estiverem definidos no ambiente, o login com
+ * essas credenciais cria/atualiza a conta no Supabase Auth e garante o papel
+ * de admin usando a service_role. A senha nunca fica no repositório.
  */
 
 import { redirect } from "next/navigation";
@@ -40,9 +40,12 @@ function credenciaisBootstrapCorrespondem(email: string, senha: string): boolean
 }
 
 /**
- * Cria o primeiro administrador sem exigir trabalho manual no Auth do Supabase.
- * Só roda quando o par enviado coincide exatamente com ADMIN_EMAIL/PASSWORD do
- * ambiente do servidor. Assim a credencial não precisa ser commitada no Git.
+ * Cria ou repara o administrador configurado no ambiente.
+ *
+ * Importante: isto também precisa rodar quando a conta JÁ existe no Auth.
+ * Antes, o bootstrap só era executado se signInWithPassword falhasse. Se a
+ * conta existia e a senha estava correta, o login dava certo, mas um profile
+ * ausente/com role viewer fazia /admin redirecionar imediatamente para /login.
  */
 async function bootstrapAdmin(email: string, senha: string): Promise<ResultadoBootstrap> {
   if (!credenciaisBootstrapCorrespondem(email, senha)) {
@@ -129,7 +132,7 @@ async function bootstrapAdmin(email: string, senha: string): Promise<ResultadoBo
       executado: true,
       success: false,
       error:
-        "A conta foi criada, mas falta preparar o banco para administradores. Aplique a migration 012_promocao_de_admin.sql.",
+        "A conta existe, mas o banco ainda não conseguiu conceder acesso de administrador. Aplique a migration 012_promocao_de_admin.sql.",
     };
   }
 
@@ -150,32 +153,22 @@ export async function entrar(email: string, senha: string): Promise<ResultadoLog
     return {
       success: false,
       error:
-        "Supabase não está totalmente configurado. Confira URL, anon key e service role no Vercel.",
+        "Supabase não está totalmente configurado. Confira URL e anon key no Vercel.",
     };
   }
 
-  let { error } = await supabase.auth.signInWithPassword({
+  // Sempre tenta reparar/promover o usuário configurado como ADMIN_EMAIL,
+  // mesmo quando ele já existe e a senha já funciona. Isso evita o loop
+  // /login -> /admin -> /login causado por profile ausente ou role viewer.
+  const bootstrap = await bootstrapAdmin(limpo, senha);
+  if (bootstrap.executado && !bootstrap.success) {
+    return { success: false, error: bootstrap.error };
+  }
+
+  const { error } = await supabase.auth.signInWithPassword({
     email: limpo,
     password: senha,
   });
-
-  // Se a conta ainda não existe, o primeiro login pode inicializá-la usando
-  // as credenciais de bootstrap mantidas exclusivamente no ambiente do Vercel.
-  if (error) {
-    const bootstrap = await bootstrapAdmin(limpo, senha);
-
-    if (bootstrap.executado && !bootstrap.success) {
-      return { success: false, error: bootstrap.error };
-    }
-
-    if (bootstrap.success) {
-      const novaTentativa = await supabase.auth.signInWithPassword({
-        email: limpo,
-        password: senha,
-      });
-      error = novaTentativa.error;
-    }
-  }
 
   if (error) {
     console.warn(`[auth] login recusado para ${limpo}: ${error.message}`);
