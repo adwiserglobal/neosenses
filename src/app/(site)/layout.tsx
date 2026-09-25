@@ -6,7 +6,7 @@
  * compartilhado do site a cada clique.
  */
 
-import { Header } from "@/components/layout/Header";
+import { PublicHeader } from "@/components/layout/PublicHeader";
 import { Footer } from "@/components/layout/Footer";
 import { WhatsAppButton } from "@/components/ui/WhatsAppButton";
 import { AIConcierge } from "@/components/ui/AIConcierge";
@@ -22,7 +22,7 @@ export default function SiteLayout({ children }: { children: React.ReactNode }) 
         Pular para o conteúdo
       </a>
 
-      <Header />
+      <PublicHeader />
       <div className="flex min-h-screen flex-col">
         <main id="conteudo" tabIndex={-1} className="flex-1 scroll-mt-28">
           {children}
