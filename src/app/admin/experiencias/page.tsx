@@ -1,9 +1,5 @@
 /**
  * /admin/experiencias — lista para a equipe operar.
- *
- * Mostra o que impede uma experiência de ir ao ar (sem resumo, sem destino,
- * sem data futura) direto na linha. Descobrir isso só depois de publicar é
- * descobrir com o visitante junto.
  */
 
 import Link from "next/link";
@@ -23,6 +19,29 @@ const SITUACAO: Record<string, { rotulo: string; classe: string }> = {
   sold_out: { rotulo: "Esgotada", classe: "bg-amber-50 text-amber-700 border-amber-300" },
   archived: { rotulo: "Arquivada", classe: "bg-warm-gray text-text-muted/60 border-border" },
 };
+
+function dadosDoEspelho(metadata: unknown): { sourceUrl: string; plataforma?: string } | null {
+  if (!metadata || typeof metadata !== "object") return null;
+  const meta = metadata as Record<string, unknown>;
+  if (meta.render_mode !== "external_mirror") return null;
+  const bloco = meta.external_mirror;
+  if (!bloco || typeof bloco !== "object") return null;
+  const sourceUrl = (bloco as Record<string, unknown>).source_url;
+  if (typeof sourceUrl !== "string" || !/^https?:\/\//i.test(sourceUrl)) return null;
+  const plataforma = (bloco as Record<string, unknown>).plataforma;
+  return {
+    sourceUrl,
+    plataforma: typeof plataforma === "string" ? plataforma : undefined,
+  };
+}
+
+function hostDaUrl(valor: string): string {
+  try {
+    return new URL(valor).hostname.replace(/^www\./, "");
+  } catch {
+    return valor;
+  }
+}
 
 export default async function ListaExperiencias() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -46,7 +65,7 @@ export default async function ListaExperiencias() {
     .from("experiences")
     .select(
       `id, title, slug, short_description, status, is_featured, duration_days, price_from,
-       destination_id,
+       destination_id, metadata,
        destination:destinations(name),
        experience_dates(id, start_date, status)`
     )
@@ -77,7 +96,7 @@ export default async function ListaExperiencias() {
           href="/admin/experiencias/nova"
           className="rounded-lg bg-primary-700 px-5 py-2.5 text-sm font-semibold text-white transition hover:bg-primary-800"
         >
-          Nova experiência
+          Nova experiência manual
         </Link>
       </header>
 
@@ -87,20 +106,15 @@ export default async function ListaExperiencias() {
         <div className="rounded-xl border border-border bg-surface p-12 text-center">
           <p className="font-heading text-lg text-primary-700">Nenhuma experiência cadastrada</p>
           <p className="mt-1 text-sm text-text-muted">
-            Importe uma página pronta acima ou cadastre manualmente. Nada aparece no site até você publicar.
+            Cole uma página pronta acima para espelhá-la 1:1 ou cadastre manualmente.
           </p>
-          <Link
-            href="/admin/experiencias/nova"
-            className="mt-5 inline-block rounded-lg bg-primary-700 px-5 py-2.5 text-sm font-semibold text-white"
-          >
-            Cadastrar manualmente
-          </Link>
         </div>
       ) : (
         <ul className="space-y-3">
           {itens.map((exp) => {
             const titulo = t(exp.title as I18nField, "pt") || "(sem título)";
             const slug = t(exp.slug as I18nField, "pt");
+            const espelho = dadosDoEspelho(exp.metadata);
             const destino = exp.destination
               ? t((exp.destination as { name: unknown }).name as I18nField, "pt")
               : "";
@@ -110,10 +124,12 @@ export default async function ListaExperiencias() {
             ).length;
 
             const pendencias: string[] = [];
-            if (!t(exp.short_description as I18nField, "pt")) pendencias.push("sem resumo");
-            if (!exp.destination_id) pendencias.push("sem destino");
-            if (!exp.duration_days) pendencias.push("sem duração");
-            if (exp.status === "published" && datasFuturas === 0) pendencias.push("sem data futura");
+            if (!espelho) {
+              if (!t(exp.short_description as I18nField, "pt")) pendencias.push("sem resumo");
+              if (!exp.destination_id) pendencias.push("sem destino");
+              if (!exp.duration_days) pendencias.push("sem duração");
+              if (exp.status === "published" && datasFuturas === 0) pendencias.push("sem data futura");
+            }
 
             const situacao = SITUACAO[exp.status] ?? SITUACAO.draft;
 
@@ -125,6 +141,11 @@ export default async function ListaExperiencias() {
                       <span className={`rounded-full border px-2.5 py-0.5 text-[11px] font-medium ${situacao.classe}`}>
                         {situacao.rotulo}
                       </span>
+                      {espelho && (
+                        <span className="rounded-full border border-secondary-300 bg-secondary-50 px-2.5 py-0.5 text-[11px] font-medium text-secondary-700">
+                          Espelho 1:1
+                        </span>
+                      )}
                       {exp.is_featured && (
                         <span className="rounded-full border border-secondary-300 bg-secondary-50 px-2.5 py-0.5 text-[11px] font-medium text-secondary-700">
                           Destaque
@@ -134,14 +155,22 @@ export default async function ListaExperiencias() {
 
                     <h2 className="mt-1.5 font-heading text-lg text-primary-700">{titulo}</h2>
 
-                    <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-muted">
-                      {destino && <span>{destino}</span>}
-                      {exp.duration_days && <span>{exp.duration_days} dias</span>}
-                      {exp.price_from && <span>R$ {Number(exp.price_from).toLocaleString("pt-BR")}</span>}
-                      <span>
-                        {datasFuturas} data{datasFuturas === 1 ? "" : "s"} futura{datasFuturas === 1 ? "" : "s"}
-                      </span>
-                    </div>
+                    {espelho ? (
+                      <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-muted">
+                        <span>{espelho.plataforma || "Página externa"}</span>
+                        <span>{hostDaUrl(espelho.sourceUrl)}</span>
+                        <span>sincronização ao vivo</span>
+                      </div>
+                    ) : (
+                      <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-muted">
+                        {destino && <span>{destino}</span>}
+                        {exp.duration_days && <span>{exp.duration_days} dias</span>}
+                        {exp.price_from && <span>R$ {Number(exp.price_from).toLocaleString("pt-BR")}</span>}
+                        <span>
+                          {datasFuturas} data{datasFuturas === 1 ? "" : "s"} futura{datasFuturas === 1 ? "" : "s"}
+                        </span>
+                      </div>
+                    )}
 
                     {pendencias.length > 0 && (
                       <p className="mt-2 inline-block rounded bg-amber-50 px-2.5 py-1 text-xs text-amber-800">
@@ -150,7 +179,17 @@ export default async function ListaExperiencias() {
                     )}
                   </div>
 
-                  <div className="flex shrink-0 items-center gap-2">
+                  <div className="flex shrink-0 flex-wrap items-center gap-2">
+                    {espelho && (
+                      <a
+                        href={espelho.sourceUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="rounded-lg border border-border px-3 py-2 text-xs text-text-muted transition hover:border-secondary-500 hover:text-secondary-500"
+                      >
+                        Origem
+                      </a>
+                    )}
                     {exp.status === "published" && slug && (
                       <Link
                         href={`/experiencias/${slug}`}
@@ -161,12 +200,14 @@ export default async function ListaExperiencias() {
                       </Link>
                     )}
                     <BotaoSituacao id={exp.id} situacaoAtual={exp.status} temPendencia={pendencias.length > 0} />
-                    <Link
-                      href={`/admin/experiencias/${exp.id}`}
-                      className="rounded-lg bg-primary-700 px-4 py-2 text-xs font-semibold text-white transition hover:bg-primary-800"
-                    >
-                      Editar
-                    </Link>
+                    {!espelho && (
+                      <Link
+                        href={`/admin/experiencias/${exp.id}`}
+                        className="rounded-lg bg-primary-700 px-4 py-2 text-xs font-semibold text-white transition hover:bg-primary-800"
+                      >
+                        Editar
+                      </Link>
+                    )}
                   </div>
                 </div>
               </li>
