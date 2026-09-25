@@ -12,6 +12,7 @@ import type { Database } from "@/types/database";
 import { t } from "@/lib/utils";
 import type { I18nField } from "@/types/models";
 import { BotaoSituacao } from "./BotaoSituacao";
+import { ImportarExperienciaUrl } from "@/components/admin/ImportarExperienciaUrl";
 
 export const dynamic = "force-dynamic";
 export const metadata = { title: "Experiências", robots: { index: false } };
@@ -80,18 +81,19 @@ export default async function ListaExperiencias() {
         </Link>
       </header>
 
+      <ImportarExperienciaUrl />
+
       {itens.length === 0 ? (
         <div className="rounded-xl border border-border bg-surface p-12 text-center">
           <p className="font-heading text-lg text-primary-700">Nenhuma experiência cadastrada</p>
           <p className="mt-1 text-sm text-text-muted">
-            Enquanto não houver nenhuma publicada, o site mostra o catálogo vazio e o Concierge
-            encaminha todo mundo para o WhatsApp.
+            Importe uma página pronta acima ou cadastre manualmente. Nada aparece no site até você publicar.
           </p>
           <Link
             href="/admin/experiencias/nova"
             className="mt-5 inline-block rounded-lg bg-primary-700 px-5 py-2.5 text-sm font-semibold text-white"
           >
-            Cadastrar a primeira
+            Cadastrar manualmente
           </Link>
         </div>
       ) : (
@@ -107,7 +109,6 @@ export default async function ListaExperiencias() {
               (d) => d.status === "published" && String(d.start_date) >= hoje
             ).length;
 
-            // O que falta para esta experiência funcionar de verdade no site.
             const pendencias: string[] = [];
             if (!t(exp.short_description as I18nField, "pt")) pendencias.push("sem resumo");
             if (!exp.destination_id) pendencias.push("sem destino");
@@ -136,12 +137,9 @@ export default async function ListaExperiencias() {
                     <div className="mt-1 flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-text-muted">
                       {destino && <span>{destino}</span>}
                       {exp.duration_days && <span>{exp.duration_days} dias</span>}
-                      {exp.price_from && (
-                        <span>R$ {Number(exp.price_from).toLocaleString("pt-BR")}</span>
-                      )}
+                      {exp.price_from && <span>R$ {Number(exp.price_from).toLocaleString("pt-BR")}</span>}
                       <span>
-                        {datasFuturas} data{datasFuturas === 1 ? "" : "s"} futura
-                        {datasFuturas === 1 ? "" : "s"}
+                        {datasFuturas} data{datasFuturas === 1 ? "" : "s"} futura{datasFuturas === 1 ? "" : "s"}
                       </span>
                     </div>
 
