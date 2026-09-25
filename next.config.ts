@@ -1,7 +1,19 @@
 import type { NextConfig } from "next";
 
+const openRouterConfigurado = Boolean(process.env.OPENROUTER_API_KEY?.trim());
+const provedorDeIA = openRouterConfigurado
+  ? "openrouter"
+  : process.env.AI_PROVIDER?.trim();
+const modeloDeIA = openRouterConfigurado
+  ? process.env.AI_MODEL?.trim() || "openrouter/free"
+  : process.env.AI_MODEL?.trim();
+
 const nextConfig: NextConfig = {
   output: process.env.BUILD_STANDALONE === "1" ? "standalone" : undefined,
+  env: {
+    ...(provedorDeIA ? { AI_PROVIDER: provedorDeIA } : {}),
+    ...(modeloDeIA ? { AI_MODEL: modeloDeIA } : {}),
+  },
   images: {
     remotePatterns: [
       {
