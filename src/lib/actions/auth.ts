@@ -4,9 +4,9 @@
  * Autenticação da equipe.
  *
  * O login normal usa Supabase Auth. Para a primeira instalação, se
- * ADMIN_EMAIL e ADMIN_PASSWORD estiverem definidos no ambiente, o login com
- * essas credenciais cria/atualiza a conta no Supabase Auth e garante o papel
- * de admin usando a service_role. A senha nunca fica no repositório.
+ * ADMIN_EMAIL e ADMIN_PASSWORD estiverem definidos no ambiente, uma falha de
+ * login com essas credenciais cria/atualiza a conta no Supabase Auth e a
+ * promove a admin usando a service_role. A senha nunca fica no repositório.
  */
 
 import { redirect } from "next/navigation";
@@ -40,12 +40,12 @@ function credenciaisBootstrapCorrespondem(email: string, senha: string): boolean
 }
 
 /**
- * Cria ou repara o administrador configurado no ambiente.
+ * Bootstrap usado somente quando o login normal falha.
  *
- * Importante: isto também precisa rodar quando a conta JÁ existe no Auth.
- * Antes, o bootstrap só era executado se signInWithPassword falhasse. Se a
- * conta existia e a senha estava correta, o login dava certo, mas um profile
- * ausente/com role viewer fazia /admin redirecionar imediatamente para /login.
+ * Depois que o administrador já existe e o profile está correto, não há
+ * motivo para listar usuários, redefinir senha e chamar RPC em todo login.
+ * Além de ser trabalho desnecessário, isso deixava o formulário preso em
+ * "Entrando..." quando uma dessas chamadas administrativas demorava.
  */
 async function bootstrapAdmin(email: string, senha: string): Promise<ResultadoBootstrap> {
   if (!credenciaisBootstrapCorrespondem(email, senha)) {
@@ -115,8 +115,6 @@ async function bootstrapAdmin(email: string, senha: string): Promise<ResultadoBo
     }
   }
 
-  // A migration 012 fornece a promoção idempotente e reconstrói o profile se
-  // a conta existir no Auth mas o registro em public.profiles estiver ausente.
   const rpc = admin.rpc as unknown as (
     nome: string,
     args: Record<string, unknown>
@@ -132,7 +130,7 @@ async function bootstrapAdmin(email: string, senha: string): Promise<ResultadoBo
       executado: true,
       success: false,
       error:
-        "A conta existe, mas o banco ainda não conseguiu conceder acesso de administrador. Aplique a migration 012_promocao_de_admin.sql.",
+        "A conta existe, mas o banco ainda não conseguiu conceder acesso de administrador.",
     };
   }
 
@@ -157,18 +155,29 @@ export async function entrar(email: string, senha: string): Promise<ResultadoLog
     };
   }
 
-  // Sempre tenta reparar/promover o usuário configurado como ADMIN_EMAIL,
-  // mesmo quando ele já existe e a senha já funciona. Isso evita o loop
-  // /login -> /admin -> /login causado por profile ausente ou role viewer.
-  const bootstrap = await bootstrapAdmin(limpo, senha);
-  if (bootstrap.executado && !bootstrap.success) {
-    return { success: false, error: bootstrap.error };
-  }
-
-  const { error } = await supabase.auth.signInWithPassword({
+  // Caminho normal e rápido: autentica primeiro. O banco já contém o profile
+  // e o papel; não execute chamadas administrativas a cada acesso.
+  let { error } = await supabase.auth.signInWithPassword({
     email: limpo,
     password: senha,
   });
+
+  // Bootstrap é somente recuperação/primeira instalação.
+  if (error) {
+    const bootstrap = await bootstrapAdmin(limpo, senha);
+
+    if (bootstrap.executado && !bootstrap.success) {
+      return { success: false, error: bootstrap.error };
+    }
+
+    if (bootstrap.success) {
+      const novaTentativa = await supabase.auth.signInWithPassword({
+        email: limpo,
+        password: senha,
+      });
+      error = novaTentativa.error;
+    }
+  }
 
   if (error) {
     console.warn(`[auth] login recusado para ${limpo}: ${error.message}`);
