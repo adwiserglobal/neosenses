@@ -3,6 +3,9 @@
   "functions": {
     "src/app/api/concierge/chat/**/*": {
       "maxDuration": 60
+    },
+    "src/app/admin/**/*": {
+      "maxDuration": 60
     }
   }
 }
