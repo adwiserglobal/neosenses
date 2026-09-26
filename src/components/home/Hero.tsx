@@ -64,7 +64,9 @@ export function Hero() {
         aria-hidden="true"
         className="absolute inset-0 h-full w-full object-cover"
       />
-      <div className="absolute inset-0 bg-gradient-to-b from-primary-700/70 via-primary-700/50 to-primary-700/80" />
+      {/* A capa volta ao tratamento anterior, neutro/azulado. A paleta roxa
+          continua no restante da marca, mas não colore a fotografia. */}
+      <div className="absolute inset-0 bg-gradient-to-b from-[#16232b]/70 via-[#16232b]/50 to-[#16232b]/80" />
 
       <div className="container-wide relative z-10 flex flex-col items-center py-32 text-center">
         <motion.p
@@ -144,7 +146,7 @@ export function Pilares() {
             {...surgir}
             whileInView="animate"
             viewport={{ once: true, margin: "-100px" }}
-            className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-secondary-500"
+            className="mx-auto mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-secondary-500"
           >
             Nosso Propósito
           </motion.p>
