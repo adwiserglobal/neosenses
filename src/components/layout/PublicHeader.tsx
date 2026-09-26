@@ -111,7 +111,7 @@ export function PublicHeader() {
           href="/"
           prefetch
           onClick={closeMobile}
-          className="relative z-50 inline-flex shrink-0 items-center rounded-md bg-primary-800/95 px-2.5 py-2 shadow-sm backdrop-blur-sm transition-transform hover:scale-[1.02]"
+          className="relative z-50 inline-flex shrink-0 items-center transition-transform hover:scale-[1.02]"
           aria-label="NeoSenses — início"
         >
           <Image
