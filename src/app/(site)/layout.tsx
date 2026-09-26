@@ -6,6 +6,7 @@
  * compartilhado do site a cada clique.
  */
 
+import "../brand.css";
 import { PublicHeader } from "@/components/layout/PublicHeader";
 import { Footer } from "@/components/layout/Footer";
 import { WhatsAppButton } from "@/components/ui/WhatsAppButton";
