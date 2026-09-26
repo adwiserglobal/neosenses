@@ -38,7 +38,7 @@ export default async function HomePage() {
         <section className="bg-warm-gray/30 py-24 md:py-32">
           <div className="container-wide">
             <div className="mb-12 text-center">
-              <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-secondary-500">
+              <p className="mx-auto mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-secondary-500">
                 Próximas Jornadas
               </p>
               <h2 className="mx-auto max-w-2xl font-heading text-3xl text-primary-700 md:text-4xl">
@@ -74,7 +74,7 @@ export default async function HomePage() {
         <section className="py-24 md:py-32">
           <div className="container-wide">
             <div className="mb-12 text-center">
-              <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-secondary-500">
+              <p className="mx-auto mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-secondary-500">
                 Quem Já Foi
               </p>
               <h2 className="mx-auto max-w-2xl font-heading text-3xl text-primary-700 md:text-4xl">
