@@ -42,7 +42,7 @@ const PILARES = [
   },
   {
     icone: "❋",
-    titulo: "Roteiros & Vivências",
+    titulo: "Roteiros e Vivências",
     descricao:
       "Caminhos e itinerários desenhados para você viver grandes transformações.",
   },
