@@ -264,6 +264,14 @@
     color: var(--color-secondary-700);
   }
 
+  /* Títulos centralizados precisam centralizar o próprio rótulo também.
+     O limite global de largura de <p> deixava o chapéu deslocado à esquerda. */
+  .text-center .chapeu:not(.chapeu-com-risco) {
+    width: fit-content;
+    margin-inline: auto;
+    text-align: center;
+  }
+
   .chapeu-claro {
     color: var(--color-secondary-300);
   }
