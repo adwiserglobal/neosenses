@@ -34,16 +34,17 @@ export function Footer() {
             <Link
               href="/"
               prefetch
-              className="inline-flex items-center rounded-md bg-primary-800 px-3 py-2"
+              className="inline-flex items-center"
               aria-label="NeoSenses — início"
             >
-              <Image
-                src="/images/neosenses-logo.svg"
-                alt="NeoSenses"
-                width={200}
-                height={25}
-                className="h-[20px] w-auto"
-              />
+              <span className="relative block h-[20px] w-[160px]">
+                <Image src="/images/neosenses-logo.svg" alt="NeoSenses" width={200} height={25} className="h-full w-full" />
+                <span aria-hidden="true" className="pointer-events-none absolute inset-0 bg-primary-700" style={{
+                  WebkitMaskImage: 'url("/images/neosenses-logo.svg")', maskImage: 'url("/images/neosenses-logo.svg")',
+                  WebkitMaskSize: "100% 100%", maskSize: "100% 100%",
+                  WebkitMaskRepeat: "no-repeat", maskRepeat: "no-repeat", clipPath: "inset(0 0 0 34%)",
+                }} />
+              </span>
             </Link>
             <p className="mt-2 text-sm italic text-secondary-500">Um Novo Sentir</p>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-text-muted">
@@ -137,6 +138,7 @@ export function Footer() {
                 </span>
               </li>
               <li className="pt-1 text-xs text-text-muted">Seg–Sáb 9:00–18:00</li>
+              <li className="text-xs text-text-muted">CNPJ: 60.937.280/0001-90</li>
             </ul>
           </div>
         </div>
