@@ -209,7 +209,7 @@ export default async function ExperienciasPage({ searchParams }: Props) {
       <Capa
         chapeu="Descubra seu caminho"
         titulo={
-          categoriaAtiva ? t(categoriaAtiva.name as I18nField, "pt") : "Experiências transformadoras"
+          categoriaAtiva ? t(categoriaAtiva.name as I18nField, "pt").replaceAll(" & ", " e ") : "Experiências transformadoras"
         }
         resumo="Jornadas no Brasil e no mundo, criadas para ampliar presença, consciência e conexão."
         imagem="/images/b2b/peru-humantay.jpg"
@@ -241,7 +241,7 @@ export default async function ExperienciasPage({ searchParams }: Props) {
                     : "border border-border text-text-muted hover:border-secondary-400 hover:text-primary-700"
                 }`}
               >
-                {t(c.name as I18nField, "pt")}
+                {t(c.name as I18nField, "pt").replaceAll(" & ", " e ")}
               </Link>
             ))}
           </nav>
@@ -359,7 +359,7 @@ export default async function ExperienciasPage({ searchParams }: Props) {
             <>
               <p className="mb-8 text-sm text-text-muted">
                 {totalExibido} {totalExibido === 1 ? "experiência" : "experiências"}
-                {categoriaAtiva ? ` em ${t(categoriaAtiva.name as I18nField, "pt")}` : ""}
+                {categoriaAtiva ? ` em ${t(categoriaAtiva.name as I18nField, "pt").replaceAll(" & ", " e ")}` : ""}
               </p>
 
               <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
