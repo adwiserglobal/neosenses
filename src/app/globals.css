@@ -65,12 +65,12 @@
   --color-accent-800: #5c351d;
   --color-accent-900: #3a2112;
 
-  /* Floresta — a segunda faixa escura, para alternar com a noite. */
-  --color-forest-400: #35664d;
-  --color-forest-500: #2a5540;
-  --color-forest-600: #234634;
-  --color-forest-700: #1c3a2b;
-  --color-forest-800: #142a1f;
+  /* Segunda faixa roxa, para alternar com a tonalidade principal. */
+  --color-forest-400: #8a5a9e;
+  --color-forest-500: #704285;
+  --color-forest-600: #58316e;
+  --color-forest-700: #422152;
+  --color-forest-800: #2b1239;
 
   /* Limão — acento vivo. SÓ sobre fundo escuro (ver cabeçalho). */
   --color-lima-300: #f2ff94;
