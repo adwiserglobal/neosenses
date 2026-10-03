@@ -18,10 +18,10 @@ function montarMenu(categorias: Array<{ label: string; href: string }>): ItemDeM
     { label: "Home", href: "/" },
     { label: "Sobre Nós", href: "/sobre" },
     {
-      label: "Experiências & Roteiros",
+      label: "Experiências e Roteiros",
       href: "/experiencias",
       children: [
-        ...categorias,
+        ...categorias.map((categoria) => ({ ...categoria, label: categoria.label.replaceAll(" & ", " e ") })),
         { label: "Ver todas", href: "/experiencias", separarAntes: categorias.length > 0 },
         { label: "Destinos", href: "/destinos" },
         { label: "Montar meu roteiro", href: "/planejar" },
@@ -155,7 +155,7 @@ export function Header({
 
                   {link.children && (
                     <button
-                      ref={link.label === "Experiências & Roteiros" ? botaoDoMenu : undefined}
+                      ref={link.label === "Experiências e Roteiros" ? botaoDoMenu : undefined}
                       type="button"
                       aria-expanded={aberto}
                       aria-controls={idDoSubmenu}
