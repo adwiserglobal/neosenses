@@ -18,7 +18,7 @@ export function ExperienceCard({ experience, locale = "pt", index = 0 }: Experie
   const title = t(experience.title as I18nField, locale);
   const description = t(experience.short_description as I18nField, locale);
   const slug = t(experience.slug as I18nField, locale);
-  const categoryName = experience.category ? t(experience.category.name as I18nField, locale) : "";
+  const categoryName = experience.category ? t(experience.category.name as I18nField, locale).replaceAll(" & ", " e ") : "";
   const destinationName = experience.destination ? t(experience.destination.name as I18nField, locale) : "";
 
   return (
