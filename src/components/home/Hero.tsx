@@ -81,7 +81,7 @@ export function Hero() {
           transition={{ ...transicao, delay: 0.1 }}
           className="mb-8 max-w-4xl font-heading text-5xl font-normal leading-[1.05] text-warm-white md:text-7xl"
         >
-          Um Novo <span className="text-gradient-gold italic">Sentir</span>
+          Um Novo <span className="italic text-[#f0ca61]">Sentir</span>
         </motion.h1>
 
         <motion.p
