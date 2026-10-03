@@ -10,33 +10,19 @@
  */
 
 import type { Metadata, Viewport } from "next";
-import { Fraunces, Work_Sans } from "next/font/google";
+import { Playfair_Display, Inter } from "next/font/google";
 import "./globals.css";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { organizacao } from "@/lib/seo/dadosEstruturados";
 
-/**
- * Fraunces e Work Sans — o par dos três modelos B2B.
- *
- * Por `next/font` e não por `<link>` para o Google Fonts: os arquivos
- * passam a ser servidos deste domínio, some a requisição a terceiro
- * (e o endereço IP do visitante que ia junto), e o texto não salta
- * quando a fonte chega.
- *
- * `opsz` é o que faz Fraunces valer a pena: o desenho muda com o
- * tamanho. Sem declarar o eixo aqui, só o peso viria e o CSS pediria
- * um eixo que o arquivo não tem. `SOFT` e `WONK` são os outros dois
- * eixos da família — WONK é o que dá o "g" e o "y" com a perna
- * torta que assina a fonte.
- */
-const fraunces = Fraunces({
+/** Fontes oficiais solicitadas pela NeoSenses: Playfair Display + Inter. */
+const playfair = Playfair_Display({
   subsets: ["latin"],
   display: "swap",
   variable: "--fonte-titulo",
-  axes: ["SOFT", "WONK", "opsz"],
 });
 
-const workSans = Work_Sans({
+const inter = Inter({
   subsets: ["latin"],
   display: "swap",
   variable: "--fonte-corpo",
@@ -134,7 +120,7 @@ export const metadata: Metadata = {
 export const viewport: Viewport = {
   themeColor: [
     { media: "(prefers-color-scheme: light)", color: "#f6f1e4" },
-    { media: "(prefers-color-scheme: dark)", color: "#16232b" },
+    { media: "(prefers-color-scheme: dark)", color: "#39004B" },
   ],
   width: "device-width",
   initialScale: 1,
@@ -149,7 +135,7 @@ export default function RootLayout({
   return (
     <html
       lang="pt-BR"
-      className={`${fraunces.variable} ${workSans.variable}`}
+      className={`${playfair.variable} ${inter.variable}`}
       suppressHydrationWarning
     >
       <body className="min-h-screen bg-warm-white text-text-primary antialiased">
