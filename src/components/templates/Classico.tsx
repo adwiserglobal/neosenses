@@ -198,21 +198,27 @@ export function Classico({
       <div className="container-wide py-16 md:py-20">
         <div className="grid gap-12 lg:grid-cols-3">
           <div className="space-y-12 lg:col-span-2">
-            {/* Seções 2 e 4 — a introdução e o aprofundamento */}
-            {dados.descricao && (
+            {/* Seção 2: apresentação breve da experiência. */}
+            {dados.resumo && (
               <section id="sobre">
-                <h2 className="mb-4 font-heading text-2xl text-primary-700">Sobre a jornada</h2>
-                <Corpo texto={dados.descricao} />
+                <h2 className="mb-4 font-heading text-2xl text-primary-700">O roteiro ou retiro</h2>
+                <Corpo texto={dados.resumo} />
               </section>
             )}
 
-            {/* Seção 3 */}
+            {/* Seção 3: intenção por trás da experiência. */}
             {dados.porQueCriamos && (
               <section className="rounded-xl border border-border bg-warm-gray/25 p-6">
-                <h2 className="mb-3 font-heading text-2xl text-primary-700">
-                  Por que criamos esta jornada
-                </h2>
+                <h2 className="mb-3 font-heading text-2xl text-primary-700">Por que criamos esta jornada</h2>
                 <Corpo texto={dados.porQueCriamos} />
+              </section>
+            )}
+
+            {/* Seção 4: aprofundamento do destino, propósito e atividades. */}
+            {dados.descricao && (
+              <section>
+                <h2 className="mb-4 font-heading text-2xl text-primary-700">O que é esta experiência?</h2>
+                <Corpo texto={dados.descricao} />
               </section>
             )}
 
