@@ -20,9 +20,9 @@ const NAV_LINKS: ItemDeMenu[] = [
     label: "Experiências & Roteiros",
     href: "/experiencias",
     children: [
-      { label: "Ver todas", href: "/experiencias" },
-      { label: "Destinos", href: "/destinos" },
-      { label: "Montar meu roteiro", href: "/planejar" },
+      { label: "Viagens & Peregrinações", href: "/experiencias?categoria=viagens-peregrinacoes" },
+      { label: "Retiros & Imersões", href: "/experiencias?categoria=retiros-imersoes" },
+      { label: "Workshops & Aulas", href: "/experiencias?categoria=workshops-aulas" },
     ],
   },
   { label: "Para Facilitadores", href: "/para-facilitadores" },
@@ -114,14 +114,29 @@ export function PublicHeader() {
           className="relative z-50 inline-flex shrink-0 items-center transition-transform hover:scale-[1.02]"
           aria-label="NeoSenses — início"
         >
-          <Image
-            src="/images/neosenses-logo.svg"
-            alt="NeoSenses"
-            width={200}
-            height={25}
-            priority
-            className="h-[20px] w-auto"
-          />
+          <span className="relative block h-[20px] w-[160px]">
+            <Image
+              src="/images/neosenses-logo.svg"
+              alt="NeoSenses"
+              width={200}
+              height={25}
+              priority
+              className="h-full w-full"
+            />
+            {/* Só SENSES muda de branco para roxo sobre fundos claros;
+                o NEO dourado e a forma original do logotipo permanecem. */}
+            <span
+              aria-hidden="true"
+              className={`pointer-events-none absolute inset-0 bg-primary-700 transition-opacity duration-300 ${scrolled || mobileOpen ? "opacity-100" : "opacity-0"}`}
+              style={{
+                WebkitMaskImage: 'url("/images/neosenses-logo.svg")',
+                maskImage: 'url("/images/neosenses-logo.svg")',
+                WebkitMaskSize: "100% 100%", maskSize: "100% 100%",
+                WebkitMaskRepeat: "no-repeat", maskRepeat: "no-repeat",
+                clipPath: "inset(0 0 0 34%)",
+              }}
+            />
+          </span>
         </Link>
 
         <nav className="hidden min-w-0 flex-1 items-center justify-end gap-0.5 xl:flex">
