@@ -37,14 +37,13 @@ export function Footer() {
               className="inline-flex items-center"
               aria-label="NeoSenses — início"
             >
-              <span className="relative block h-[20px] w-[160px]">
-                <Image src="/images/neosenses-logo.svg" alt="NeoSenses" width={200} height={25} className="h-full w-full" />
-                <span aria-hidden="true" className="pointer-events-none absolute inset-0 bg-primary-700" style={{
-                  WebkitMaskImage: 'url("/images/neosenses-logo.svg")', maskImage: 'url("/images/neosenses-logo.svg")',
-                  WebkitMaskSize: "100% 100%", maskSize: "100% 100%",
-                  WebkitMaskRepeat: "no-repeat", maskRepeat: "no-repeat", clipPath: "inset(0 0 0 34%)",
-                }} />
-              </span>
+              <Image
+                src="/images/neosenses-logo-claro.svg"
+                alt="NeoSenses"
+                width={200}
+                height={25}
+                className="h-[20px] w-auto"
+              />
             </Link>
             <p className="mt-2 text-sm italic text-secondary-500">Um Novo Sentir</p>
             <p className="mt-4 max-w-xs text-sm leading-relaxed text-text-muted">
