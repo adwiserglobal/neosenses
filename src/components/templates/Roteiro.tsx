@@ -73,16 +73,24 @@ export function Roteiro({
         }
       />
 
-      {/* Seções 2 e 4 */}
-      {dados.descricao && (
+      {/* Seção 2: introdução do roteiro ou retiro. */}
+      {dados.resumo && (
         <Faixa fundo="areia" largura="content" id="sobre">
-          <TituloDeSecao chapeu="A jornada" titulo="Sobre esta viagem" />
-          <Corpo texto={dados.descricao} className="mt-8" />
+          <TituloDeSecao chapeu="A proposta" titulo="O roteiro ou retiro" />
+          <Corpo texto={dados.resumo} className="mt-8" />
         </Faixa>
       )}
 
-      {/* Seção 3 */}
+      {/* Seção 3: o porquê da criação. */}
       <PorQueCriamos dados={dados} fundo="clara" />
+
+      {/* Seção 4: descrição aprofundada do destino e formato. */}
+      {dados.descricao && (
+        <Faixa fundo="areia" largura="content">
+          <TituloDeSecao chapeu="A experiência" titulo="O que é esta experiência?" />
+          <Corpo texto={dados.descricao} className="mt-8" />
+        </Faixa>
+      )}
 
       <FaixaFoto imagem={dados.fotos[0]} altura="media" />
 
