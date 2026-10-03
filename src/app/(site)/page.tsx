@@ -39,10 +39,10 @@ export default async function HomePage() {
           <div className="container-wide">
             <div className="mb-12 text-center">
               <p className="mx-auto mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-secondary-500">
-                Próximas Jornadas
+                Nossas Jornadas
               </p>
               <h2 className="mx-auto max-w-2xl font-heading text-3xl text-primary-700 md:text-4xl">
-                Experiências abertas neste momento
+                Conheça nossas jornadas
               </h2>
             </div>
 
