@@ -24,16 +24,16 @@
 
 @theme {
   /* Primary — Noite. Fundos escuros, títulos e o cabeçalho. */
-  --color-primary-50: #edf1f3;
-  --color-primary-100: #d3dbe0;
-  --color-primary-200: #a9b7bf;
-  --color-primary-300: #7a8d98;
-  --color-primary-400: #526875;
-  --color-primary-500: #35505c;
-  --color-primary-600: #223a45;
-  --color-primary-700: #16232b;
-  --color-primary-800: #0e181e;
-  --color-primary-900: #070e12;
+  --color-primary-50: #f7effa;
+  --color-primary-100: #ead6f1;
+  --color-primary-200: #d4afe3;
+  --color-primary-300: #bd86d0;
+  --color-primary-400: #9f4eba;
+  --color-primary-500: #7e239b;
+  --color-primary-600: #691281;
+  --color-primary-700: #5a0572;
+  --color-primary-800: #39004b;
+  --color-primary-900: #250031;
 
   /* Secondary — Dourado NeoSenses, o da marca.
      A escala está deslocada de propósito: dourado é uma cor clara por
@@ -80,7 +80,7 @@
   /* Neutros — areia */
   --color-warm-white: #f6f1e4;
   --color-warm-gray: #eae0c9;
-  --color-dark-bg: #16232b;
+  --color-dark-bg: #39004b;
   --color-surface: #fffcf6;
   --color-border: #d8cfb9;
   --color-text-primary: #241e17;
@@ -95,7 +95,7 @@
   --color-whatsapp: #25d366;
 
   /* Fonts.
-     Fraunces e Work Sans são o par dos três modelos. Carregadas
+     Playfair Display e Inter são as fontes aprovadas. Carregadas
      por next/font em `layout.tsx`, que hospeda os arquivos junto
      com o site — sem requisição ao Google e sem salto de texto. */
   --font-heading: var(--fonte-titulo), "Playfair Display", Georgia, serif;
@@ -160,10 +160,7 @@
     overflow-x: hidden;
   }
 
-  /* Fraunces tem eixo óptico: no tamanho grande o desenho afina e
-     abre, no pequeno engrossa para continuar legível. `font-optical-sizing`
-     deixa o navegador acompanhar o tamanho real — sem isso todo
-     título sai com o desenho de corpo de texto ampliado. */
+  /* Playfair Display nos títulos e Inter no corpo, conforme a identidade da marca. */
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
     font-optical-sizing: auto;
@@ -247,7 +244,7 @@
   }
 
   .bg-gradient-hero {
-    background: linear-gradient(180deg, rgba(22,35,43,0.72) 0%, rgba(22,35,43,0.32) 50%, transparent 100%);
+    background: linear-gradient(180deg, rgba(34,18,30,0.72) 0%, rgba(34,18,30,0.32) 50%, transparent 100%);
   }
 
   .bg-gradient-dark {
