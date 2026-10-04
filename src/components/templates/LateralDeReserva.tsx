@@ -34,7 +34,7 @@ export function LateralDeReserva({
   const datas: ExperienceDate[] = experiencia.dates ?? [];
 
   return (
-    <div className="sticky top-24 space-y-4 rounded-2xl border border-border bg-surface p-6 shadow-card">
+    <div className="space-y-4 rounded-2xl border border-border bg-surface p-6 shadow-card lg:sticky lg:top-24 lg:max-h-[calc(100dvh-7rem)] lg:overflow-y-auto">
       {experiencia.price_from ? (
         <div>
           <p className="text-xs uppercase tracking-wider text-text-muted">A partir de</p>
@@ -50,6 +50,31 @@ export function LateralDeReserva({
       ) : (
         <p className="font-heading text-xl text-primary-700">Valores sob consulta</p>
       )}
+
+      {/* A ação principal fica sempre visível antes da lista de datas. */}
+      <div className="pt-1">
+        {urlReservas ? (
+          <a
+            href={urlReservas}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-primario w-full"
+          >
+            {rotuloReservas}
+          </a>
+        ) : (
+          <a
+            href={linkWhatsApp(
+              `Olá! Quero consultar a disponibilidade da experiência "${titulo}".`
+            )}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="btn-primario w-full"
+          >
+            Consultar disponibilidade
+          </a>
+        )}
+      </div>
 
       <div className="border-t border-border pt-4">
         <h2 className="mb-3 flex items-center gap-2 text-sm font-semibold text-primary-700">
@@ -104,27 +129,6 @@ export function LateralDeReserva({
       {/* Reservar quando há plataforma cadastrada; consultar quando não há.
           Os dois nunca aparecem juntos: dar duas portas com o mesmo peso
           para a mesma intenção divide o clique e não aumenta a conversão. */}
-      {urlReservas ? (
-        <a
-          href={urlReservas}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn-primario w-full"
-        >
-          {rotuloReservas}
-        </a>
-      ) : (
-        <a
-          href={linkWhatsApp(
-            `Olá! Quero consultar a disponibilidade da experiência "${titulo}".`
-          )}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="btn-primario w-full"
-        >
-          Consultar disponibilidade
-        </a>
-      )}
 
       <Interesse experienciaId={experiencia.id} titulo={titulo} datas={datas} />
 
