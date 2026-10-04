@@ -35,6 +35,7 @@ export async function listarPosts(opcoes?: {
     .from("blog_posts")
     .select(CAMPOS_LISTA, { count: "exact" })
     .eq("status", "published")
+    .order("is_featured", { ascending: false })
     .order("published_at", { ascending: false })
     .range(inicio, inicio + limite - 1);
 
