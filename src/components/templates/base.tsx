@@ -131,8 +131,9 @@ export function Capa({
             fill
             priority
             sizes="100vw"
+            quality={90}
             unoptimized={!podeOtimizar(imagem)}
-            className="object-cover"
+            className="object-cover object-center"
           />
           {/* O véu é quem garante a legibilidade, não a foto.
            *
@@ -145,7 +146,7 @@ export function Capa({
            * 88% no meio segura o dourado em 6,1:1 mesmo contra branco puro,
            * que é o pior caso possível. O topo continua em 25% para a foto
            * respirar — é lá que ela aparece, e nenhum texto mora lá. */}
-          <div className="absolute inset-0 bg-gradient-to-t from-primary-800 via-primary-800/88 to-primary-800/25" />
+          <div className="absolute inset-0 bg-gradient-to-t from-[#16101c]/85 via-[#211725]/55 to-[#18131d]/25" />
         </>
       )}
 
