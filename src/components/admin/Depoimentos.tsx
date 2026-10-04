@@ -119,7 +119,7 @@ function FormularioDepoimento({
         </div>
         <div>
           <label className="mb-1 block text-xs font-medium text-primary-700">Situação</label>
-          <select name="status" defaultValue={depoimento?.status ?? "draft"} className={campo}>
+          <select name="status" defaultValue={depoimento?.status ?? "published"} className={campo}>
             <option value="draft">Rascunho</option>
             <option value="published">No ar</option>
             <option value="archived">Arquivado</option>
@@ -130,6 +130,12 @@ function FormularioDepoimento({
           <input name="sort_order" type="number" defaultValue={depoimento?.sort_order ?? 0} className={campo} />
         </div>
       </div>
+
+      <p className="rounded-lg border border-secondary-200 bg-surface px-4 py-3 text-xs leading-relaxed text-text-muted">
+        Ao salvar como <strong className="text-primary-700">No ar</strong>, o depoimento aparece
+        automaticamente na home, antes de “Pronto para um Novo Sentir?”.
+        Rascunhos e depoimentos arquivados não aparecem no site.
+      </p>
 
       <label className="flex items-center gap-2.5">
         <input
@@ -162,15 +168,23 @@ export function Depoimentos({ depoimentos, experiencias }: Props) {
   const [pendente, iniciar] = useTransition();
   const [editando, setEditando] = useState<string | "novo" | null>(null);
   const [erro, setErro] = useState<string | null>(null);
+  const [aviso, setAviso] = useState<string | null>(null);
 
   function enviar(dados: FormData) {
     setErro(null);
+    setAviso(null);
+    const situacao = dados.get("status");
     iniciar(async () => {
       const r = await salvarDepoimento(dados);
       if (!r.success) {
         setErro(r.error ?? "Não foi possível salvar.");
         return;
       }
+      setAviso(
+        situacao === "published"
+          ? "Depoimento publicado. Ele já pode aparecer na home, antes do convite final."
+          : "Depoimento salvo. Ele só aparecerá no site quando estiver como No ar."
+      );
       setEditando(null);
       router.refresh();
     });
@@ -179,12 +193,14 @@ export function Depoimentos({ depoimentos, experiencias }: Props) {
   function remover(id: string, nome: string) {
     if (!window.confirm(`Excluir o depoimento de ${nome}?`)) return;
     setErro(null);
+    setAviso(null);
     iniciar(async () => {
       const r = await excluirDepoimento(id);
       if (!r.success) {
         setErro(r.error ?? "Não foi possível excluir.");
         return;
       }
+      setAviso("Depoimento excluído. A home será atualizada automaticamente.");
       router.refresh();
     });
   }
@@ -204,6 +220,11 @@ export function Depoimentos({ depoimentos, experiencias }: Props) {
       {erro && (
         <p role="alert" className="rounded-lg border border-red-200 bg-red-50 px-4 py-2.5 text-sm text-red-800">
           {erro}
+        </p>
+      )}
+      {aviso && (
+        <p role="status" className="rounded-lg border border-secondary-300/60 bg-secondary-50 px-4 py-3 text-sm text-primary-700">
+          {aviso}
         </p>
       )}
 
