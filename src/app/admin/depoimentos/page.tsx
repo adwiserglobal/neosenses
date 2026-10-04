@@ -52,7 +52,7 @@ export default async function DepoimentosPage() {
 
       <div className="rounded-xl border border-secondary-300/40 bg-secondary-50/35 px-5 py-4 text-sm leading-relaxed text-text-muted">
         <p className="font-semibold text-primary-700">
-          ${publicados > 0 ? "Depoimentos visíveis no site" : "A seção de depoimentos ainda está oculta"}
+          {publicados > 0 ? "Depoimentos visíveis no site" : "A seção de depoimentos ainda está oculta"}
         </p>
         <p className="mt-1">
           Publique pelo menos um relato real para que a seção apareça automaticamente
