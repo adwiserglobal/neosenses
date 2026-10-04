@@ -50,7 +50,7 @@ export default async function EditarExperiencia({ params }: Props) {
     supabase.from("itinerary_days").select("id", { count: "exact", head: true }).eq("experience_id", id),
     supabase.from("experience_highlights").select("id", { count: "exact", head: true }).eq("experience_id", id),
     supabase.from("experience_faqs").select("id", { count: "exact", head: true }).eq("experience_id", id),
-    supabase.from("experience_facilitators").select("id", { count: "exact", head: true }).eq("experience_id", id),
+    supabase.from("experience_facilitators").select("facilitator_id", { count: "exact", head: true }).eq("experience_id", id),
   ]);
 
   if (!experiencia.data) notFound();
