@@ -30,28 +30,28 @@ const surgir = {
  */
 const PILARES = [
   {
-    icone: "✦",
     titulo: "Jornadas de Alma",
-    descricao:
-      "Intenção e aprendizados com experiências profundas para transformar a sua vida.",
+    descricao: "Intenção e aprendizados com experiências profundas para transformar a sua vida.",
+    imagem: "/images/home/proposito-floresta.webp",
+    alt: "Vivência de conexão interior em meio à natureza",
   },
   {
-    icone: "◯",
     titulo: "Autoconhecimento",
-    descricao:
-      "Avançar cada dia mais em sua jornada interior e evoluir continuamente como pessoa.",
+    descricao: "Avançar cada dia mais em sua jornada interior e evoluir continuamente como pessoa.",
+    imagem: "/images/b2b/peru-lagoa-sagrada.jpg",
+    alt: "Paisagem natural de uma jornada de autoconhecimento no Peru",
   },
   {
-    icone: "❋",
     titulo: "Roteiros e Vivências",
-    descricao:
-      "Caminhos e itinerários desenhados para você viver grandes transformações.",
+    descricao: "Caminhos e itinerários desenhados para você viver grandes transformações.",
+    imagem: "/images/b2b/peru-machu-picchu.jpg",
+    alt: "Roteiro de viagem por Machu Picchu",
   },
   {
-    icone: "∞",
     titulo: "Conexão",
-    descricao:
-      "Harmonia com a natureza e com pessoas que vibram na mesma energia e intenções.",
+    descricao: "Harmonia com a natureza e com pessoas que vibram na mesma energia e intenções.",
+    imagem: "/images/b2b/amazonas-comunidade.jpg",
+    alt: "Convívio e conexão humana em comunidade na Amazônia",
   },
 ];
 
@@ -198,38 +198,48 @@ export function Pilares() {
               style={{ borderRadius: "42% 58% 56% 44% / 38% 40% 60% 62%" }}
             >
               <Image
-                src="https://images.unsplash.com/photo-1610313898425-a5c637a940db?auto=format&fit=crop&w=1440&q=88"
-                alt="Mulher celebrando o festival Holi, com cores vibrantes no rosto"
+                src="/images/home/proposito-floresta.webp"
+                alt="Mulher de braços erguidos em uma floresta, em conexão com a natureza"
                 fill
                 sizes="(min-width: 1024px) 44vw, (min-width: 640px) 75vw, 100vw"
                 quality={90}
                 className="object-cover object-center"
               />
             </div>
-            <p className="mt-4 text-right text-[10px] text-text-muted/75">
-              Foto: Bulbul Ahmed / Unsplash
-            </p>
           </motion.div>
         </div>
 
         <div className="mt-20 border-t border-secondary-300/35 pt-10 md:mt-28">
-          <p className="mb-8 text-center text-xs font-semibold uppercase tracking-[0.21em] text-secondary-500">
-            O que nos move
-          </p>
-          <div className="grid gap-7 sm:grid-cols-2 lg:grid-cols-4 lg:gap-0">
+          <div className="mb-10 flex w-full justify-center">
+            <p className="mx-auto w-max max-w-none text-center text-xs font-semibold uppercase tracking-[0.21em] text-secondary-500">
+              O que nos move
+            </p>
+          </div>
+          <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
             {PILARES.map((pilar, i) => (
-              <motion.div
+              <motion.article
                 key={pilar.titulo}
-                initial={{ opacity: 0, y: 16 }}
+                initial={{ opacity: 0, y: 20 }}
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
-                transition={{ duration: 0.45, delay: i * 0.08 }}
-                className="px-3 py-2 text-center lg:border-r lg:border-secondary-300/25 lg:px-6 lg:last:border-r-0"
+                transition={{ duration: 0.5, delay: i * 0.09 }}
+                className="group flex h-full flex-col overflow-hidden rounded-[22px] border border-secondary-300/30 bg-surface shadow-[0_10px_36px_rgba(58,21,73,0.055)] transition-all duration-300 hover:-translate-y-1 hover:border-secondary-300/65 hover:shadow-[0_22px_56px_rgba(58,21,73,0.14)]"
               >
-                <div className="mb-3 text-2xl text-secondary-500" aria-hidden="true">{pilar.icone}</div>
-                <h3 className="mb-2 font-heading text-xl text-primary-700">{pilar.titulo}</h3>
-                <p className="mx-auto max-w-xs text-sm leading-relaxed text-text-muted">{pilar.descricao}</p>
-              </motion.div>
+                <div className="relative aspect-[4/3] overflow-hidden bg-primary-100">
+                  <Image
+                    src={pilar.imagem}
+                    alt={pilar.alt}
+                    fill
+                    sizes="(min-width: 1280px) 23vw, (min-width: 640px) 46vw, 100vw"
+                    quality={90}
+                    className="object-cover transition-transform duration-700 group-hover:scale-105"
+                  />
+                </div>
+                <div className="flex flex-1 flex-col px-6 pb-8 pt-7 text-center">
+                  <h3 className="mb-3 font-heading text-2xl leading-tight text-primary-700">{pilar.titulo}</h3>
+                  <p className="mx-auto max-w-[32ch] text-sm leading-[1.8] text-text-muted">{pilar.descricao}</p>
+                </div>
+              </motion.article>
             ))}
           </div>
         </div>
