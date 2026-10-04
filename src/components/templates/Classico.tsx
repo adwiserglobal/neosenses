@@ -237,6 +237,20 @@ export function Classico({
             <Inclusoes experiencia={experiencia} />
             <AntesDeViajar guias={guias} />
             <Depoimentos experiencia={experiencia} />
+
+            {/* Seção 5 */}
+            <PorQueParticipar dados={dados} fundo="noite" />
+
+            <FaixaFoto imagem={dados.fotos[0]} altura="baixa" />
+
+            {/* Seção 6 */}
+            <AJornada dados={dados} fundo="areia" />
+
+            {/* Seção 7 */}
+            <ApenasRelaxe dados={dados} fundo="clara" />
+
+            {/* Seção 8 */}
+            <Equipe dados={dados} fundo="areia" />
           </div>
 
           <aside className="lg:col-span-1">
@@ -250,20 +264,6 @@ export function Classico({
           </aside>
         </div>
       </div>
-
-      {/* Seção 5 */}
-      <PorQueParticipar dados={dados} fundo="noite" />
-
-      <FaixaFoto imagem={dados.fotos[0]} altura="baixa" />
-
-      {/* Seção 6 */}
-      <AJornada dados={dados} fundo="areia" />
-
-      {/* Seção 7 */}
-      <ApenasRelaxe dados={dados} fundo="clara" />
-
-      {/* Seção 8 */}
-      <Equipe dados={dados} fundo="areia" />
 
       <Relacionadas itens={relacionadas} />
 
