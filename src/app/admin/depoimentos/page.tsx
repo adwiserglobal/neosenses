@@ -50,15 +50,17 @@ export default async function DepoimentosPage() {
         </p>
       </header>
 
-      {publicados === 0 && (
-        <div className="rounded-xl border border-amber-200 bg-amber-50 p-5 text-sm text-amber-900">
-          <p className="font-medium">Nenhum depoimento no ar</p>
-          <p className="mt-1">
-            O visitante decide gastar vinte mil reais sem ver uma única pessoa que já foi. É a
-            ausência mais cara do site — mais do que qualquer detalhe de página.
-          </p>
-        </div>
-      )}
+      <div className="rounded-xl border border-secondary-300/40 bg-secondary-50/35 px-5 py-4 text-sm leading-relaxed text-text-muted">
+        <p className="font-semibold text-primary-700">
+          ${publicados > 0 ? "Depoimentos visíveis no site" : "A seção de depoimentos ainda está oculta"}
+        </p>
+        <p className="mt-1">
+          Publique pelo menos um relato real para que a seção apareça automaticamente
+          na página inicial, imediatamente antes de “Pronto para um Novo Sentir?”.
+          A foto, a cidade, a experiência e a nota são opcionais. Só os registros
+          com situação “No ar” são exibidos.
+        </p>
+      </div>
 
       <Depoimentos depoimentos={lista} experiencias={opcoes} />
     </div>
