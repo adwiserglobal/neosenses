@@ -31,6 +31,8 @@ export interface GenerateOptions {
   timeoutMs?: number;
   json?: boolean;
   thinking?: "low" | "medium" | "high";
+  /** Uma única escolha por tentativa: permite fallback controlado pela rota. */
+  openRouterSingleModel?: boolean;
 }
 
 export type AIErrorCode =
@@ -437,7 +439,9 @@ async function chamarOpenRouter(
   inicio: number
 ): Promise<AIResponse> {
   const siteUrl = lerEnv("NEXT_PUBLIC_SITE_URL") || "https://www.neosenses.com.br";
-  const models = modelosOpenRouter(cfg, Boolean(opts.json));
+  const models = opts.openRouterSingleModel
+    ? [cfg.model || "openrouter/free"]
+    : modelosOpenRouter(cfg, Boolean(opts.json));
 
   const res = await fetch("https://openrouter.ai/api/v1/chat/completions", {
     method: "POST",
