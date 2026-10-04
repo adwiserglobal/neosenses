@@ -212,7 +212,7 @@ export default async function ExperienciasPage({ searchParams }: Props) {
           categoriaAtiva ? t(categoriaAtiva.name as I18nField, "pt").replaceAll(" & ", " e ") : "Experiências transformadoras"
         }
         resumo="Jornadas no Brasil e no mundo, criadas para ampliar presença, consciência e conexão."
-        imagem="/images/b2b/peru-humantay.jpg"
+        imagem="/images/destinations/peru.png"
         alinhamento="centro"
       />
 
