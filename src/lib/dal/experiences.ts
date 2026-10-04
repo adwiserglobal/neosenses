@@ -10,7 +10,50 @@
 
 import { criarClientePublico } from "@/lib/supabase/server";
 import { idsDaCategoria } from "./destinations";
+import { t } from "@/lib/utils";
+import type { I18nField } from "@/types/models";
 import type { ExperienceWithRelations, ExperienceDate } from "@/types/models";
+
+/**
+ * Evita que o texto sobre o Peru, presente no card do Egito do site antigo,
+ * continue aparecendo caso tenha sido copiado para o cadastro da NeoSenses.
+ * Só corrige um campo em português quando ele contém referências inequívocas
+ * ao destino errado. Não mexe no título, idiomas adicionais, itinerário,
+ * preços, datas nem em páginas importadas como espelho 1:1.
+ *
+ * Texto resumido a partir da página própria "Jornada Espiritual Egito" da
+ * NeoSenses. É proteção na leitura; o conteúdo do CMS ainda deve ser revisado.
+ */
+function revisarTextoEgito<T extends ExperienceWithRelations>(experiencia: T): T {
+  const meta = experiencia.metadata as { render_mode?: string } | null | undefined;
+  if (meta?.render_mode === "external_mirror") return experiencia;
+
+  const titulo = t(experiencia.title as I18nField, "pt");
+  if (!/egito\\s+espiritual|espiritual\\s+(?:no\\s+)?egito/i.test(titulo)) return experiencia;
+
+  const referenciasDoPeru = /\\bperu\\b|perú|machu\\s+picchu|\\bcusco\\b|\\bcuzco\\b|vale\\s+sagrado|\\bincas?\\b/i;
+  const textos: Array<[keyof ExperienceWithRelations, string]> = [
+    ["short_description",
+      "Uma jornada de autoconhecimento pelo Egito, entre as Pirâmides de Gizé, o Vale dos Reis e os templos de Luxor, unindo história, cultura e experiências de reflexão espiritual."],
+    ["description",
+      "A Jornada Espiritual Egito é uma viagem de imersão cultural e autoconhecimento. O roteiro percorre lugares como as Pirâmides de Gizé, o Vale dos Reis e os templos de Luxor, combinando o patrimônio histórico egípcio a momentos de contemplação e práticas espirituais."],
+    ["why_created",
+      "O roteiro foi criado para oferecer uma experiência de autoconhecimento em que a história, a cultura e a espiritualidade do Egito façam parte de uma jornada de reflexão pessoal."],
+    ["value_proposition",
+      "A proposta reúne visitas a monumentos históricos e experiências de contemplação, meditação e conexão com a cultura e a herança espiritual do Egito."],
+  ];
+
+  let corrigida: T = experiencia;
+  for (const [campo, conteudo] of textos) {
+    const original = experiencia[campo];
+    if (!original || !referenciasDoPeru.test(t(original as I18nField, "pt"))) continue;
+    corrigida = {
+      ...corrigida,
+      [campo]: { ...(typeof original === "object" ? original : {}), pt: conteudo },
+    };
+  }
+  return corrigida;
+}
 
 /** Colunas da listagem. Buscar `*` traz descrição longa e SEO à toa. */
 const CAMPOS_LISTA = `
@@ -106,7 +149,7 @@ export async function listarExperiencias(
 
   const total = count ?? 0;
   return {
-    itens: (data ?? []) as unknown as ExperienceWithRelations[],
+    itens: ((data ?? []) as unknown as ExperienceWithRelations[]).map(revisarTextoEgito),
     total,
     temMais: inicio + limite < total,
   };
@@ -144,7 +187,7 @@ export async function buscarExperiencia(slug: string): Promise<ExperienceWithRel
     return null;
   }
 
-  const experiencia = data as unknown as ExperienceWithRelations;
+  const experiencia = revisarTextoEgito(data as unknown as ExperienceWithRelations);
   const hoje = new Date().toISOString().slice(0, 10);
 
   // Em paralelo: são consultas independentes, e em série a página de detalhe
@@ -246,7 +289,7 @@ export async function listarRelacionadas(
       .neq("id", experienciaId)
       .limit(limite);
 
-    if (data && data.length > 0) return data as unknown as ExperienceWithRelations[];
+    if (data && data.length > 0) return (data as unknown as ExperienceWithRelations[]).map(revisarTextoEgito);
   }
 
   const { data: alternativas } = await supabase
@@ -256,5 +299,5 @@ export async function listarRelacionadas(
     .neq("id", experienciaId)
     .limit(limite);
 
-  return (alternativas ?? []) as unknown as ExperienceWithRelations[];
+  return ((alternativas ?? []) as unknown as ExperienceWithRelations[]).map(revisarTextoEgito);
 }
