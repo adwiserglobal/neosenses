@@ -9,6 +9,7 @@
  */
 
 import Link from "next/link";
+import Image from "next/image";
 import { motion } from "framer-motion";
 
 const suave = [0.25, 0.46, 0.45, 0.94] as const;
@@ -137,45 +138,100 @@ export function Hero() {
   );
 }
 
+/** A proposta da marca: uma história à esquerda, fotografia orgânica à direita. */
 export function Pilares() {
   return (
-    <section className="py-24 md:py-32">
-      <div className="container-wide">
-        <div className="mb-16 text-center">
-          <motion.p
-            {...surgir}
-            whileInView="animate"
-            viewport={{ once: true, margin: "-100px" }}
-            className="mx-auto mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-secondary-500"
+    <section id="nosso-proposito" className="relative overflow-hidden bg-warm-white py-24 md:py-32">
+      <div aria-hidden="true" className="pointer-events-none absolute -right-36 top-20 h-96 w-96 rounded-full bg-secondary-200/15 blur-[90px]" />
+      <div className="container-wide relative">
+        <div className="grid items-center gap-14 lg:grid-cols-[minmax(0,1.07fr)_minmax(0,0.93fr)] lg:gap-20">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.65 }}
           >
-            Nosso Propósito
-          </motion.p>
-          <motion.h2
-            {...surgir}
-            transition={{ ...transicao, delay: 0.1 }}
-            className="mx-auto max-w-3xl font-heading text-3xl text-primary-700 md:text-4xl"
+            <p className="mb-5 text-xs font-semibold uppercase tracking-[0.23em] text-secondary-500">
+              A essência da NeoSenses
+            </p>
+            <h2 className="max-w-xl font-heading text-4xl leading-[1.1] text-primary-700 md:text-5xl lg:text-[3.6rem]">
+              Nosso <span className="italic text-secondary-500">Propósito</span>
+            </h2>
+            <div className="mt-8 h-px w-20 bg-secondary-300" aria-hidden="true" />
+            <div className="mt-8 max-w-[64ch] space-y-5 text-[15px] leading-[1.85] text-text-muted md:text-base">
+              <p>
+                Nossa proposta de valor é realizar experiências de viagem a lugares que tragam a você
+                um novo sentir, em jornadas que elevem sua vibração e conectem com seu melhor.
+              </p>
+              <p>
+                Criamos roteiros espirituais que proporcionam um mergulho interno, grandes
+                transformações e o resgate da nossa verdadeira essência: a Essência do Amor.
+              </p>
+              <p>
+                Cada viagem tem sua particularidade energética. As experiências são conduzidas
+                por profissionais qualificados e facilitadores, com destinos cuidadosamente
+                escolhidos ao redor do mundo.
+              </p>
+              <p className="font-heading text-xl italic text-primary-700">
+                Venha fazer parte deste novo sentir.
+              </p>
+            </div>
+            <Link
+              href="/sobre"
+              className="mt-8 inline-flex items-center gap-3 border-b border-secondary-400 pb-2 text-sm font-semibold text-primary-700 transition-colors hover:text-secondary-500"
+            >
+              Conheça a NeoSenses <span aria-hidden="true">↗</span>
+            </Link>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.97 }}
+            whileInView={{ opacity: 1, scale: 1 }}
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.75, delay: 0.12 }}
+            className="relative mx-auto w-full max-w-[570px]"
           >
-            Experiências que transformam sua jornada interior
-          </motion.h2>
+            <div aria-hidden="true" className="absolute -left-5 top-8 h-[76%] w-[87%] rotate-[-9deg] rounded-[49%_51%_62%_38%/39%_38%_62%_61%] border border-secondary-300/65" />
+            <div aria-hidden="true" className="absolute -bottom-7 right-0 h-52 w-52 rounded-full bg-primary-200/25 blur-3xl" />
+            <div
+              className="relative aspect-[4/4.4] overflow-hidden bg-primary-100 shadow-[0_28px_80px_rgba(62,11,83,0.14)] sm:aspect-[5/4.5]"
+              style={{ borderRadius: "42% 58% 56% 44% / 38% 40% 60% 62%" }}
+            >
+              <Image
+                src="https://images.unsplash.com/photo-1610313898425-a5c637a940db?auto=format&fit=crop&w=1440&q=88"
+                alt="Mulher celebrando o festival Holi, com cores vibrantes no rosto"
+                fill
+                sizes="(min-width: 1024px) 44vw, (min-width: 640px) 75vw, 100vw"
+                quality={90}
+                className="object-cover object-center"
+              />
+            </div>
+            <p className="mt-4 text-right text-[10px] text-text-muted/75">
+              Foto: Bulbul Ahmed / Unsplash
+            </p>
+          </motion.div>
         </div>
 
-        <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-4">
-          {PILARES.map((pilar, i) => (
-            <motion.div
-              key={pilar.titulo}
-              initial={{ opacity: 0, y: 24 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true }}
-              transition={{ ...transicao, delay: i * 0.1 }}
-              className="group rounded-xl border border-border bg-surface p-8 text-center transition-all duration-300 hover:border-secondary-300 hover:shadow-card"
-            >
-              <div className="mb-6 text-3xl text-secondary-500" aria-hidden="true">
-                {pilar.icone}
-              </div>
-              <h3 className="mb-3 font-heading text-xl text-primary-700">{pilar.titulo}</h3>
-              <p className="text-sm leading-relaxed text-text-muted">{pilar.descricao}</p>
-            </motion.div>
-          ))}
+        <div className="mt-20 border-t border-secondary-300/35 pt-10 md:mt-28">
+          <p className="mb-8 text-center text-xs font-semibold uppercase tracking-[0.21em] text-secondary-500">
+            O que nos move
+          </p>
+          <div className="grid gap-7 sm:grid-cols-2 lg:grid-cols-4 lg:gap-0">
+            {PILARES.map((pilar, i) => (
+              <motion.div
+                key={pilar.titulo}
+                initial={{ opacity: 0, y: 16 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true }}
+                transition={{ duration: 0.45, delay: i * 0.08 }}
+                className="px-3 py-2 text-center lg:border-r lg:border-secondary-300/25 lg:px-6 lg:last:border-r-0"
+              >
+                <div className="mb-3 text-2xl text-secondary-500" aria-hidden="true">{pilar.icone}</div>
+                <h3 className="mb-2 font-heading text-xl text-primary-700">{pilar.titulo}</h3>
+                <p className="mx-auto max-w-xs text-sm leading-relaxed text-text-muted">{pilar.descricao}</p>
+              </motion.div>
+            ))}
+          </div>
         </div>
       </div>
     </section>
