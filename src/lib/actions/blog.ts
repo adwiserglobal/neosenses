@@ -81,8 +81,8 @@ export async function salvarArtigoBlog(form: FormData): Promise<ResultadoBlog> {
   };
 
   const gravar = id
-    ? supabase.from("blog_posts").update(registro).eq("id", id).select("id").single()
-    : supabase.from("blog_posts").insert(registro).select("id").single();
+    ? supabase.from("blog_posts").update(registro as never).eq("id", id).select("id").single()
+    : supabase.from("blog_posts").insert(registro as never).select("id").single();
   const { data, error } = await gravar;
   if (error || !data) {
     console.error("[blog] salvar artigo:", error?.message);
@@ -94,7 +94,7 @@ export async function salvarArtigoBlog(form: FormData): Promise<ResultadoBlog> {
   if (geracao) {
     try {
       const info = JSON.parse(geracao) as Record<string, unknown>;
-      await supabase.from("blog_posts").update({ generation: info, featured_credit: creditoCapa || null }).eq("id", data.id);
+      await supabase.from("blog_posts").update({ generation: info, featured_credit: creditoCapa || null } as never).eq("id", data.id);
     } catch { /* A publicação não depende do histórico opcional. */ }
   } else if (creditoCapa) {
     await supabase.from("blog_posts").update({ featured_credit: creditoCapa }).eq("id", data.id);
