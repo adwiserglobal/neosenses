@@ -2,6 +2,8 @@ import Image from "next/image";
 import Link from "next/link";
 import { Mail, MapPin, Phone } from "lucide-react";
 import { Newsletter } from "./Newsletter";
+import { Suspense } from "react";
+import { lerConfiguracoesPublicas } from "@/lib/dal/content";
 
 const linksDeExperiencia = [
   { label: "Todas as jornadas", href: "/experiencias" },
@@ -9,6 +11,17 @@ const linksDeExperiencia = [
   { label: "Montar meu roteiro", href: "/planejar" },
   { label: "Para Facilitadores", href: "/para-facilitadores" },
 ];
+
+/**
+ * O registro só aparece quando o número real foi preenchido no painel.
+ * Carregado em Suspense para não bloquear o cabeçalho e o conteúdo público.
+ */
+async function RegistroCadastur() {
+  const configuracoes = await lerConfiguracoesPublicas();
+  const registro = configuracoes["empresa.cadastur"];
+  if (typeof registro !== "string" || !registro.trim()) return null;
+  return <li className="text-xs text-text-muted">CADASTUR: {registro.trim()}</li>;
+}
 
 /**
  * Rodapé deliberadamente estático: ele está presente em todas as páginas e
@@ -138,6 +151,7 @@ export function Footer() {
               </li>
               <li className="pt-1 text-xs text-text-muted">Seg–Sáb 9:00–18:00</li>
               <li className="text-xs text-text-muted">CNPJ: 60.937.280/0001-90</li>
+              <Suspense fallback={null}><RegistroCadastur /></Suspense>
             </ul>
           </div>
         </div>
