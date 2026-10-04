@@ -5,6 +5,7 @@ import Link from "next/link";
 import Image from "next/image";
 import { MapPin, Clock } from "lucide-react";
 import { t, formatCurrency, podeOtimizar } from "@/lib/utils";
+import { imagemDaExperiencia } from "@/lib/imagens-experiencias";
 import type { ExperienceWithRelations } from "@/types/models";
 import type { I18nField } from "@/types/models";
 
@@ -20,6 +21,7 @@ export function ExperienceCard({ experience, locale = "pt", index = 0 }: Experie
   const slug = t(experience.slug as I18nField, locale);
   const categoryName = experience.category ? t(experience.category.name as I18nField, locale).replaceAll(" & ", " e ") : "";
   const destinationName = experience.destination ? t(experience.destination.name as I18nField, locale) : "";
+  const capa = imagemDaExperiencia(experience.hero_image, title, destinationName, description);
 
   return (
     <motion.div
@@ -35,13 +37,13 @@ export function ExperienceCard({ experience, locale = "pt", index = 0 }: Experie
       >
         {/* Image */}
         <div className="relative aspect-[3/2] overflow-hidden">
-          {experience.hero_image ? (
+          {capa ? (
             <Image
-              src={experience.hero_image}
+              src={capa}
               alt={title}
               fill
               sizes="(min-width: 1024px) 33vw, (min-width: 640px) 50vw, 100vw"
-              unoptimized={!podeOtimizar(experience.hero_image)}
+              unoptimized={!podeOtimizar(capa)}
               className="object-cover transition-transform duration-500 group-hover:scale-105"
             />
           ) : (
