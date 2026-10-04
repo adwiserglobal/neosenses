@@ -10,10 +10,10 @@ import Link from "next/link";
 import { listarDestaques } from "@/lib/dal/experiences";
 import { listarDepoimentos } from "@/lib/dal/content";
 import { Hero, Pilares } from "@/components/home/Hero";
+import { DepoimentosHome } from "@/components/home/DepoimentosHome";
 import { ConviteAoFacilitador } from "@/components/templates/funil";
 import { ExperienceCard } from "@/components/ui/Cards";
-import { linkWhatsApp, t } from "@/lib/utils";
-import type { I18nField } from "@/types/models";
+import { linkWhatsApp } from "@/lib/utils";
 
 // A home declara o próprio canonical. Estava no layout raiz, de onde toda
 // rota que não redefinisse o herdava — e quatro páginas acabaram anunciando
@@ -25,7 +25,7 @@ export const metadata = {
 export const revalidate = 3600;
 
 export default async function HomePage() {
-  const [destaques, depoimentos] = await Promise.all([listarDestaques(3), listarDepoimentos(3)]);
+  const [destaques, depoimentos] = await Promise.all([listarDestaques(3), listarDepoimentos(6)]);
 
   return (
     <>
@@ -70,32 +70,9 @@ export default async function HomePage() {
           NeoSenses opera, e só então o convite faz sentido. */}
       <ConviteAoFacilitador />
 
-      {depoimentos.length > 0 && (
-        <section className="py-24 md:py-32">
-          <div className="container-wide">
-            <div className="mb-12 text-center">
-              <p className="mx-auto mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-secondary-500">
-                Quem Já Foi
-              </p>
-              <h2 className="mx-auto max-w-2xl font-heading text-3xl text-primary-700 md:text-4xl">
-                Histórias de quem viajou com a gente
-              </h2>
-            </div>
-
-            <ul className="grid gap-8 md:grid-cols-3">
-              {depoimentos.map((d) => (
-                <li key={d.id} className="rounded-xl border border-border bg-surface p-8">
-                  <blockquote className="italic leading-relaxed text-text-primary">
-                    “{t(d.quote as I18nField, "pt")}”
-                  </blockquote>
-                  <p className="mt-4 text-sm font-medium text-primary-700">{d.name}</p>
-                  {d.location && <p className="text-xs text-text-muted">{d.location}</p>}
-                </li>
-              ))}
-            </ul>
-          </div>
-        </section>
-      )}
+      {/* Só aparece com depoimentos realmente publicados, sempre imediatamente
+          antes do convite final. Rascunhos e arquivados nunca entram aqui. */}
+      <DepoimentosHome depoimentos={depoimentos} />
 
       <section className="bg-gradient-dark py-24 md:py-32">
         <div className="container-wide text-center">
