@@ -20,6 +20,7 @@ import { Parceria } from "@/components/templates/funil";
 import { JsonLd } from "@/components/seo/JsonLd";
 import * as schema from "@/lib/seo/dadosEstruturados";
 import { linkWhatsApp, t, podeOtimizar } from "@/lib/utils";
+import { imagemDaExperiencia } from "@/lib/imagens-experiencias";
 import type { I18nField } from "@/types/models";
 
 export const metadata: Metadata = {
@@ -274,6 +275,7 @@ export default async function ParaFacilitadoresPage() {
               const slug = t(j.slug as I18nField, "pt");
               const resumo = t(j.short_description as I18nField, "pt");
               const chapeu = t(j.hero_kicker as I18nField, "pt");
+              const capa = imagemDaExperiencia(j.hero_image, titulo, chapeu, resumo);
 
               return (
                 <li key={j.id}>
@@ -282,14 +284,14 @@ export default async function ParaFacilitadoresPage() {
                     className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-surface transition-all hover:border-secondary-300 hover:shadow-card"
                   >
                     <div className="relative aspect-[3/2] overflow-hidden bg-warm-gray">
-                      {j.hero_image && (
+                      {capa && (
                         <Image
-                          src={j.hero_image}
+                          src={capa}
                           alt=""
                           aria-hidden="true"
                           fill
                           sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
-                          unoptimized={!podeOtimizar(j.hero_image)}
+                          unoptimized={!podeOtimizar(capa)}
                           className="object-cover transition-transform duration-700 group-hover:scale-105"
                         />
                       )}
