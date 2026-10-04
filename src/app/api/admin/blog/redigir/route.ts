@@ -8,14 +8,37 @@ export const maxDuration = 60;
 
 type RespostaRedacao = { titulo: string; resumo: string; texto: string };
 
-function analisarResposta(texto: string): RespostaRedacao {
-  const limpo = texto.trim().replace(/^\x60\x60\x60(?:json)?\s*/i, "").replace(/\s*\x60\x60\x60$/, "");
-  const inicio = limpo.indexOf("{"), fim = limpo.lastIndexOf("}");
-  const json = JSON.parse(inicio >= 0 && fim >= 0 ? limpo.slice(inicio, fim + 1) : limpo) as Record<string, unknown>;
-  const titulo = typeof json.titulo === "string" ? json.titulo.trim().slice(0, 180) : "";
-  const resumo = typeof json.resumo === "string" ? json.resumo.trim().slice(0, 500) : "";
-  const corpo = typeof json.texto === "string" ? json.texto.trim().slice(0, 45000) : "";
-  if (!titulo || !resumo || corpo.length < 100) throw new Error("A resposta da IA veio incompleta. Tente novamente.");
+function analisarResposta(texto: string, tema: string): RespostaRedacao {
+  const limpo = texto.trim()
+    .replace(/^\x60\x60\x60(?:json)?\s*/i, "")
+    .replace(/\s*\x60\x60\x60$/, "");
+  const inicio = limpo.indexOf("{");
+  const fim = limpo.lastIndexOf("}");
+
+  if (inicio >= 0) {
+    // Se o JSON está truncado, não publique parte dele como um artigo.
+    if (fim <= inicio) throw new Error("Resposta JSON incompleta");
+    const json = JSON.parse(limpo.slice(inicio, fim + 1)) as Record<string, unknown>;
+    const titulo = typeof json.titulo === "string" ? json.titulo.trim().slice(0, 180) : "";
+    const resumo = typeof json.resumo === "string" ? json.resumo.trim().slice(0, 500) : "";
+    const corpo = typeof json.texto === "string" ? json.texto.trim().slice(0, 45000) : "";
+    if (!titulo || !resumo || corpo.length < 100) throw new Error("Resposta incompleta");
+    return { titulo, resumo, texto: corpo };
+  }
+
+  // Alguns modelos gratuitos ignoram o pedido de JSON mas escrevem um
+  // artigo Markdown perfeitamente aproveitável.
+  const linhas = limpo.split("\n");
+  const primeira = linhas.find((linha) => linha.trim()) ?? "";
+  const temTitulo = /^#\s+|^t[ií]tulo\s*:/i.test(primeira.trim());
+  const titulo = (temTitulo
+    ? primeira.replace(/^#\s+|^t[ií]tulo\s*:\s*/i, "").trim()
+    : tema).slice(0, 180);
+  const corpo = (temTitulo ? linhas.slice(linhas.indexOf(primeira) + 1).join("\n") : limpo).trim();
+  const primeiroParagrafo = corpo.split(/\n\s*\n/).find((p) => p.trim() && !p.trim().startsWith("#")) ?? "";
+  const resumo = primeiroParagrafo.replace(/\*\*/g, "").replace(/^>\s*/, "").slice(0, 240).trim();
+  if (titulo.length < 5 || resumo.length < 35 || corpo.length < 180)
+    throw new Error("Resposta incompleta");
   return { titulo, resumo, texto: corpo };
 }
 
@@ -121,7 +144,7 @@ Direção editorial ou informações fornecidas pela equipe: ${orientacoes || "S
         json: false,
         openRouterSingleModel: config.provider === "openrouter",
       });
-      const artigo = analisarResposta(resposta.content);
+      const artigo = analisarResposta(resposta.content, tema || tituloAtual);
       return NextResponse.json({
         ...artigo,
         geracao: {
