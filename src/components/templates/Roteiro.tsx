@@ -73,6 +73,10 @@ export function Roteiro({
         }
       />
 
+
+      {/* A lateral ocupa toda a altura editorial, em vez de surgir apenas no fim. */}
+      <div className="container-wide grid items-start gap-10 py-12 lg:grid-cols-[minmax(0,1fr)_19rem] lg:py-20">
+        <div className="min-w-0">
       {/* Seção 2: introdução do roteiro ou retiro. */}
       {dados.resumo && (
         <Faixa fundo="areia" largura="content" id="sobre">
@@ -105,34 +109,41 @@ export function Roteiro({
 
       {/* Seção 8 */}
       <Equipe dados={dados} fundo="areia" />
-
-      <div className="container-wide py-16 md:py-20">
-        <div className="grid gap-12 lg:grid-cols-3">
-          <div className="space-y-12 lg:col-span-2">
+          <div className="space-y-12 px-6 py-12">
             {dados.paraQuem && (
-              <section className="rounded-xl border border-secondary-200 bg-secondary-50/50 p-6">
-                <h2 className="mb-3 font-heading text-2xl text-primary-700">
-                  Para quem é esta jornada
-                </h2>
-                <Corpo texto={dados.paraQuem} />
-              </section>
-            )}
-
-            <Inclusoes experiencia={experiencia} />
-            <AntesDeViajar guias={guias} />
-            <Depoimentos experiencia={experiencia} />
+                          <section className="rounded-xl border border-secondary-200 bg-secondary-50/50 p-6">
+                            <h2 className="mb-3 font-heading text-2xl text-primary-700">
+                              Para quem é esta jornada
+                            </h2>
+                            <Corpo texto={dados.paraQuem} />
+                          </section>
+                        )}
+            
+                        <Inclusoes experiencia={experiencia} />
+                        <AntesDeViajar guias={guias} />
+                        <Depoimentos experiencia={experiencia} />
           </div>
-
-          <aside className="lg:col-span-1">
-            <LateralDeReserva
-              experiencia={experiencia}
-              titulo={dados.titulo}
-              urlReservas={urlReservas}
-              rotuloReservas={rotuloReservas}
-              mensagemWhatsApp={dados.mensagemWhatsApp}
-            />
-          </aside>
         </div>
+        <aside className="hidden self-stretch lg:block">
+          <LateralDeReserva
+            experiencia={experiencia}
+            titulo={dados.titulo}
+            urlReservas={urlReservas}
+            rotuloReservas={rotuloReservas}
+            mensagemWhatsApp={dados.mensagemWhatsApp}
+          />
+        </aside>
+      </div>
+
+      {/* No celular, não há painel flutuante cobrindo o itinerário. */}
+      <div className="container-wide pb-12 lg:hidden">
+        <LateralDeReserva
+          experiencia={experiencia}
+          titulo={dados.titulo}
+          urlReservas={urlReservas}
+          rotuloReservas={rotuloReservas}
+          mensagemWhatsApp={dados.mensagemWhatsApp}
+        />
       </div>
 
       <Relacionadas itens={relacionadas} />
