@@ -112,37 +112,88 @@ export default async function BlogPostPage({ params }: Props) {
               ) : (
                 <p className="text-text-muted">Este artigo ainda não tem conteúdo publicado.</p>
               )}
-              <div className="mt-16 border-t border-secondary-300/35 pt-6">
-                <Link href="/blog" className="text-sm font-semibold text-secondary-500 hover:text-primary-700">← Explorar outros artigos</Link>
-              </div>
             </div>
           </div>
         </article>
       </div>
 
       {relacionados.length > 0 && (
-        <section className="border-t border-border py-16">
-          <div className="container-content">
-            <h2 className="mb-6 font-heading text-2xl text-primary-700">Leia também</h2>
-            <ul className="grid gap-6 md:grid-cols-3">
+        <section className="relative overflow-hidden border-t border-secondary-300/25 bg-[#f8f4f8] py-20 md:py-24">
+          <div aria-hidden="true" className="pointer-events-none absolute -right-36 -top-32 h-96 w-96 rounded-full bg-primary-100/45 blur-3xl" />
+          <div className="container-wide relative">
+            <div className="mb-10 text-center md:mb-12">
+              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.2em] text-secondary-500">
+                Continue explorando
+              </p>
+              <h2 className="font-heading text-3xl text-primary-700 md:text-4xl">
+                Artigos recomendados
+              </h2>
+            </div>
+
+            <ul className="mx-auto grid max-w-6xl gap-6 md:grid-cols-2 lg:grid-cols-3">
               {relacionados.map((r) => {
                 const rTitulo = t(r.title as I18nField, "pt");
                 const rSlug = t(r.slug as I18nField, "pt");
+                const rResumo = t(r.excerpt as I18nField, "pt");
+                const rCategoria = r.category ? t(r.category.name as I18nField, "pt") : "";
+
                 return (
-                  <li key={r.id}>
+                  <li key={r.id} className="h-full">
                     <Link
                       href={`/blog/${rSlug}`}
-                      className="block rounded-xl border border-border bg-surface p-5 transition hover:border-secondary-300"
+                      className="group flex h-full flex-col overflow-hidden rounded-[20px] border border-primary-100/80 bg-surface shadow-[0_10px_32px_rgba(51,14,65,0.05)] transition-all duration-300 hover:-translate-y-1 hover:border-secondary-300/70 hover:shadow-[0_18px_45px_rgba(51,14,65,0.11)]"
                     >
-                      <h3 className="font-heading text-lg text-primary-700">{rTitulo}</h3>
-                      {r.published_at && (
-                        <p className="mt-1 text-xs text-text-muted">{formatDate(r.published_at)}</p>
-                      )}
+                      <div className="relative aspect-[16/10] overflow-hidden bg-primary-700">
+                        {r.featured_image ? (
+                          <Image
+                            src={r.featured_image}
+                            alt={rTitulo}
+                            fill
+                            sizes="(min-width: 1024px) 30vw, (min-width: 768px) 48vw, 100vw"
+                            unoptimized={!podeOtimizar(r.featured_image)}
+                            className="object-cover transition-transform duration-500 group-hover:scale-105"
+                          />
+                        ) : (
+                          <div className="absolute inset-0 flex items-center justify-center bg-gradient-to-br from-primary-600 to-primary-800 px-8 text-center">
+                            <span className="font-heading text-xl text-secondary-200">{rTitulo}</span>
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="flex flex-1 flex-col p-6">
+                        <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 text-[11px] uppercase tracking-[0.08em] text-secondary-500">
+                          {rCategoria && <span>{rCategoria}</span>}
+                          {r.published_at && <time dateTime={r.published_at}>{formatDate(r.published_at)}</time>}
+                        </div>
+
+                        <h3 className="font-heading text-xl leading-snug text-primary-700 transition-colors group-hover:text-secondary-500">
+                          {rTitulo}
+                        </h3>
+
+                        {rResumo && (
+                          <p className="mt-3 line-clamp-3 text-sm leading-relaxed text-text-muted">
+                            {rResumo}
+                          </p>
+                        )}
+
+                        <span className="mt-auto pt-6 text-sm font-semibold text-secondary-500">
+                          Ler artigo →
+                        </span>
+                      </div>
                     </Link>
                   </li>
                 );
               })}
             </ul>
+
+            <div className="mt-12 flex justify-center">
+              <Link
+                href="/blog"
+                className="inline-flex items-center justify-center rounded-lg bg-primary-700 px-8 py-3.5 text-sm font-semibold text-white transition-colors hover:bg-primary-800"
+              >
+                Ver todos os artigos
+              </Link>
+            </div>
           </div>
         </section>
       )}
