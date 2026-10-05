@@ -20,7 +20,7 @@ export interface AIResponse {
 }
 
 export interface AIProviderConfig {
-  provider: "openrouter" | "gemini" | "openai" | "anthropic";
+  provider: "nvidia" | "openrouter" | "gemini" | "openai" | "anthropic";
   model: string;
   apiKey: string;
 }
@@ -105,6 +105,7 @@ export function detectAIConfig(): AIProviderConfig | null {
   const modelo = lerEnv("AI_MODEL")?.trim() || "";
 
   const chaves = {
+    nvidia: lerEnv("NVIDIA_API_KEY"),
     openrouter: lerEnv("OPENROUTER_API_KEY"),
     gemini: lerEnv("GOOGLE_GENERATIVE_AI_API_KEY"),
     openai: lerEnv("OPENAI_API_KEY") || lerEnv("AI_API_KEY"),
@@ -117,13 +118,14 @@ export function detectAIConfig(): AIProviderConfig | null {
     return { provider: p, model: modelo, apiKey: key.trim() };
   };
 
+  if (explicito === "nvidia" || explicito === "nim") return montar("nvidia");
   if (explicito === "openrouter" || explicito === "router") return montar("openrouter");
   if (explicito === "gemini" || explicito === "google") return montar("gemini");
   if (explicito === "openai") return montar("openai");
   if (explicito === "anthropic" || explicito === "claude") return montar("anthropic");
 
-  // Se não houver AI_PROVIDER explícito, OpenRouter é a primeira opção.
-  return montar("openrouter") || montar("gemini") || montar("openai") || montar("anthropic");
+  // NVIDIA direto é preferido quando houver chave própria configurada.
+  return montar("nvidia") || montar("openrouter") || montar("gemini") || montar("openai") || montar("anthropic");
 }
 
 export function validateAIConfig(): {
@@ -137,7 +139,7 @@ export function validateAIConfig(): {
     return {
       valid: false,
       error:
-        "Nenhum provedor de IA configurado. Defina OPENROUTER_API_KEY, " +
+        "Nenhum provedor de IA configurado. Defina NVIDIA_API_KEY, OPENROUTER_API_KEY, " +
         "GOOGLE_GENERATIVE_AI_API_KEY, OPENAI_API_KEY ou ANTHROPIC_API_KEY.",
     };
   }
@@ -228,6 +230,8 @@ async function resolverModelo(cfg: AIProviderConfig): Promise<string> {
   if (cfg.model) return cfg.model;
 
   switch (cfg.provider) {
+    case "nvidia":
+      return cfg.model || "meta/muse-glimmer-30b";
     case "openrouter":
       // Modelo gratuito fixo escolhido para a NeoSenses. Evita a variabilidade
       // do router free como modelo primário; fallbacks continuam abaixo.
@@ -297,6 +301,8 @@ export async function generateAIResponse(
 
   try {
     switch (cfg.provider) {
+      case "nvidia":
+        return await chamarNvidia(messages, { ...cfg, model }, options, inicio);
       case "openrouter":
         return await chamarOpenRouter(messages, { ...cfg, model }, options, inicio);
       case "gemini":
@@ -492,6 +498,52 @@ async function chamarOpenRouter(
     content,
     provider: "openrouter",
     model: data.model || models[0],
+    tokensUsed: data.usage?.total_tokens,
+    responseTimeMs: Date.now() - inicio,
+    finishReason: escolha?.finish_reason,
+  };
+}
+
+async function chamarNvidia(
+  messages: ChatMessage[],
+  cfg: AIProviderConfig,
+  opts: GenerateOptions,
+  inicio: number
+): Promise<AIResponse> {
+  const res = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${cfg.apiKey}`,
+    },
+    body: JSON.stringify({
+      model: cfg.model || "meta/muse-glimmer-30b",
+      messages,
+      temperature: opts.temperature ?? DEFAULT_TEMPERATURE,
+      top_p: 0.95,
+      max_tokens: opts.maxTokens ?? DEFAULT_MAX_TOKENS,
+      stream: false,
+    }),
+    signal: AbortSignal.timeout(opts.timeoutMs ?? DEFAULT_TIMEOUT_MS),
+  });
+
+  if (!res.ok) throw classificarErro(null, res.status, await lerCorpoErro(res));
+
+  const data = await res.json();
+  const escolha = data.choices?.[0];
+  const content = extrairConteudoChat(escolha?.message?.content);
+
+  if (!content) {
+    throw new AIError(
+      "AI_EMPTY_RESPONSE",
+      `model=${data.model ?? cfg.model}; finish_reason=${escolha?.finish_reason ?? "?"}`
+    );
+  }
+
+  return {
+    content,
+    provider: "nvidia",
+    model: data.model || cfg.model || "meta/muse-glimmer-30b",
     tokensUsed: data.usage?.total_tokens,
     responseTimeMs: Date.now() - inicio,
     finishReason: escolha?.finish_reason,
