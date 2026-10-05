@@ -100,9 +100,19 @@ Direção editorial ou informações fornecidas pela equipe: ${orientacoes || "S
   const chaveAnthropic = process.env.ANTHROPIC_API_KEY?.trim();
   const chaveOpenRouter = process.env.OPENROUTER_API_KEY?.trim();
 
-  // Para a redatora, tente provedores independentes antes de voltar ao
-  // OpenRouter gratuito. Assim, uma cota esgotada não derruba todo o recurso.
+  // Modelo principal escolhido para a redatora da NeoSenses.
+  // Outros provedores permanecem apenas como fallback.
   const alternativas: Array<{ config: AIProviderConfig; tempo: number }> = [];
+  if (chaveOpenRouter && chaveOpenRouter.length > 20) {
+    alternativas.push({
+      config: {
+        provider: "openrouter",
+        model: "dots-studio/dots-3-note-preview:free",
+        apiKey: chaveOpenRouter,
+      },
+      tempo: 14_000,
+    });
+  }
   if (chaveGemini && chaveGemini.length > 20) {
     alternativas.push({
       config: { provider: "gemini", model: "", apiKey: chaveGemini },
@@ -119,16 +129,6 @@ Direção editorial ou informações fornecidas pela equipe: ${orientacoes || "S
     alternativas.push({
       config: { provider: "anthropic", model: "claude-sonnet-4-5", apiKey: chaveAnthropic },
       tempo: 12_000,
-    });
-  }
-  if (chaveOpenRouter && chaveOpenRouter.length > 20) {
-    alternativas.push({
-      config: {
-        provider: "openrouter",
-        model: "google/gemma-4-26b-a4b-it:free",
-        apiKey: chaveOpenRouter,
-      },
-      tempo: 10_000,
     });
   }
 
