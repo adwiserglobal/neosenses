@@ -95,14 +95,25 @@ Direção editorial ou informações fornecidas pela equipe: ${orientacoes || "S
 
 
   const configuracao = detectAIConfig();
+  const chaveNvidia = process.env.NVIDIA_API_KEY?.trim();
   const chaveGemini = process.env.GOOGLE_GENERATIVE_AI_API_KEY?.trim();
   const chaveOpenAI = (process.env.OPENAI_API_KEY || process.env.AI_API_KEY)?.trim();
   const chaveAnthropic = process.env.ANTHROPIC_API_KEY?.trim();
   const chaveOpenRouter = process.env.OPENROUTER_API_KEY?.trim();
 
-  // Modelo principal escolhido para a redatora da NeoSenses.
-  // Outros provedores permanecem apenas como fallback.
+  // NVIDIA NIM direto é o caminho principal da redatora.
+  // OpenRouter e demais provedores ficam apenas como fallback.
   const alternativas: Array<{ config: AIProviderConfig; tempo: number }> = [];
+  if (chaveNvidia && chaveNvidia.length > 20) {
+    alternativas.push({
+      config: {
+        provider: "nvidia",
+        model: "meta/muse-glimmer-30b",
+        apiKey: chaveNvidia,
+      },
+      tempo: 30_000,
+    });
+  }
   if (chaveOpenRouter && chaveOpenRouter.length > 20) {
     alternativas.push({
       config: {
