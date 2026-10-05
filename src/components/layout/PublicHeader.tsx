@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { AnimatePresence, motion } from "framer-motion";
 import { ChevronDown, Menu, X } from "lucide-react";
 import { linkWhatsApp } from "@/lib/utils";
@@ -33,6 +34,7 @@ const NAV_LINKS: ItemDeMenu[] = [
 const DESKTOP_BREAKPOINT = 1280;
 
 export function PublicHeader() {
+  const pathname = usePathname();
   const [scrolled, setScrolled] = useState(false);
   const [mobileOpen, setMobileOpen] = useState(false);
   const [activeDropdown, setActiveDropdown] = useState<string | null>(null);
@@ -94,7 +96,10 @@ export function PublicHeader() {
     };
   }, [activeDropdown]);
 
-  const navColor = scrolled
+  const blogComFundoClaro = pathname?.startsWith("/blog") ?? false;
+  const headerClaro = scrolled || blogComFundoClaro;
+
+  const navColor = headerClaro
     ? "text-primary-700 hover:text-secondary-500"
     : "text-warm-white/90 hover:text-warm-white";
 
@@ -103,7 +108,7 @@ export function PublicHeader() {
   return (
     <header
       className={`fixed inset-x-0 top-0 z-50 w-full transition-all duration-300 ${
-        scrolled ? "bg-warm-white/95 shadow-soft backdrop-blur-md" : "bg-transparent"
+        headerClaro ? "bg-warm-white/95 shadow-soft backdrop-blur-md" : "bg-transparent"
       }`}
     >
       <div className="container-wide flex h-[72px] items-center justify-between gap-4">
@@ -115,7 +120,7 @@ export function PublicHeader() {
           aria-label="NeoSenses — início"
         >
           <Image
-            src={scrolled || mobileOpen ? "/images/neosenses-logo-claro.svg" : "/images/neosenses-logo.svg"}
+            src={headerClaro || mobileOpen ? "/images/neosenses-logo-claro.svg" : "/images/neosenses-logo.svg"}
             alt="NeoSenses"
             width={200}
             height={25}
@@ -197,7 +202,7 @@ export function PublicHeader() {
             target="_blank"
             rel="noopener noreferrer"
             className={`inline-flex min-w-max shrink-0 items-center justify-center whitespace-nowrap rounded-lg px-4 py-2.5 text-[12px] font-semibold uppercase tracking-[0.065em] transition-colors ${
-              scrolled
+              headerClaro
                 ? "bg-secondary-300 text-text-primary hover:bg-secondary-200"
                 : "border border-warm-white/45 text-warm-white hover:bg-warm-white hover:text-primary-700"
             }`}
@@ -214,7 +219,7 @@ export function PublicHeader() {
           aria-controls="public-mobile-menu"
           aria-label={mobileOpen ? "Fechar menu" : "Abrir menu"}
           className={`relative z-50 rounded-full p-2 xl:hidden ${
-            scrolled || mobileOpen ? "text-primary-700" : "text-warm-white"
+            headerClaro || mobileOpen ? "text-primary-700" : "text-warm-white"
           }`}
         >
           {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
