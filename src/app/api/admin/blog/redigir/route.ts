@@ -88,6 +88,11 @@ Texto original:\n${textoAtual}`
     : `Escreva um artigo sobre: ${tema}.
 Direção editorial ou informações fornecidas pela equipe: ${orientacoes || "Sem informações adicionais."}`;
 
+  const messages: ChatMessage[] = [
+    { role: "system", content: instrucao },
+    { role: "user", content: pedido },
+  ];
+
 
   const configuracao = detectAIConfig();
   const chaveGemini = process.env.GOOGLE_GENERATIVE_AI_API_KEY?.trim();
