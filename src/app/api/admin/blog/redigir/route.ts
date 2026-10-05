@@ -78,7 +78,7 @@ Retorne APENAS um objeto JSON válido com as chaves "titulo" (máximo 110 caract
 "resumo" (entre 80 e 250 caracteres) e "texto" (artigo em Markdown editorial).
 No campo texto use ## para seções, parágrafos de 2 a 5 frases, listas com - quando úteis,
 e > somente para reflexões sem atribuição a terceiros. Não escreva HTML, cercas de código nem título H1 no corpo.
-Tamanho desejado: 350 a 500 palavras, com introdução, 3 a 4 seções e conclusão com reflexão ou convite sutil. Evite repetições.`;
+Tamanho desejado: 280 a 420 palavras, com introdução, 3 a 4 seções curtas e conclusão com reflexão ou convite sutil. Seja concisa e evite repetições.`;
 
   const pedido = modo === "revisar"
     ? `Revise e melhore o texto preservando fatos, intenção e voz original.
@@ -105,22 +105,28 @@ Direção editorial ou informações fornecidas pela equipe: ${orientacoes || "S
   // A saída JSON é pedida no texto do prompt, mas não forçada pela API:
   // modelos gratuitos do OpenRouter podem não suportar json_object.
   const principal: AIProviderConfig = configuracao.provider === "openrouter"
-    ? { ...configuracao, model: configuracao.model || "openrouter/free" }
+    ? {
+        ...configuracao,
+        model:
+          !configuracao.model || configuracao.model === "openrouter/free"
+            ? "google/gemma-4-26b-a4b-it:free"
+            : configuracao.model,
+      }
     : configuracao;
   const alternativas: Array<{ config: AIProviderConfig; tempo: number }> = [
-    { config: principal, tempo: 22_000 },
+    { config: principal, tempo: 16_000 },
   ];
   const gemini = process.env.GOOGLE_GENERATIVE_AI_API_KEY?.trim();
   if (configuracao.provider === "openrouter" && gemini && gemini.length > 20) {
     alternativas.push({
       config: { provider: "gemini", model: "", apiKey: gemini },
-      tempo: 18_000,
+      tempo: 12_000,
     });
   } else if (configuracao.provider === "openrouter") {
     // Uma segunda chamada ao router pode usar outra instância gratuita.
     alternativas.push({
       config: { ...configuracao, model: "openrouter/free" },
-      tempo: 18_000,
+      tempo: 12_000,
     });
   }
 
@@ -138,8 +144,8 @@ Direção editorial ou informações fornecidas pela equipe: ${orientacoes || "S
 
     try {
       const resposta: AIResponse = await generateAIResponse(messages, config, {
-        maxTokens: 2350,
-        temperature: 0.55,
+        maxTokens: 1650,
+        temperature: 0.5,
         timeoutMs: tempo,
         json: false,
         openRouterSingleModel: config.provider === "openrouter",
