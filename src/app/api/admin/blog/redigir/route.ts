@@ -78,7 +78,7 @@ Retorne APENAS um objeto JSON válido com as chaves "titulo" (máximo 110 caract
 "resumo" (entre 80 e 250 caracteres) e "texto" (artigo em Markdown editorial).
 No campo texto use ## para seções, parágrafos de 2 a 5 frases, listas com - quando úteis,
 e > somente para reflexões sem atribuição a terceiros. Não escreva HTML, cercas de código nem título H1 no corpo.
-Tamanho desejado: 280 a 420 palavras, com introdução, 3 a 4 seções curtas e conclusão com reflexão ou convite sutil. Seja concisa e evite repetições.`;
+Tamanho desejado: 250 a 350 palavras, com introdução, 3 seções curtas e conclusão com reflexão ou convite sutil. Seja objetiva, natural e evite repetições.`;
 
   const pedido = modo === "revisar"
     ? `Revise e melhore o texto preservando fatos, intenção e voz original.
@@ -90,44 +90,43 @@ Direção editorial ou informações fornecidas pela equipe: ${orientacoes || "S
 
 
   const configuracao = detectAIConfig();
-  if (!configuracao) {
-    return NextResponse.json(
-      { error: "A chave de IA não está configurada no Vercel." },
-      { status: 503 }
-    );
+  const chaveGemini = process.env.GOOGLE_GENERATIVE_AI_API_KEY?.trim();
+  const chaveOpenRouter = process.env.OPENROUTER_API_KEY?.trim();
+
+  // Para redação longa, Gemini direto é preferido quando disponível:
+  // evita fila/roteamento dos modelos gratuitos do OpenRouter.
+  const alternativas: Array<{ config: AIProviderConfig; tempo: number }> = [];
+  if (chaveGemini && chaveGemini.length > 20) {
+    alternativas.push({
+      config: { provider: "gemini", model: "", apiKey: chaveGemini },
+      tempo: 11_000,
+    });
   }
 
-  const messages: ChatMessage[] = [
-    { role: "system", content: instrucao },
-    { role: "user", content: pedido },
-  ];
-  // Nunca deixe uma tentativa consumir sozinha os 60 segundos do Vercel.
-  // A saída JSON é pedida no texto do prompt, mas não forçada pela API:
-  // modelos gratuitos do OpenRouter podem não suportar json_object.
-  const principal: AIProviderConfig = configuracao.provider === "openrouter"
-    ? {
-        ...configuracao,
-        model:
-          !configuracao.model || configuracao.model === "openrouter/free"
-            ? "google/gemma-4-26b-a4b-it:free"
-            : configuracao.model,
-      }
-    : configuracao;
-  const alternativas: Array<{ config: AIProviderConfig; tempo: number }> = [
-    { config: principal, tempo: 16_000 },
-  ];
-  const gemini = process.env.GOOGLE_GENERATIVE_AI_API_KEY?.trim();
-  if (configuracao.provider === "openrouter" && gemini && gemini.length > 20) {
+  if (chaveOpenRouter && chaveOpenRouter.length > 20) {
     alternativas.push({
-      config: { provider: "gemini", model: "", apiKey: gemini },
-      tempo: 12_000,
+      config: {
+        provider: "openrouter",
+        model: "google/gemma-4-26b-a4b-it:free",
+        apiKey: chaveOpenRouter,
+      },
+      tempo: 11_000,
     });
-  } else if (configuracao.provider === "openrouter") {
-    // Uma segunda chamada ao router pode usar outra instância gratuita.
-    alternativas.push({
-      config: { ...configuracao, model: "openrouter/free" },
-      tempo: 12_000,
-    });
+  }
+
+  // Mantém compatibilidade com outros provedores configurados no projeto.
+  if (
+    configuracao &&
+    !alternativas.some((item) => item.config.provider === configuracao.provider)
+  ) {
+    alternativas.push({ config: configuracao, tempo: 11_000 });
+  }
+
+  if (alternativas.length === 0) {
+    return NextResponse.json(
+      { error: "Nenhum provedor de IA está configurado no Vercel." },
+      { status: 503 }
+    );
   }
 
   let falha: AIError | null = null;
@@ -138,13 +137,13 @@ Direção editorial ou informações fornecidas pela equipe: ${orientacoes || "S
     if (
       tentativa > 0 &&
       falha &&
-      ["AI_AUTH_FAILURE", "AI_CONTENT_BLOCKED", "AI_RATE_LIMIT"].includes(falha.code) &&
-      config.provider === alternativas[0].config.provider
-    ) break;
+      ["AI_AUTH_FAILURE", "AI_RATE_LIMIT"].includes(falha.code) &&
+      config.provider === alternativas[tentativa - 1]?.config.provider
+    ) continue;
 
     try {
       const resposta: AIResponse = await generateAIResponse(messages, config, {
-        maxTokens: 1650,
+        maxTokens: 1250,
         temperature: 0.5,
         timeoutMs: tempo,
         json: false,
