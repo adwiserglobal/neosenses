@@ -229,9 +229,9 @@ async function resolverModelo(cfg: AIProviderConfig): Promise<string> {
 
   switch (cfg.provider) {
     case "openrouter":
-      // Modelo gratuito fixo e estável. Evita a variabilidade do router free
-      // como modelo primário; fallbacks continuam sendo aplicados abaixo.
-      return "google/gemma-4-26b-a4b-it:free";
+      // Modelo gratuito fixo escolhido para a NeoSenses. Evita a variabilidade
+      // do router free como modelo primário; fallbacks continuam abaixo.
+      return "dots-studio/dots-3-note-preview:free";
     case "gemini":
       return descobrirModeloGemini(cfg.apiKey);
     case "openai":
@@ -417,14 +417,14 @@ async function chamarGemini(
 function modelosOpenRouter(cfg: AIProviderConfig, json: boolean): string[] {
   const preferido =
     !cfg.model || cfg.model === "openrouter/free"
-      ? "google/gemma-4-26b-a4b-it:free"
+      ? "dots-studio/dots-3-note-preview:free"
       : cfg.model;
 
   const candidatos = json
-    ? [preferido, "google/gemma-4-26b-a4b-it:free", "openrouter/free"]
+    ? [preferido, "dots-studio/dots-3-note-preview:free", "openrouter/free"]
     : [
         preferido,
-        "google/gemma-4-26b-a4b-it:free",
+        "dots-studio/dots-3-note-preview:free",
         "nvidia/nemotron-3-ultra-550b-a55b:free",
         "openrouter/free",
       ];
