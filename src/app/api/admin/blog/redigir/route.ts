@@ -96,10 +96,12 @@ Direção editorial ou informações fornecidas pela equipe: ${orientacoes || "S
 
   const configuracao = detectAIConfig();
   const chaveGemini = process.env.GOOGLE_GENERATIVE_AI_API_KEY?.trim();
+  const chaveOpenAI = (process.env.OPENAI_API_KEY || process.env.AI_API_KEY)?.trim();
+  const chaveAnthropic = process.env.ANTHROPIC_API_KEY?.trim();
   const chaveOpenRouter = process.env.OPENROUTER_API_KEY?.trim();
 
-  // Para redação longa, Gemini direto é preferido quando disponível:
-  // evita fila/roteamento dos modelos gratuitos do OpenRouter.
+  // Para a redatora, tente provedores independentes antes de voltar ao
+  // OpenRouter gratuito. Assim, uma cota esgotada não derruba todo o recurso.
   const alternativas: Array<{ config: AIProviderConfig; tempo: number }> = [];
   if (chaveGemini && chaveGemini.length > 20) {
     alternativas.push({
@@ -107,7 +109,18 @@ Direção editorial ou informações fornecidas pela equipe: ${orientacoes || "S
       tempo: 11_000,
     });
   }
-
+  if (chaveOpenAI && chaveOpenAI.length > 20) {
+    alternativas.push({
+      config: { provider: "openai", model: "gpt-4o-mini", apiKey: chaveOpenAI },
+      tempo: 12_000,
+    });
+  }
+  if (chaveAnthropic && chaveAnthropic.length > 20) {
+    alternativas.push({
+      config: { provider: "anthropic", model: "claude-sonnet-4-5", apiKey: chaveAnthropic },
+      tempo: 12_000,
+    });
+  }
   if (chaveOpenRouter && chaveOpenRouter.length > 20) {
     alternativas.push({
       config: {
@@ -115,11 +128,11 @@ Direção editorial ou informações fornecidas pela equipe: ${orientacoes || "S
         model: "google/gemma-4-26b-a4b-it:free",
         apiKey: chaveOpenRouter,
       },
-      tempo: 11_000,
+      tempo: 10_000,
     });
   }
 
-  // Mantém compatibilidade com outros provedores configurados no projeto.
+  // Compatibilidade com uma configuração explícita que use outro segredo.
   if (
     configuracao &&
     !alternativas.some((item) => item.config.provider === configuracao.provider)
@@ -129,10 +142,12 @@ Direção editorial ou informações fornecidas pela equipe: ${orientacoes || "S
 
   if (alternativas.length === 0) {
     return NextResponse.json(
-      { error: "Nenhum provedor de IA está configurado no Vercel." },
+      { error: "Nenhum provedor de IA com chave válida está configurado no Vercel." },
       { status: 503 }
     );
   }
+
+  const tentativas: Array<{ provedor: string; modelo: string; erro: string }> = [];
 
   let falha: AIError | null = null;
   for (let tentativa = 0; tentativa < alternativas.length; tentativa++) {
@@ -170,6 +185,11 @@ Direção editorial ou informações fornecidas pela equipe: ${orientacoes || "S
       falha = err instanceof AIError
         ? err
         : new AIError("AI_PROVIDER_ERROR", err instanceof Error ? err.message : "resposta inválida");
+      tentativas.push({
+        provedor: config.provider,
+        modelo: config.model || "automático",
+        erro: falha.code,
+      });
       console.warn("[blog/redigir] tentativa:", {
         numero: tentativa + 1,
         provedor: config.provider,
@@ -192,8 +212,14 @@ Direção editorial ou informações fornecidas pela equipe: ${orientacoes || "S
             : codigo === "AI_UNSUPPORTED_MODEL"
               ? "O modelo configurado não está disponível. Altere-o no Vercel."
               : "Os modelos de IA estão indisponíveis. Tente novamente em instantes.";
+  const resumoTentativas = tentativas
+    .map((item) => `${item.provedor} (${item.erro.replace("AI_", "").toLowerCase()})`)
+    .join(", ");
   return NextResponse.json(
-    { error: mensagem },
+    {
+      error: mensagem,
+      providersTried: resumoTentativas || undefined,
+    },
     { status: codigo === "AI_RATE_LIMIT" ? 429 : codigo === "AI_TIMEOUT" ? 504 : 503 }
   );
 }
