@@ -5,7 +5,7 @@ const provedorDeIA = openRouterConfigurado
   ? "openrouter"
   : process.env.AI_PROVIDER?.trim();
 const modeloDeIA = openRouterConfigurado
-  ? process.env.AI_MODEL?.trim() || "openrouter/free"
+  ? process.env.AI_MODEL?.trim() || "google/gemma-4-26b-a4b-it:free"
   : process.env.AI_MODEL?.trim();
 
 const nextConfig: NextConfig = {
