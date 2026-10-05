@@ -458,7 +458,14 @@ async function chamarOpenRouter(
       messages,
       max_tokens: opts.maxTokens ?? DEFAULT_MAX_TOKENS,
       temperature: opts.temperature ?? DEFAULT_TEMPERATURE,
-      provider: { allow_fallbacks: true, sort: "throughput" },
+      provider: {
+        // Dots3 Note Preview é servido pela AtlasCloud no endpoint free.
+        // Fixar o provedor evita re-roteamento desnecessário e prioriza latência.
+        ...(cfg.model === "dots-studio/dots-3-note-preview:free"
+          ? { order: ["atlas-cloud"], allow_fallbacks: true }
+          : { allow_fallbacks: true, sort: "latency" }),
+      },
+      ...(opts.thinking ? { reasoning_effort: opts.thinking } : {}),
       ...(opts.json ? { response_format: { type: "json_object" } } : {}),
     }),
     signal: AbortSignal.timeout(opts.timeoutMs ?? DEFAULT_TIMEOUT_MS),
