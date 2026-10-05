@@ -1,12 +1,17 @@
 import type { NextConfig } from "next";
 
+const nvidiaConfigurada = Boolean(process.env.NVIDIA_API_KEY?.trim());
 const openRouterConfigurado = Boolean(process.env.OPENROUTER_API_KEY?.trim());
-const provedorDeIA = openRouterConfigurado
-  ? "openrouter"
-  : process.env.AI_PROVIDER?.trim();
-const modeloDeIA = openRouterConfigurado
-  ? process.env.AI_MODEL?.trim() || "dots-studio/dots-3-note-preview:free"
-  : process.env.AI_MODEL?.trim();
+const provedorDeIA =
+  process.env.AI_PROVIDER?.trim() ||
+  (nvidiaConfigurada ? "nvidia" : openRouterConfigurado ? "openrouter" : undefined);
+const modeloDeIA =
+  process.env.AI_MODEL?.trim() ||
+  (provedorDeIA === "nvidia"
+    ? "meta/muse-glimmer-30b"
+    : provedorDeIA === "openrouter"
+      ? "dots-studio/dots-3-note-preview:free"
+      : undefined);
 
 const nextConfig: NextConfig = {
   output: process.env.BUILD_STANDALONE === "1" ? "standalone" : undefined,
