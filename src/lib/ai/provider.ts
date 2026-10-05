@@ -231,7 +231,7 @@ async function resolverModelo(cfg: AIProviderConfig): Promise<string> {
     case "openrouter":
       // Modelo gratuito fixo e estável. Evita a variabilidade do router free
       // como modelo primário; fallbacks continuam sendo aplicados abaixo.
-      return "google/gemma-4-31b-it:free";
+      return "google/gemma-4-26b-a4b-it:free";
     case "gemini":
       return descobrirModeloGemini(cfg.apiKey);
     case "openai":
@@ -417,14 +417,14 @@ async function chamarGemini(
 function modelosOpenRouter(cfg: AIProviderConfig, json: boolean): string[] {
   const preferido =
     !cfg.model || cfg.model === "openrouter/free"
-      ? "google/gemma-4-31b-it:free"
+      ? "google/gemma-4-26b-a4b-it:free"
       : cfg.model;
 
   const candidatos = json
-    ? [preferido, "google/gemma-4-31b-it:free", "openrouter/free"]
+    ? [preferido, "google/gemma-4-26b-a4b-it:free", "openrouter/free"]
     : [
         preferido,
-        "google/gemma-4-31b-it:free",
+        "google/gemma-4-26b-a4b-it:free",
         "nvidia/nemotron-3-ultra-550b-a55b:free",
         "openrouter/free",
       ];
@@ -458,7 +458,7 @@ async function chamarOpenRouter(
       messages,
       max_tokens: opts.maxTokens ?? DEFAULT_MAX_TOKENS,
       temperature: opts.temperature ?? DEFAULT_TEMPERATURE,
-      provider: { allow_fallbacks: true },
+      provider: { allow_fallbacks: true, sort: "throughput" },
       ...(opts.json ? { response_format: { type: "json_object" } } : {}),
     }),
     signal: AbortSignal.timeout(opts.timeoutMs ?? DEFAULT_TIMEOUT_MS),
