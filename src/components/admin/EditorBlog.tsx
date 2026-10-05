@@ -53,8 +53,11 @@ export function EditorBlog({ artigo, categorias, podeExcluir = false }: Props) {
           tituloAtual: titulo,
         }),
       });
-      const data = await response.json() as ResultadoIA & { error?: string };
-      if (!response.ok) throw new Error(data.error || "Não foi possível gerar o artigo.");
+      const data = await response.json() as ResultadoIA & { error?: string; providersTried?: string };
+      if (!response.ok) {
+        const detalhe = data.providersTried ? ` Provedores tentados: ${data.providersTried}.` : "";
+        throw new Error((data.error || "Não foi possível gerar o artigo.") + detalhe);
+      }
       if (modo === "criar" || !titulo) setTitulo(data.titulo);
       setResumo(data.resumo);
       setConteudo(data.texto);
