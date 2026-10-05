@@ -74,11 +74,11 @@ NUNCA invente preços, datas, relatos de clientes, profissionais, credenciais, c
 referências científicas, rituais, requisitos de entrada em países ou fatos verificáveis não fornecidos.
 Se informação específica faltar, trate o tema de modo geral e não apresente suposições como fatos.
 O texto será revisado pela responsável pelo site antes de publicação.
-Retorne APENAS um objeto JSON válido com as chaves "titulo" (máximo 110 caracteres),
-"resumo" (entre 80 e 250 caracteres) e "texto" (artigo em Markdown editorial).
-No campo texto use ## para seções, parágrafos de 2 a 5 frases, listas com - quando úteis,
-e > somente para reflexões sem atribuição a terceiros. Não escreva HTML, cercas de código nem título H1 no corpo.
-Tamanho desejado: 250 a 350 palavras, com introdução, 3 seções curtas e conclusão com reflexão ou convite sutil. Seja objetiva, natural e evite repetições.`;
+Entregue o artigo diretamente em Markdown, sem JSON.
+A primeira linha deve ser "# Título do artigo". Em seguida escreva uma introdução curta.
+Use ## para 3 seções, parágrafos de 2 a 4 frases e listas com - apenas quando forem úteis.
+Não escreva HTML nem cercas de código.
+Tamanho desejado: 220 a 300 palavras. Seja objetiva, natural e evite repetições.`;
 
   const pedido = modo === "revisar"
     ? `Revise e melhore o texto preservando fatos, intenção e voz original.
@@ -110,7 +110,7 @@ Direção editorial ou informações fornecidas pela equipe: ${orientacoes || "S
         model: "dots-studio/dots-3-note-preview:free",
         apiKey: chaveOpenRouter,
       },
-      tempo: 14_000,
+      tempo: 25_000,
     });
   }
   if (chaveGemini && chaveGemini.length > 20) {
@@ -163,11 +163,12 @@ Direção editorial ou informações fornecidas pela equipe: ${orientacoes || "S
 
     try {
       const resposta: AIResponse = await generateAIResponse(messages, config, {
-        maxTokens: 1250,
-        temperature: 0.5,
+        maxTokens: 800,
+        temperature: 0.45,
         timeoutMs: tempo,
         json: false,
         openRouterSingleModel: config.provider === "openrouter",
+        thinking: config.provider === "openrouter" ? "low" : undefined,
       });
       const artigo = analisarResposta(resposta.content, tema || tituloAtual);
       return NextResponse.json({
