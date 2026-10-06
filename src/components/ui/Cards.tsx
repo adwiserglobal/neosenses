@@ -50,14 +50,14 @@ export function ExperienceCard({ experience, locale = "pt", index = 0 }: Experie
             /* Sem foto cadastrada, o cartão não finge ter uma.
              *
              * O ícone cinza de "imagem" que morava aqui lia como imagem
-             * quebrada — num catálogo de viagem de quinze a quarenta mil
+             * quebrada, num catálogo de viagem de quinze a quarenta mil
              * reais, parece site com defeito. Este bloco assume a falta: o
              * escuro da marca e o nome do lugar em display, que é a
              * informação que a foto daria de qualquer forma.
              *
              * Não é solução definitiva: quatro das jornadas B2C estão sem
              * `hero_image` no banco, e foto de verdade vende mais que
-             * tipografia. É a rede para enquanto elas não chegam — e para o
+             * tipografia. É a rede para enquanto elas não chegam, e para o
              * dia em que alguém cadastrar uma jornada com pressa. */
             <div className="relative flex h-full w-full items-center justify-center overflow-hidden bg-primary-700">
               <div
