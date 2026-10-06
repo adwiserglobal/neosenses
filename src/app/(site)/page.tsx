@@ -74,12 +74,25 @@ export default async function HomePage() {
           antes do convite final. Rascunhos e arquivados nunca entram aqui. */}
       <DepoimentosHome depoimentos={depoimentos} />
 
-      <section className="bg-gradient-dark py-24 md:py-32">
+      <section className="relative isolate overflow-hidden py-24 md:py-32">
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 -z-20 bg-cover bg-center"
+          style={{
+            backgroundImage:
+              'url("https://static.jigsawpuzzles.io/images/3803-1024x682.jpg")',
+          }}
+        />
+        <div
+          aria-hidden="true"
+          className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(47,12,55,0.9)_0%,rgba(83,8,88,0.78)_48%,rgba(45,8,54,0.88)_100%)]"
+        />
+
         <div className="container-wide text-center">
           <h2 className="mx-auto mb-6 max-w-2xl font-heading text-3xl text-warm-white md:text-4xl">
             Pronto para um Novo Sentir?
           </h2>
-          <p className="mx-auto mb-10 max-w-xl text-warm-white/70">
+          <p className="mx-auto mb-10 max-w-xl text-warm-white/80">
             Converse com nossos especialistas e descubra a experiência ideal para sua jornada.
           </p>
           <a
