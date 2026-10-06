@@ -12,7 +12,7 @@ import { listarDepoimentos } from "@/lib/dal/content";
 import { Hero, Pilares } from "@/components/home/Hero";
 import { DepoimentosHome } from "@/components/home/DepoimentosHome";
 import { ConviteAoFacilitador } from "@/components/templates/funil";
-import { ExperienceCard } from "@/components/ui/Cards";
+import { JornadasCarousel } from "@/components/home/JornadasCarousel";
 import { linkWhatsApp } from "@/lib/utils";
 
 // A home declara o próprio canonical. Estava no layout raiz, de onde toda
@@ -25,7 +25,7 @@ export const metadata = {
 export const revalidate = 3600;
 
 export default async function HomePage() {
-  const [destaques, depoimentos] = await Promise.all([listarDestaques(3), listarDepoimentos(6)]);
+  const [destaques, depoimentos] = await Promise.all([listarDestaques(12), listarDepoimentos(6)]);
 
   return (
     <>
@@ -46,11 +46,7 @@ export default async function HomePage() {
               </h2>
             </div>
 
-            <div className="grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-              {destaques.map((exp, i) => (
-                <ExperienceCard key={exp.id} experience={exp} index={i} />
-              ))}
-            </div>
+            <JornadasCarousel experiencias={destaques} />
 
             <div className="mt-12 text-center">
               <Link

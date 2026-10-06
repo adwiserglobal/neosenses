@@ -33,7 +33,7 @@ function conectar() {
   return createClient<Database>(url, chave, { auth: { persistSession: false } });
 }
 
-const SEM_BANCO = "Sem conexão com o banco. Confira o diagnóstico em Supabase.";
+const SEM_BANCO = "Não foi possível conectar aos dados agora. Tente novamente em instantes.";
 
 // ── Texto ──────────────────────────────────────────────────────────────────
 function limpar(valor: FormDataEntryValue | null, max: number): string {
@@ -78,6 +78,97 @@ function gerarSlug(texto: string): string {
 }
 
 // ── Experiências ───────────────────────────────────────────────────────────
+const BUCKET_IMAGENS_EXPERIENCIAS = "experience-images";
+const TIPOS_IMAGEM_PERMITIDOS = new Set(["image/jpeg", "image/png", "image/webp", "image/avif"]);
+const TAMANHO_MAXIMO_IMAGEM = 8 * 1024 * 1024;
+
+function nomeSeguroDeArquivo(nome: string): string {
+  const partes = nome.split(".");
+  const extensao = partes.length > 1 ? partes.pop()!.toLowerCase().replace(/[^a-z0-9]/g, "") : "";
+  const base = partes
+    .join(".")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .slice(0, 60) || "capa";
+
+  return extensao ? `${base}.${extensao}` : base;
+}
+
+export async function prepararUploadImagemExperiencia(
+  nome: string,
+  tipo: string,
+  tamanho: number
+): Promise<{
+  success: boolean;
+  error?: string;
+  bucket?: string;
+  path?: string;
+  token?: string;
+  url?: string;
+}> {
+  await exigirPapel(["admin", "editor"]);
+
+  if (!TIPOS_IMAGEM_PERMITIDOS.has(tipo)) {
+    return { success: false, error: "Use uma imagem JPG, PNG, WebP ou AVIF." };
+  }
+  if (!Number.isFinite(tamanho) || tamanho <= 0 || tamanho > TAMANHO_MAXIMO_IMAGEM) {
+    return { success: false, error: "A imagem precisa ter no máximo 8 MB." };
+  }
+
+  const supabase = conectar();
+  if (!supabase) return { success: false, error: SEM_BANCO };
+
+  const bucketAtual = await supabase.storage.getBucket(BUCKET_IMAGENS_EXPERIENCIAS);
+
+  if (!bucketAtual.data) {
+    const { error } = await supabase.storage.createBucket(BUCKET_IMAGENS_EXPERIENCIAS, {
+      public: true,
+      fileSizeLimit: TAMANHO_MAXIMO_IMAGEM,
+      allowedMimeTypes: Array.from(TIPOS_IMAGEM_PERMITIDOS),
+    });
+
+    if (error && !/already|exist/i.test(error.message)) {
+      console.error("[admin] criar bucket de imagens:", error.message);
+      return { success: false, error: "Não foi possível preparar o envio da imagem." };
+    }
+  } else if (!bucketAtual.data.public) {
+    const { error } = await supabase.storage.updateBucket(BUCKET_IMAGENS_EXPERIENCIAS, {
+      public: true,
+      fileSizeLimit: TAMANHO_MAXIMO_IMAGEM,
+      allowedMimeTypes: Array.from(TIPOS_IMAGEM_PERMITIDOS),
+    });
+    if (error) {
+      console.error("[admin] tornar bucket público:", error.message);
+      return { success: false, error: "Não foi possível preparar o envio da imagem." };
+    }
+  }
+
+  const caminho = `capas/${crypto.randomUUID()}-${nomeSeguroDeArquivo(nome)}`;
+  const assinatura = await supabase.storage
+    .from(BUCKET_IMAGENS_EXPERIENCIAS)
+    .createSignedUploadUrl(caminho);
+
+  if (assinatura.error || !assinatura.data) {
+    console.error("[admin] assinar upload de imagem:", assinatura.error?.message);
+    return { success: false, error: "Não foi possível preparar o envio da imagem." };
+  }
+
+  const { data: publica } = supabase.storage
+    .from(BUCKET_IMAGENS_EXPERIENCIAS)
+    .getPublicUrl(caminho);
+
+  return {
+    success: true,
+    bucket: BUCKET_IMAGENS_EXPERIENCIAS,
+    path: caminho,
+    token: assinatura.data.token,
+    url: publica.publicUrl,
+  };
+}
+
 export async function salvarExperiencia(dados: FormData): Promise<Resultado> {
   await exigirPapel(["admin", "editor"]);
 
@@ -88,7 +179,7 @@ export async function salvarExperiencia(dados: FormData): Promise<Resultado> {
   const titulo = limpar(dados.get("title_pt"), 160);
   const resumo = limpar(dados.get("short_description_pt"), 500);
   const descricao = limpar(dados.get("description_pt"), 8000);
-  const status = limpar(dados.get("status"), 20) as ExperienceStatus;
+  const status = (limpar(dados.get("status"), 20) || "published") as ExperienceStatus;
 
   if (titulo.length < 3) {
     return { success: false, campo: "title_pt", error: "O título é obrigatório." };
@@ -124,12 +215,19 @@ export async function salvarExperiencia(dados: FormData): Promise<Resultado> {
     if (!resumo) {
       return { success: false, campo: "short_description_pt", error: "Para publicar, escreva o resumo." };
     }
-    // Destino é obrigatório no funil do viajante, onde o cartão do
-    // catálogo e o filtro por destino dependem dele. No de facilitador
-    // não: a jornada da Amazônia acontece no Lago do Acajatuba, que não é
-    // um dos destinos cadastrados, e exigir um faria escolher o errado.
+    // Destino é recomendado no funil do viajante, mas não pode bloquear a
+    // publicação quando ainda não existe nenhum destino ativo para escolher.
+    // Era exatamente o estado em que o select mostrava apenas "—" e o painel
+    // exigia uma opção impossível.
     if (dados.get("audience") !== "facilitador" && !dados.get("destination_id")) {
-      return { success: false, campo: "destination_id", error: "Para publicar, escolha o destino." };
+      const { count, error } = await supabase
+        .from("destinations")
+        .select("id", { count: "exact", head: true })
+        .eq("is_active", true);
+
+      if (!error && (count ?? 0) > 0) {
+        return { success: false, campo: "destination_id", error: "Para publicar, escolha o destino." };
+      }
     }
   }
 

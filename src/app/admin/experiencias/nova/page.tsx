@@ -1,8 +1,8 @@
 /**
  * /admin/experiencias/nova — cadastro.
  *
- * Nasce como rascunho. Publicar é passo separado, na lista, com aviso do que
- * ainda falta.
+ * Por padrão a nova experiência fica pronta para publicar. Quem ainda estiver
+ * montando o conteúdo pode trocar a situação para rascunho antes de salvar.
  */
 
 import Link from "next/link";
@@ -37,7 +37,7 @@ export default async function NovaExperiencia() {
         </Link>
         <h1 className="mt-2 font-heading text-2xl text-primary-700">Nova experiência</h1>
         <p className="mt-1 text-sm text-text-muted">
-          Ela nasce como rascunho. Nada aparece no site até você publicar.
+          O padrão é publicar ao salvar. Se ainda estiver montando o conteúdo, altere a situação para rascunho.
         </p>
       </header>
 

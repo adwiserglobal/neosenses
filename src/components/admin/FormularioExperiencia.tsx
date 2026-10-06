@@ -9,7 +9,9 @@
 
 import { useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { salvarExperiencia } from "@/lib/actions/admin";
+import { ImageIcon, UploadCloud } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
+import { prepararUploadImagemExperiencia, salvarExperiencia } from "@/lib/actions/admin";
 import { t } from "@/lib/utils";
 import type { Category, DestinationWithCountry, ExperienceWithRelations, I18nField } from "@/types/models";
 
@@ -98,6 +100,8 @@ export function FormularioExperiencia({ experiencia, categorias, destinos }: Pro
   const [erro, setErro] = useState<string | null>(null);
   const [campoComErro, setCampoComErro] = useState<string | null>(null);
   const [salvo, setSalvo] = useState(false);
+  const [previewCapa, setPreviewCapa] = useState<string>(experiencia?.hero_image ?? "");
+  const [nomeArquivoCapa, setNomeArquivoCapa] = useState<string>("");
 
   const atual = {
     titulo: t(experiencia?.title as I18nField, "pt"),
@@ -129,18 +133,66 @@ export function FormularioExperiencia({ experiencia, categorias, destinos }: Pro
 
   const intencoesAtuais = new Set(experiencia?.intentions ?? []);
 
+  function escolherCapa(arquivo?: File) {
+    if (!arquivo) return;
+    setNomeArquivoCapa(arquivo.name);
+
+    const leitor = new FileReader();
+    leitor.onload = () => {
+      if (typeof leitor.result === "string") setPreviewCapa(leitor.result);
+    };
+    leitor.readAsDataURL(arquivo);
+  }
+
   function enviar(dados: FormData) {
     setErro(null);
     setCampoComErro(null);
     setSalvo(false);
 
     iniciar(async () => {
+      const arquivo = dados.get("hero_image_file");
+
+      if (arquivo instanceof File && arquivo.size > 0) {
+        const preparo = await prepararUploadImagemExperiencia(arquivo.name, arquivo.type, arquivo.size);
+
+        if (!preparo.success || !preparo.bucket || !preparo.path || !preparo.token || !preparo.url) {
+          setErro(preparo.error ?? "Não foi possível enviar a imagem de capa.");
+          setCampoComErro("hero_image_file");
+          window.scrollTo({ top: 0, behavior: "smooth" });
+          return;
+        }
+
+        const supabase = createClient();
+        const upload = await supabase.storage
+          .from(preparo.bucket)
+          .uploadToSignedUrl(preparo.path, preparo.token, arquivo, {
+            contentType: arquivo.type,
+            cacheControl: "31536000",
+          });
+
+        if (upload.error) {
+          console.error("[admin] upload da capa:", upload.error.message);
+          setErro("Não foi possível enviar a imagem de capa. Tente novamente.");
+          setCampoComErro("hero_image_file");
+          window.scrollTo({ top: 0, behavior: "smooth" });
+          return;
+        }
+
+        dados.set("hero_image", preparo.url);
+      } else {
+        dados.set("hero_image", String(dados.get("hero_image_existing") ?? ""));
+      }
+
+      // O arquivo já foi enviado direto ao Storage; não vai junto para a
+      // Server Action que salva os campos da experiência.
+      dados.delete("hero_image_file");
+      dados.delete("hero_image_existing");
+
       const r = await salvarExperiencia(dados);
 
       if (!r.success) {
         setErro(r.error ?? "Não foi possível salvar.");
         setCampoComErro(r.campo ?? null);
-        // Rola até o topo: o erro pode estar num campo fora da tela.
         window.scrollTo({ top: 0, behavior: "smooth" });
         return;
       }
@@ -474,18 +526,68 @@ export function FormularioExperiencia({ experiencia, categorias, destinos }: Pro
         </fieldset>
 
         <div>
-          <label htmlFor="hero_image" className="mb-1.5 block text-sm font-medium text-primary-700">
-            Imagem de capa (endereço)
-          </label>
+          <span className="mb-2 block text-sm font-medium text-primary-700">Imagem de capa</span>
           <input
-            id="hero_image"
-            name="hero_image"
-            type="url"
-            defaultValue={experiencia?.hero_image ?? ""}
-            placeholder="https://…"
-            maxLength={500}
-            className={classe("hero_image")}
+            type="hidden"
+            name="hero_image_existing"
+            value={experiencia?.hero_image ?? ""}
           />
+
+          <label
+            htmlFor="hero_image_file"
+            className={`group relative block cursor-pointer overflow-hidden rounded-2xl border border-dashed transition ${
+              campoComErro === "hero_image_file"
+                ? "border-red-400 bg-red-50/40"
+                : "border-[#d8c7aa] bg-[#fbf6ec] hover:border-secondary-400"
+            }`}
+          >
+            {previewCapa ? (
+              <div className="relative aspect-[16/7] overflow-hidden bg-warm-gray">
+                {/* Preview local ou URL já cadastrada. O arquivo final é servido pelo Storage. */}
+                <img
+                  src={previewCapa}
+                  alt="Prévia da capa da experiência"
+                  className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.01]"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
+                <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between gap-3">
+                  <span className="rounded-full bg-black/45 px-3 py-1.5 text-xs font-medium text-white backdrop-blur">
+                    {nomeArquivoCapa || "Capa atual"}
+                  </span>
+                  <span className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-primary-700 shadow">
+                    Trocar imagem
+                  </span>
+                </div>
+              </div>
+            ) : (
+              <div className="flex min-h-44 flex-col items-center justify-center px-6 py-8 text-center">
+                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary-100 text-secondary-700">
+                  <ImageIcon className="h-5 w-5" aria-hidden="true" />
+                </span>
+                <span className="mt-4 text-sm font-semibold text-primary-700">
+                  Escolha a foto de capa
+                </span>
+                <span className="mt-1 text-xs leading-relaxed text-text-muted">
+                  JPG, PNG, WebP ou AVIF · até 8 MB
+                </span>
+              </div>
+            )}
+
+            <span className="sr-only">Selecionar imagem de capa</span>
+            <input
+              id="hero_image_file"
+              name="hero_image_file"
+              type="file"
+              accept="image/jpeg,image/png,image/webp,image/avif"
+              className="absolute inset-0 cursor-pointer opacity-0"
+              onChange={(e) => escolherCapa(e.target.files?.[0])}
+            />
+          </label>
+
+          <p className="mt-2 flex items-center gap-2 text-xs text-text-muted">
+            <UploadCloud className="h-3.5 w-3.5" aria-hidden="true" />
+            O arquivo é enviado direto para o armazenamento da NeoSenses ao salvar.
+          </p>
         </div>
       </fieldset>
 
@@ -516,23 +618,35 @@ export function FormularioExperiencia({ experiencia, categorias, destinos }: Pro
             <label htmlFor="destination_id" className="mb-1.5 block text-sm font-medium text-primary-700">
               Destino
             </label>
-            <select
-              id="destination_id"
-              name="destination_id"
-              defaultValue={experiencia?.destination_id ?? ""}
-              className={classe("destination_id")}
-            >
-              <option value="">—</option>
-              {destinos.map((d) => (
-                <option key={d.id} value={d.id}>
-                  {t(d.name as I18nField, "pt")}
-                  {d.country ? ` · ${t(d.country.name as I18nField, "pt")}` : ""}
-                </option>
-              ))}
-            </select>
-            <p className="mt-1 text-xs text-text-muted">
-              Obrigatório para publicar. É daqui que vêm clima, altitude e as dicas do destino.
-            </p>
+
+            {destinos.length > 0 ? (
+              <>
+                <select
+                  id="destination_id"
+                  name="destination_id"
+                  defaultValue={experiencia?.destination_id ?? ""}
+                  className={classe("destination_id")}
+                >
+                  <option value="">Selecione um destino</option>
+                  {destinos.map((d) => (
+                    <option key={d.id} value={d.id}>
+                      {t(d.name as I18nField, "pt")}
+                      {d.country ? ` · ${t(d.country.name as I18nField, "pt")}` : ""}
+                    </option>
+                  ))}
+                </select>
+                <p className="mt-1 text-xs text-text-muted">
+                  Vincular um destino permite usar clima, altitude e filtros do catálogo.
+                </p>
+              </>
+            ) : (
+              <>
+                <input type="hidden" name="destination_id" value={experiencia?.destination_id ?? ""} />
+                <div className="rounded-xl border border-[#e4d4b6] bg-[#fff8e8] px-4 py-3 text-sm text-[#765616]">
+                  Nenhum destino está cadastrado ainda. Isso não impede a publicação desta experiência.
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -665,7 +779,7 @@ export function FormularioExperiencia({ experiencia, categorias, destinos }: Pro
             <select
               id="status"
               name="status"
-              defaultValue={experiencia?.status ?? "draft"}
+              defaultValue={experiencia?.status ?? "published"}
               className={classe("status")}
             >
               <option value="draft">Rascunho — não aparece no site</option>
