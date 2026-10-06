@@ -80,7 +80,7 @@ export function Footer() {
             </div>
 
             <Image
-              src="/images/google-rating-badge.webp"
+              src="/images/google-rating-badge.png"
               alt="Nota máxima no Google: 5 de 5"
               width={160}
               height={154}
