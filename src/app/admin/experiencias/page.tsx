@@ -49,11 +49,8 @@ export default async function ListaExperiencias() {
 
   if (!url || !chave) {
     return (
-      <div className="rounded-xl border border-red-300 bg-red-50 p-5 text-sm text-red-900">
-        Sem conexão com o banco.{" "}
-        <Link href="/admin/supabase" className="underline underline-offset-4">
-          Ver diagnóstico
-        </Link>
+      <div className="rounded-2xl border border-red-200 bg-red-50 p-5 text-sm text-red-800 shadow-sm">
+        Não foi possível carregar as experiências. Verifique as variáveis do ambiente de produção.
       </div>
     );
   }
