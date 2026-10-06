@@ -17,7 +17,6 @@ import {
   generateAIResponse,
   validateAIConfig,
   AIError,
-  type AIProviderConfig,
   type ChatMessage,
 } from "@/lib/ai/provider";
 import { retrieveNeoSensesContext, formatContextForPrompt } from "@/lib/ai/retrieval";
@@ -303,47 +302,11 @@ export async function POST(request: NextRequest) {
 
     const paginaOrigem = limpar(String(corpo.sourcePage ?? "/")).slice(0, 200);
 
-    const local = respostaLocalRapida(mensagem, idioma);
-    if (local) {
-      return NextResponse.json({
-        success: true,
-        conversationId: conversationId ?? null,
-        message: {
-          id: null,
-          role: "assistant",
-          content: local.content,
-          createdAt: new Date().toISOString(),
-        },
-        recommendations: local.cards,
-        handoffAvailable: true,
-        source: "site",
-      });
-    }
-
-    const limite = verificarLimite(identificar(request.headers), LIMITE_CHAT);
-    if (!limite.permitido) {
-      const resposta = respostaDeErro(idioma, "LIMITE_LOCAL", 429);
-      resposta.headers.set("Retry-After", String(limite.esperarSegundos));
-      return resposta;
-    }
-
-    const chaveNvidia = process.env.NVIDIA_API_KEY?.trim();
-    const configIA: AIProviderConfig | null =
-      chaveNvidia && chaveNvidia.length > 20
-        ? {
-            provider: "nvidia",
-            model: "deepseek-ai/deepseek-v4.1-flash",
-            apiKey: chaveNvidia,
-          }
-        : detectAIConfig();
-
-    if (!configIA) {
-      return respostaDeErro(idioma, "AI_PROVIDER_NOT_CONFIGURED", 503);
-    }
-
+    // Persistimos a conversa ANTES do atalho local. Antes, respostas rápidas
+    // saíam daqui sem conversationId nem histórico; a mensagem seguinte
+    // ("sim", "quero", etc.) chegava à IA sem contexto.
     const supabase = conectarSupabase();
 
-    // ── Conversa ───────────────────────────────────────────────────────────
     let convId = conversationId;
     if (supabase && !convId) {
       const { data, error } = await supabase
@@ -368,6 +331,65 @@ export async function POST(request: NextRequest) {
         .from("messages")
         .insert({ conversation_id: convId, role: "user", content: mensagem });
       if (error) console.error("[concierge] gravar mensagem do visitante:", error.message);
+    }
+
+    const local = respostaLocalRapida(mensagem, idioma);
+    if (local) {
+      let mensagemId: string | null = null;
+
+      if (supabase && convId) {
+        const { data, error } = await supabase
+          .from("messages")
+          .insert({
+            conversation_id: convId,
+            role: "assistant",
+            content: local.content,
+            metadata: {
+              provider: "site",
+              model: "local-fast-path",
+              response_time_ms: Date.now() - inicio,
+            },
+          })
+          .select("id")
+          .single();
+
+        if (error) console.error("[concierge] gravar resposta local:", error.message);
+        else mensagemId = data.id;
+
+        await supabase
+          .from("conversations")
+          .update({ updated_at: new Date().toISOString() })
+          .eq("id", convId);
+      }
+
+      return NextResponse.json({
+        success: true,
+        conversationId: convId ?? null,
+        message: {
+          id: mensagemId,
+          role: "assistant",
+          content: local.content,
+          createdAt: new Date().toISOString(),
+        },
+        recommendations: local.cards,
+        handoffAvailable: true,
+        source: "site",
+      });
+    }
+
+    const limite = verificarLimite(identificar(request.headers), LIMITE_CHAT);
+    if (!limite.permitido) {
+      const resposta = respostaDeErro(idioma, "LIMITE_LOCAL", 429);
+      resposta.headers.set("Retry-After", String(limite.esperarSegundos));
+      return resposta;
+    }
+
+    // Respeita AI_PROVIDER/AI_MODEL e o auto-detect central. A rota estava
+    // forçando NVIDIA DeepSeek sempre que NVIDIA_API_KEY existia, ignorando
+    // a configuração escolhida no ambiente.
+    const configIA = detectAIConfig();
+    if (!configIA) {
+      return respostaDeErro(idioma, "AI_PROVIDER_NOT_CONFIGURED", 503);
     }
 
     // ── Histórico ──────────────────────────────────────────────────────────
@@ -417,10 +439,12 @@ export async function POST(request: NextRequest) {
     ];
 
     const resposta = await generateAIResponse(mensagens, configIA, {
-      // Modelo flash dedicado ao concierge: respostas curtas e rápidas.
+      // 12s estava derrubando respostas válidas como timeout em produção.
+      // A função da Vercel permite até 60s; 25s dá margem sem deixar o chat
+      // preso por tempo demais.
       maxTokens: 420,
       temperature: 0.45,
-      timeoutMs: 12_000,
+      timeoutMs: 25_000,
       thinking: "low",
     });
 
