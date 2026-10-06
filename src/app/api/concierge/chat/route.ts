@@ -27,6 +27,7 @@ import {
   type SiteRecommendation,
 } from "@/lib/ai/siteKnowledge";
 import { buildConciergeSystemPrompt } from "@/lib/ai/prompt";
+import { migratedExperiences } from "@/content/migratedExperiences";
 import { verificarResposta, respostaSegura } from "@/lib/ai/guardas";
 import { identificar, verificarLimite, LIMITE_CHAT } from "@/lib/limite";
 
@@ -60,7 +61,7 @@ function conectarSupabase() {
 
 const RE_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_CARACTERES = 1500;
-const MAX_HISTORICO = 16;
+const MAX_HISTORICO = 6;
 const MAX_CARDS = 8;
 
 function normalizarIdioma(valor: unknown): "pt" | "en" | "es" {
@@ -160,6 +161,107 @@ function experienciaFoiMencionada(
   return false;
 }
 
+function experienciaLocalPorMensagem(mensagem: string) {
+  const normalizada = normalizarComparacao(mensagem);
+  return migratedExperiences.find((exp) => {
+    const alvos = [
+      exp.title,
+      exp.slug.replace(/-/g, " "),
+      exp.destination,
+      exp.country,
+    ]
+      .map(normalizarComparacao)
+      .filter(Boolean);
+    return alvos.some((alvo) => alvo.length >= 4 && normalizada.includes(alvo));
+  });
+}
+
+function ehPedidoDeCatalogoLocal(mensagem: string) {
+  const p = normalizarComparacao(mensagem);
+  return /\b(quais|lista|opcoes|catalogo|viagens|experiencias|roteiros|destinos)\b/.test(p) &&
+    /\b(quais|lista|opcoes|catalogo|tem|oferecem)\b/.test(p);
+}
+
+function respostaLocalRapida(mensagem: string, idioma: "pt" | "en" | "es") {
+  if (idioma !== "pt") return null;
+
+  const exp = experienciaLocalPorMensagem(mensagem);
+  const p = normalizarComparacao(mensagem);
+
+  if (exp && /\b(quero|conhecer|sobre|como e|me fala|conte|interesse|peru|tailandia|india|franca|chapada)\b/.test(p)) {
+    const content =
+      `${exp.title} é uma jornada da NeoSenses em ${exp.destination}. ${exp.summary} ` +
+      `As próximas saídas estão sob consulta. Você pode conhecer a proposta completa em /experiencias/${exp.slug}.`;
+
+    return {
+      content,
+      cards: [{
+        type: "experience" as const,
+        id: `site:${exp.slug}`,
+        title: exp.title,
+        slug: exp.slug,
+        destination: exp.destination,
+        duration: exp.itinerary.length ? `${Math.max(...exp.itinerary.map((d) => d.day))} dias` : "",
+        publishedPrice: "",
+        url: `/experiencias/${exp.slug}`,
+        image: exp.hero,
+        summary: exp.summary,
+        position: 1,
+      }],
+    };
+  }
+
+  if (ehPedidoDeCatalogoLocal(mensagem)) {
+    const lista = migratedExperiences
+      .slice(0, 6)
+      .map((e) => `${e.title} (${e.destination})`)
+      .join(", ");
+    return {
+      content: `Hoje você pode explorar estas jornadas publicadas: ${lista}. Se me disser que tipo de experiência procura, eu te ajudo a escolher.`,
+      cards: migratedExperiences.slice(0, 6).map((exp, i) => ({
+        type: "experience" as const,
+        id: `site:${exp.slug}`,
+        title: exp.title,
+        slug: exp.slug,
+        destination: exp.destination,
+        duration: exp.itinerary.length ? `${Math.max(...exp.itinerary.map((d) => d.day))} dias` : "",
+        publishedPrice: "",
+        url: `/experiencias/${exp.slug}`,
+        image: exp.hero,
+        summary: exp.summary,
+        position: i + 1,
+      })),
+    };
+  }
+
+  if (/\b(descansar|reconectar|reconexao|pausa|natureza|desacelerar)\b/.test(p)) {
+    const expReconexao =
+      migratedExperiences.find((e) => e.slug === "chapada-dos-veadeiros") ??
+      migratedExperiences[0];
+    if (!expReconexao) return null;
+    return {
+      content:
+        `Para uma busca de pausa e reconexão, ${expReconexao.title} pode fazer bastante sentido. ` +
+        `${expReconexao.summary} As próximas saídas estão sob consulta. Quer que eu te conte como é a proposta dessa jornada?`,
+      cards: [{
+        type: "experience" as const,
+        id: `site:${expReconexao.slug}`,
+        title: expReconexao.title,
+        slug: expReconexao.slug,
+        destination: expReconexao.destination,
+        duration: "",
+        publishedPrice: "",
+        url: `/experiencias/${expReconexao.slug}`,
+        image: expReconexao.hero,
+        summary: expReconexao.summary,
+        position: 1,
+      }],
+    };
+  }
+
+  return null;
+}
+
 export async function POST(request: NextRequest) {
   const inicio = Date.now();
   let idioma: "pt" | "en" | "es" = "pt";
@@ -200,6 +302,23 @@ export async function POST(request: NextRequest) {
         : undefined;
 
     const paginaOrigem = limpar(String(corpo.sourcePage ?? "/")).slice(0, 200);
+
+    const local = respostaLocalRapida(mensagem, idioma);
+    if (local) {
+      return NextResponse.json({
+        success: true,
+        conversationId: conversationId ?? null,
+        message: {
+          id: null,
+          role: "assistant",
+          content: local.content,
+          createdAt: new Date().toISOString(),
+        },
+        recommendations: local.cards,
+        handoffAvailable: true,
+        source: "site",
+      });
+    }
 
     const limite = verificarLimite(identificar(request.headers), LIMITE_CHAT);
     if (!limite.permitido) {
@@ -274,9 +393,9 @@ export async function POST(request: NextRequest) {
         const contextoBanco = formatContextForPrompt(contexto, idioma);
         experienciasDoContexto = contexto.experiences.slice(0, MAX_CARDS);
 
-        blocoContexto = contexto.catalogoVazio && contextoSite
+        blocoContexto = (contexto.catalogoVazio && contextoSite
           ? contextoSite
-          : [contextoBanco, contextoSite].filter(Boolean).join("\n\n");
+          : [contextoBanco, contextoSite].filter(Boolean).join("\n\n")).slice(0, 6500);
       } catch (err) {
         console.error("[concierge] busca de contexto:", err instanceof Error ? err.message : err);
         blocoContexto = contextoSite;
@@ -299,9 +418,9 @@ export async function POST(request: NextRequest) {
 
     const resposta = await generateAIResponse(mensagens, configIA, {
       // Modelo flash dedicado ao concierge: respostas curtas e rápidas.
-      maxTokens: 700,
-      temperature: 0.5,
-      timeoutMs: 18_000,
+      maxTokens: 420,
+      temperature: 0.45,
+      timeoutMs: 12_000,
       thinking: "low",
     });
 
@@ -462,7 +581,27 @@ export async function POST(request: NextRequest) {
   } catch (err) {
     if (err instanceof AIError) {
       console.error(`[concierge] ${err.code}: ${err.detail ?? ""}`);
-      const status = err.code === "AI_RATE_LIMIT" ? 429 : err.code === "AI_TIMEOUT" ? 504 : 502;
+      if (err.code === "AI_TIMEOUT") {
+        return NextResponse.json({
+          success: true,
+          conversationId: null,
+          message: {
+            id: null,
+            role: "assistant",
+            content:
+              idioma === "pt"
+                ? "Estou com uma demora na resposta automática agora. Posso te ajudar pelas opções do menu, pelas páginas das experiências ou você pode falar com a equipe no WhatsApp."
+                : idioma === "en"
+                  ? "The automatic response is taking longer right now. You can use the menu, explore the experience pages or contact our team on WhatsApp."
+                  : "La respuesta automática está tardando ahora. Puedes usar el menú, ver las páginas de experiencias o hablar con nuestro equipo por WhatsApp.",
+            createdAt: new Date().toISOString(),
+          },
+          recommendations: [],
+          handoffAvailable: true,
+          degraded: true,
+        });
+      }
+      const status = err.code === "AI_RATE_LIMIT" ? 429 : 502;
       return respostaDeErro(idioma, err.code, status);
     }
     console.error("[concierge] erro inesperado:", err instanceof Error ? err.stack : err);
