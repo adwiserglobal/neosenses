@@ -4,7 +4,7 @@
  * Separadas de `blocos.tsx` por causa do peso no navegador: `/contato` e
  * `/planejar` são componentes de cliente, e importar `blocos` inteiro
  * mandaria a grade, o roteiro em sanfona e o "quem conduz" para o bundle
- * dessas páginas — 800 linhas de layout que elas não desenham.
+ * dessas páginas, 800 linhas de layout que elas não desenham.
  *
  * Quem já importava de `blocos` continua funcionando: lá tudo isto é
  * reexportado.
@@ -82,7 +82,7 @@ export function Chapeu({
  * O topo da página.
  *
  * `priority` na imagem porque ela é, por definição, o maior elemento acima
- * da dobra — sem isso o Next a trata como qualquer outra e ela entra depois
+ * da dobra, sem isso o Next a trata como qualquer outra e ela entra depois
  * do resto, que é exatamente a métrica que o buscador mede.
  *
  * O véu escuro por cima não é estética: o título é branco, e sobre foto
@@ -102,7 +102,7 @@ export function Capa({
 }: {
   chapeu?: string;
   titulo: string;
-  /** Segunda linha do topo, logo abaixo do título — "As Três Faces do
+  /** Segunda linha do topo, logo abaixo do título, "As Três Faces do
    *  Divino". Fica aqui e não no chapéu: em caixa alta e emendado à
    *  categoria e ao destino, o topo virava uma linha de quatro partes que
    *  ninguém lê inteira. */
@@ -139,13 +139,13 @@ export function Capa({
            *
            * A parada do meio subiu de 75% para 88% de opacidade depois de
            * medir: com 75%, o chapéu dourado sobre a montanha de Vinicunca
-           * dava 3,65:1 — reprovado para 11px, que pede 4,5:1. E `hero_image`
+           * dava 3,65:1, reprovado para 11px, que pede 4,5:1. E `hero_image`
            * é campo livre do painel, então a próxima foto cadastrada pode ser
            * mais clara ainda.
            *
            * 88% no meio segura o dourado em 6,1:1 mesmo contra branco puro,
            * que é o pior caso possível. O topo continua em 25% para a foto
-           * respirar — é lá que ela aparece, e nenhum texto mora lá. */}
+           * respirar, é lá que ela aparece, e nenhum texto mora lá. */}
           <div className="absolute inset-0 bg-gradient-to-t from-[#16101c]/85 via-[#211725]/55 to-[#18131d]/25" />
         </>
       )}
