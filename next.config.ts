@@ -38,6 +38,11 @@ const nextConfig: NextConfig = {
       },
       {
         protocol: "https",
+        hostname: "cdn.openart.ai",
+        pathname: "/openart-uploads/**",
+      },
+      {
+        protocol: "https",
         hostname: "upload.wikimedia.org",
         pathname: "/wikipedia/**",
       },
