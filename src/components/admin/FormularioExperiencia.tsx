@@ -616,7 +616,7 @@ export function FormularioExperiencia({ experiencia, categorias, destinos }: Pro
 
           <div>
             <label htmlFor="destination_id" className="mb-1.5 block text-sm font-medium text-primary-700">
-              Destino
+              Destino <span className="font-normal text-text-muted">(opcional)</span>
             </label>
 
             {destinos.length > 0 ? (

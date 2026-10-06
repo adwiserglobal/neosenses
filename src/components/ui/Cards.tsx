@@ -30,10 +30,11 @@ export function ExperienceCard({ experience, locale = "pt", index = 0 }: Experie
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true }}
       transition={{ duration: 0.5, delay: index * 0.08 }}
+      className="h-full"
     >
       <Link
         href={`/experiencias/${slug}`}
-        className="group block overflow-hidden rounded-xl border border-border bg-surface transition-all duration-300 hover:border-secondary-300/50 hover:shadow-card"
+        className="group flex h-full flex-col overflow-hidden rounded-xl border border-border bg-surface transition-all duration-300 hover:border-secondary-300/50 hover:shadow-card"
       >
         {/* Image */}
         <div className="relative aspect-[3/2] overflow-hidden">
@@ -79,7 +80,7 @@ export function ExperienceCard({ experience, locale = "pt", index = 0 }: Experie
         </div>
 
         {/* Content */}
-        <div className="p-5">
+        <div className="flex flex-1 flex-col p-5">
           {/* Location + Duration */}
           <div className="mb-2 flex items-center gap-3 text-xs text-text-muted">
             {destinationName && (
@@ -109,7 +110,7 @@ export function ExperienceCard({ experience, locale = "pt", index = 0 }: Experie
           )}
 
           {/* Price + CTA */}
-          <div className="border-t border-border pt-5">
+          <div className="mt-auto border-t border-border pt-5">
             <div className="mb-4 text-center">
               {experience.price_from ? (
                 <div>

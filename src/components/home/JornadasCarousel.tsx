@@ -79,7 +79,7 @@ export function JornadasCarousel({ experiencias }: Props) {
         {experiencias.map((exp, i) => (
           <div
             key={exp.id}
-            className="w-[86%] shrink-0 snap-start sm:w-[calc(50%-12px)] lg:w-[calc(33.333%-16px)]"
+            className="w-[86%] shrink-0 snap-start sm:w-[calc(50%_-_12px)] lg:w-[calc(33.333%_-_16px)]"
           >
             <ExperienceCard experience={exp} index={Math.min(i, 3)} />
           </div>

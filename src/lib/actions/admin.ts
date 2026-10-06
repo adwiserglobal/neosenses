@@ -215,20 +215,8 @@ export async function salvarExperiencia(dados: FormData): Promise<Resultado> {
     if (!resumo) {
       return { success: false, campo: "short_description_pt", error: "Para publicar, escreva o resumo." };
     }
-    // Destino é recomendado no funil do viajante, mas não pode bloquear a
-    // publicação quando ainda não existe nenhum destino ativo para escolher.
-    // Era exatamente o estado em que o select mostrava apenas "—" e o painel
-    // exigia uma opção impossível.
-    if (dados.get("audience") !== "facilitador" && !dados.get("destination_id")) {
-      const { count, error } = await supabase
-        .from("destinations")
-        .select("id", { count: "exact", head: true })
-        .eq("is_active", true);
-
-      if (!error && (count ?? 0) > 0) {
-        return { success: false, campo: "destination_id", error: "Para publicar, escolha o destino." };
-      }
-    }
+    // Destino é opcional. Quando existir, melhora filtros e contexto do
+    // Concierge, mas nunca impede uma experiência pronta de ir ao ar.
   }
 
   const intencoes = dados
