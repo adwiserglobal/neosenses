@@ -31,7 +31,7 @@ export function MarrocosExperienceCard({ index = 0 }: Props) {
     >
       <Link
         href="/experiencias/marrocos-com-neosenses"
-        className="group block overflow-hidden rounded-xl border border-border bg-surface transition-all duration-300 hover:border-secondary-300/50 hover:shadow-card"
+        className="group flex h-full flex-col overflow-hidden rounded-xl border border-border bg-surface transition-all duration-300 hover:border-secondary-300/50 hover:shadow-card"
       >
         <div className="relative aspect-[3/2] overflow-hidden">
           <Image
@@ -47,7 +47,7 @@ export function MarrocosExperienceCard({ index = 0 }: Props) {
           </span>
         </div>
 
-        <div className="p-5">
+        <div className="flex flex-1 flex-col p-5">
           <div className="mb-2 flex items-center gap-1 text-xs text-text-muted">
             <MapPin className="h-3 w-3" />
             Marrocos
@@ -61,11 +61,15 @@ export function MarrocosExperienceCard({ index = 0 }: Props) {
             Conheça a experiência completa da NeoSenses no Marrocos.
           </p>
 
-          <div className="flex items-center justify-between border-t border-border pt-4">
-            <span className="text-sm italic text-text-muted">Consulte</span>
-            <span className="text-sm font-medium text-secondary-500 transition-transform group-hover:translate-x-1">
-              Conhecer →
-            </span>
+          <div className="mt-auto border-t border-border pt-5">
+            <div className="mb-4 text-center">
+              <span className="text-sm italic text-text-muted">Consulte</span>
+            </div>
+            <div className="flex justify-center">
+              <span className="inline-flex min-w-[168px] items-center justify-center rounded-full bg-primary-700 px-6 py-3 text-sm font-semibold text-white shadow-soft transition-all duration-300 group-hover:-translate-y-0.5 group-hover:bg-primary-800 group-hover:shadow-card">
+                Conhecer mais <span aria-hidden="true" className="ml-2">→</span>
+              </span>
+            </div>
           </div>
         </div>
       </Link>
