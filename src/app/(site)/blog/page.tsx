@@ -50,7 +50,7 @@ export default async function BlogPage({ searchParams }: Props) {
         chapeu="Inspiração"
         titulo="Blog"
         resumo="Reflexões sobre espiritualidade, destinos e o que se aprende no caminho."
-        imagem="/images/b2b/amazonas-hero-lago.jpg"
+        imagem="https://unsplash.com/photos/eU4pipU_8HA/download?force=true&w=2048"
         alinhamento="centro"
       />
 
