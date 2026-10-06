@@ -63,7 +63,7 @@ export default async function SobrePage() {
         chapeu="Quem somos"
         titulo="A Essência do Amor em Cada Jornada"
         resumo="Conectando pessoas, propósitos e lugares através de experiências que transformam."
-        imagem="/images/b2b/amazonas-floresta-aerea.jpg"
+        imagem="https://cdn.openart.ai/openart-uploads/production/attachment-transfers/1bf305dfd09276a3f8b502d7546301a49e4f4d8f51d701ab14acbf2da4c23260.png"
         altura="cheia"
         alinhamento="centro"
       />
@@ -117,12 +117,12 @@ export default async function SobrePage() {
             />
             <div className="relative overflow-hidden rounded-[38px] bg-primary-100 shadow-[0_28px_70px_rgba(57,0,75,0.13)]">
               <Image
-                src="/images/b2b/amazonas-comunidade.jpg"
-                alt="Encontro e conexão em uma jornada NeoSenses"
-                width={900}
-                height={1100}
+                src="https://cdn.openart.ai/openart-uploads/production/attachment-transfers/2ac7788ab8babc735a2a31ff8a954ff0b9d12a170490f4c825856126e1d0e813.png"
+                alt="Pessoas em meditação diante de uma imagem de Buda"
+                width={1200}
+                height={1200}
                 sizes="(min-width: 1024px) 42vw, 100vw"
-                className="aspect-[4/5] w-full object-cover"
+                className="aspect-[4/5] w-full object-cover object-center"
               />
             </div>
             <div className="absolute -bottom-5 left-6 rounded-full bg-primary-700 px-5 py-3 text-xs font-semibold uppercase tracking-[0.14em] text-secondary-200 shadow-card">
@@ -158,12 +158,21 @@ export default async function SobrePage() {
         </div>
       </Faixa>
 
-      <section className="relative overflow-hidden bg-primary-800 py-20 md:py-24">
+      <section className="relative overflow-hidden py-20 md:py-24">
+        <Image
+          src="https://cdn.openart.ai/openart-uploads/production/attachment-transfers/6543fe3a334967c84fc11915fc0322e192623354f71776841959cd7d293c3745.png"
+          alt=""
+          aria-hidden="true"
+          fill
+          sizes="100vw"
+          className="object-cover object-center"
+        />
+        <div aria-hidden="true" className="absolute inset-0 bg-[rgba(30,7,39,0.72)]" />
         <div
           aria-hidden="true"
-          className="pointer-events-none absolute -right-20 top-0 h-72 w-72 rounded-full bg-primary-500/30 blur-3xl"
+          className="pointer-events-none absolute -right-20 top-0 h-72 w-72 rounded-full bg-primary-500/20 blur-3xl"
         />
-        <div className="container-content relative text-center">
+        <div className="container-content relative z-10 text-center">
           <p className="mx-auto mb-4 w-max text-xs font-semibold uppercase tracking-[0.2em] text-secondary-300">
             Entre o visível e o invisível
           </p>
