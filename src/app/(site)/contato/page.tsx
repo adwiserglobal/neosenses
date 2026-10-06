@@ -64,7 +64,7 @@ export default function ContatoPage() {
       <Capa
         chapeu="Fale conosco"
         titulo="Entre em contato"
-        resumo="Conte o que você procura. A gente responde com o que existe de verdade — data, roteiro e valor."
+        resumo="Conte o que você procura. A gente responde com o que existe de verdade, data, roteiro e valor."
         imagem="/images/b2b/amazonas-porsol-flutuante.jpg"
         alinhamento="centro"
       />
