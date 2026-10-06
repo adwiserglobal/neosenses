@@ -2,8 +2,8 @@
  * O outro funil: terapeutas, facilitadoras e líderes que levam o próprio
  * grupo.
  *
- * O site inteiro falava com quem compra uma vaga. Quem forma o grupo —
- * que é de onde vêm as jornadas dos três modelos da equipe — não tinha
+ * O site inteiro falava com quem compra uma vaga. Quem forma o grupo ,
+ * que é de onde vêm as jornadas dos três modelos da equipe, não tinha
  * porta nenhuma: chegava por uma página de experiência, lia "3 vagas
  * restantes" e saía.
  *
@@ -50,7 +50,7 @@ const MENSAGEM =
 const PARCERIA = {
   facilitador: [
     "Sua medicina, sua abordagem e o seu método de trabalho.",
-    "Seu grupo — as pessoas que confiam na sua condução.",
+    "Seu grupo, as pessoas que confiam na sua condução.",
     "A intenção e o propósito que você quer que a viagem desperte.",
     "As práticas que forem parte do seu processo.",
   ],
@@ -67,7 +67,7 @@ const PARCERIA = {
  * Os quatro benefícios do passo 3 do documento, com o texto da equipe.
  *
  * O que NÃO entrou: o número do CADASTUR. O documento traz o CNPJ no campo
- * do registro turístico, e são coisas diferentes — publicar um registro do
+ * do registro turístico, e são coisas diferentes, publicar um registro do
  * Ministério do Turismo errado é problema com o Ministério, não detalhe de
  * página. O texto afirma o que a equipe afirma sobre a operação; o número
  * entra quando ela disser qual é.
@@ -102,7 +102,7 @@ const BENEFICIOS: Array<{
   {
     titulo: "Tranquilidade jurídica e financeira",
     texto:
-      "Agência regulada, emissão de contratos e gestão de recebimentos — a parte que costuma travar um projeto de retiro sai das suas mãos.",
+      "Agência regulada, emissão de contratos e gestão de recebimentos, a parte que costuma travar um projeto de retiro sai das suas mãos.",
   },
   {
     titulo: "Co-criação e divulgação",
@@ -127,7 +127,7 @@ const COMO_FUNCIONA = [
     id: "ajuste",
     titulo: "O ajuste fino",
     descricao:
-      "Vocês revisam juntos até o roteiro ficar do jeito do seu grupo. Nada é engessado — o desenho existe para servir ao propósito.",
+      "Vocês revisam juntos até o roteiro ficar do jeito do seu grupo. Nada é engessado, o desenho existe para servir ao propósito.",
   },
   {
     id: "jornada",
@@ -153,7 +153,7 @@ export default async function ParaFacilitadoresPage() {
         chapeu="Para terapeutas, mentores e facilitadores"
         titulo="Traga seu Retiro ou Grupo para o Mundo com a NeoSenses"
         resumo="Você cuida da facilitação e do cuidado com as pessoas. Nós cuidamos de toda a logística, operação turística e segurança do seu projeto."
-        imagem="/images/b2b/peru-lagoa-sagrada.jpg"
+        imagem="https://cdn.openart.ai/openart-uploads/production/attachment-transfers/24a92239a3b08a656a404aa6816c8597ba6288bd83620f3bc145c38d34c5aee6.png"
         altura="cheia"
         acoes={
           <>
@@ -184,6 +184,63 @@ export default async function ParaFacilitadoresPage() {
         </div>
       </Faixa>
 
+      <section className="bg-warm-white py-6 md:py-10">
+        <div className="container-wide">
+          <div className="grid gap-4 md:grid-cols-[1.35fr_0.85fr]">
+            <figure className="group relative min-h-[360px] overflow-hidden rounded-[26px] md:min-h-[560px]">
+              <Image
+                src="/images/b2b/peru-machu-picchu.jpg"
+                alt="Machu Picchu, um dos territórios onde a NeoSenses desenvolve jornadas para grupos"
+                fill
+                sizes="(min-width: 768px) 65vw, 100vw"
+                className="object-cover transition-transform duration-700 group-hover:scale-[1.025]"
+              />
+              <div className="absolute inset-0 bg-gradient-to-t from-primary-900/70 via-transparent to-transparent" />
+              <figcaption className="absolute bottom-0 left-0 right-0 p-7 text-warm-white md:p-9">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-secondary-300">
+                  Territórios com intenção
+                </span>
+                <p className="mt-2 max-w-xl font-heading text-2xl md:text-3xl">
+                  O destino também faz parte do processo.
+                </p>
+              </figcaption>
+            </figure>
+
+            <div className="grid gap-4">
+              <figure className="group relative min-h-[260px] overflow-hidden rounded-[26px]">
+                <Image
+                  src="/images/b2b/marrocos-deserto.jpg"
+                  alt="Deserto do Marrocos"
+                  fill
+                  sizes="(min-width: 768px) 35vw, 100vw"
+                  className="object-cover transition-transform duration-700 group-hover:scale-[1.035]"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-primary-900/65 via-transparent to-transparent" />
+                <figcaption className="absolute bottom-0 left-0 right-0 p-6 text-warm-white">
+                  <p className="font-heading text-xl">Marrocos</p>
+                  <p className="mt-1 text-sm text-warm-white/80">Travessias, silêncio e presença.</p>
+                </figcaption>
+              </figure>
+
+              <figure className="group relative min-h-[260px] overflow-hidden rounded-[26px]">
+                <Image
+                  src="/images/b2b/amazonas-hero-lago.jpg"
+                  alt="Paisagem amazônica"
+                  fill
+                  sizes="(min-width: 768px) 35vw, 100vw"
+                  className="object-cover transition-transform duration-700 group-hover:scale-[1.035]"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-primary-900/65 via-transparent to-transparent" />
+                <figcaption className="absolute bottom-0 left-0 right-0 p-6 text-warm-white">
+                  <p className="font-heading text-xl">Amazônia</p>
+                  <p className="mt-1 text-sm text-warm-white/80">Natureza, ancestralidade e reconexão.</p>
+                </figcaption>
+              </figure>
+            </div>
+          </div>
+        </div>
+      </section>
+
       {/* Os quatro benefícios do passo 3 do documento. Não é grade de
           cartões curtos: cada um carrega o detalhe que sustenta a promessa,
           e resumir "acompanhamento técnico" numa linha esvaziaria justamente
@@ -194,7 +251,30 @@ export default async function ParaFacilitadoresPage() {
           titulo="Quatro frentes que saem das suas mãos"
           fundo="clara"
         />
-        <ol className="mt-12 space-y-px">
+        <div className="mt-12 grid items-stretch gap-8 overflow-hidden rounded-[28px] border border-primary-100 bg-warm-white lg:grid-cols-[0.9fr_1.1fr]">
+          <div className="relative min-h-[320px] lg:min-h-[460px]">
+            <Image
+              src="/images/b2b/peru-cerimonia.jpg"
+              alt="Vivência em grupo durante uma jornada NeoSenses"
+              fill
+              sizes="(min-width: 1024px) 42vw, 100vw"
+              className="object-cover"
+            />
+          </div>
+          <div className="flex flex-col justify-center p-8 md:p-10 lg:p-12">
+            <Chapeu className="mb-4">Você conduz. A gente sustenta.</Chapeu>
+            <h3 className="max-w-xl font-heading text-3xl leading-tight text-primary-700 md:text-4xl">
+              Menos energia na operação. Mais presença com o seu grupo.
+            </h3>
+            <p className="mt-5 max-w-[58ch] leading-relaxed text-text-muted">
+              A proposta é tirar da facilitadora o peso de coordenar fornecedores, deslocamentos,
+              reservas e imprevistos. A NeoSenses estrutura a jornada para que o seu trabalho
+              continue sendo o centro da experiência.
+            </p>
+          </div>
+        </div>
+
+        <ol className="mt-14 space-y-px">
           {BENEFICIOS.map((b, i) => (
             <li
               key={b.titulo}
@@ -250,7 +330,7 @@ export default async function ParaFacilitadoresPage() {
         <TituloDeSecao
           chapeu="Territórios"
           titulo="Onde a NeoSenses já sustenta jornadas de grupo"
-          texto="Cada página mostra o território, as vivências possíveis e o que pode compor o roteiro do seu grupo. O destino que você procura não está aqui? Fale com a consultora — a lista é o que já está estruturado, não o limite."
+          texto="Cada página mostra o território, as vivências possíveis e o que pode compor o roteiro do seu grupo. O destino que você procura não está aqui? Fale com a consultora, a lista é o que já está estruturado, não o limite."
         />
 
         {jornadas.length === 0 ? (
@@ -335,7 +415,7 @@ export default async function ParaFacilitadoresPage() {
             },
             {
               q: "Posso conduzir minhas próprias práticas?",
-              a: "Sim — é a razão de ser da parceria. O roteiro é desenhado com espaço e tempo reservados para o seu trabalho, não com a agenda cheia de passeio.",
+              a: "Sim, é a razão de ser da parceria. O roteiro é desenhado com espaço e tempo reservados para o seu trabalho, não com a agenda cheia de passeio.",
             },
             {
               q: "E se o destino que eu quero não estiver na lista?",
@@ -343,7 +423,7 @@ export default async function ParaFacilitadoresPage() {
             },
             {
               q: "Como funciona a parte financeira?",
-              a: "Isso é conversado direto com a consultora, caso a caso — depende do território, do tamanho do grupo e do formato da jornada.",
+              a: "Isso é conversado direto com a consultora, caso a caso, depende do território, do tamanho do grupo e do formato da jornada.",
             },
           ].map((item) => (
             <details key={item.q} className="group rounded-xl border border-border bg-warm-white px-6 py-5">
@@ -371,7 +451,7 @@ export default async function ParaFacilitadoresPage() {
             Conte para a consultora quem é o seu grupo
           </h2>
           <p className="mx-auto mt-6 max-w-xl text-lg leading-relaxed text-warm-white/75">
-            O roteiro nasce daí — do que você quer que essa viagem desperte nas pessoas
+            O roteiro nasce daí, do que você quer que essa viagem desperte nas pessoas
             que confiam em você.
           </p>
           <div className="mt-10 flex flex-wrap justify-center gap-4">
