@@ -307,9 +307,11 @@ export default async function ParaFacilitadoresPage() {
                           {resumo}
                         </p>
                       )}
-                      <p className="mt-auto pt-5 text-sm font-medium text-secondary-500">
-                        Conhecer o território →
-                      </p>
+                      <div className="mt-auto flex justify-center pt-6">
+                        <span className="inline-flex min-w-[180px] items-center justify-center rounded-full bg-primary-700 px-6 py-3 text-sm font-semibold text-white shadow-soft transition-all duration-300 group-hover:-translate-y-0.5 group-hover:bg-primary-800 group-hover:shadow-card">
+                          Conhecer mais <span aria-hidden="true" className="ml-2">→</span>
+                        </span>
+                      </div>
                     </div>
                   </Link>
                 </li>
