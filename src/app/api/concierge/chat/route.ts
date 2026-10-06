@@ -17,6 +17,7 @@ import {
   generateAIResponse,
   validateAIConfig,
   AIError,
+  type AIProviderConfig,
   type ChatMessage,
 } from "@/lib/ai/provider";
 import { retrieveNeoSensesContext, formatContextForPrompt } from "@/lib/ai/retrieval";
@@ -50,7 +51,7 @@ function conectarSupabase() {
   if (!chave) return null;
   if (!secreta) {
     console.warn(
-      "[concierge] SUPABASE_SERVICE_ROLE_KEY ausente — a conversa não será gravada (RLS pode bloquear escrita anônima)"
+      "[concierge] SUPABASE_SERVICE_ROLE_KEY ausente, a conversa não será gravada (RLS pode bloquear escrita anônima)"
     );
   }
 
@@ -105,9 +106,9 @@ const MENSAGENS: Record<string, Record<string, string>> = {
     es: "La respuesta tardó más de lo esperado. ¿Puedes intentar de nuevo?",
   },
   AI_CONTENT_BLOCKED: {
-    pt: "Não consigo responder isso por aqui. Se for sobre uma viagem, me conte de outro jeito — ou fale com a equipe pelo WhatsApp.",
-    en: "I can't answer that here. If it's about a trip, tell me another way — or talk to our team on WhatsApp.",
-    es: "No puedo responder eso aquí. Si es sobre un viaje, cuéntame de otra forma — o habla con el equipo por WhatsApp.",
+    pt: "Não consigo responder isso por aqui. Se for sobre uma viagem, me conte de outro jeito, ou fale com a equipe pelo WhatsApp.",
+    en: "I can't answer that here. If it's about a trip, tell me another way, or talk to our team on WhatsApp.",
+    es: "No puedo responder eso aquí. Si es sobre un viaje, cuéntame de otra forma, o habla con el equipo por WhatsApp.",
   },
   LIMITE_LOCAL: {
     pt: "Você enviou muitas mensagens em pouco tempo. Aguarde um minuto e continuamos.",
@@ -207,7 +208,16 @@ export async function POST(request: NextRequest) {
       return resposta;
     }
 
-    const configIA = detectAIConfig();
+    const chaveNvidia = process.env.NVIDIA_API_KEY?.trim();
+    const configIA: AIProviderConfig | null =
+      chaveNvidia && chaveNvidia.length > 20
+        ? {
+            provider: "nvidia",
+            model: "meta/muse-glimmer-30b",
+            apiKey: chaveNvidia,
+          }
+        : detectAIConfig();
+
     if (!configIA) {
       return respostaDeErro(idioma, "AI_PROVIDER_NOT_CONFIGURED", 503);
     }
@@ -288,8 +298,11 @@ export async function POST(request: NextRequest) {
     ];
 
     const resposta = await generateAIResponse(mensagens, configIA, {
-      maxTokens: 2048,
-      temperature: 0.7,
+      // Concierge deve ser rápido e objetivo. 900 tokens são suficientes
+      // para responder e ainda recomendar jornadas sem segurar o visitante.
+      maxTokens: 900,
+      temperature: 0.55,
+      timeoutMs: 25_000,
       thinking: "low",
     });
 
@@ -298,7 +311,7 @@ export async function POST(request: NextRequest) {
 
     if (!guarda.liberado) {
       console.warn(
-        `[concierge] resposta barrada (${guarda.motivo}) — evidência: ${guarda.evidencia ?? "?"}`
+        `[concierge] resposta barrada (${guarda.motivo}), evidência: ${guarda.evidencia ?? "?"}`
       );
       conteudoFinal = respostaSegura(idioma);
     }
