@@ -48,7 +48,7 @@ export function Footer() {
               href="/"
               prefetch
               className="inline-flex items-center"
-              aria-label="NeoSenses — início"
+              aria-label="NeoSenses, início"
             >
               <Image
                 src="/images/neosenses-logo-claro.svg"
