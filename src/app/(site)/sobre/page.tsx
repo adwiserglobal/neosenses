@@ -16,14 +16,14 @@ import { linkWhatsApp } from "@/lib/utils";
 export const metadata: Metadata = {
   title: "Sobre Nós",
   description:
-    "A NeoSenses cria e opera viagens, retiros e imersões de autoconhecimento — unindo práticas ancestrais e espiritualidade à segurança da operação turística.",
+    "A NeoSenses cria e opera viagens, retiros e imersões de autoconhecimento, unindo práticas ancestrais e espiritualidade à segurança da operação turística.",
   alternates: { canonical: "/sobre" },
 };
 
 export const revalidate = 3600;
 
 const PARAGRAFOS = [
-  "Na NeoSenses, acreditamos que viajar é muito mais do que mudar de endereço geográfico: é uma oportunidade de um mergulho interno. Nascemos com a missão de criar e operar viagens, retiros e imersões de autoconhecimento que resgatam nossa verdadeira essência — a Essência do Amor.",
+  "Na NeoSenses, acreditamos que viajar é muito mais do que mudar de endereço geográfico: é uma oportunidade de um mergulho interno. Nascemos com a missão de criar e operar viagens, retiros e imersões de autoconhecimento que resgatam nossa verdadeira essência, a Essência do Amor.",
   "Unimos a profundidade de práticas ancestrais, espiritualidade e autodesenvolvimento à excelência e segurança da operação turística. Cada itinerário é desenhado não apenas pelo apelo turístico, mas pelo seu campo energético e poder de transformação.",
   "Seja conduzindo participantes em busca de sentido ou apoiando terapeutas e facilitadores na realização dos seus próprios projetos pelo mundo, a NeoSenses é a ponte entre o visível e o invisível, cuidando de cada detalhe com carinho, responsabilidade e presença.",
 ];
@@ -49,7 +49,7 @@ const VALORES = [
     numero: "04",
     titulo: "Transformação",
     descricao:
-      "Nosso compromisso é que você retorne diferente — mais consciente, mais inteiro.",
+      "Nosso compromisso é que você retorne diferente, mais consciente, mais inteiro.",
   },
 ];
 
