@@ -101,7 +101,7 @@ export default function ContatoPage() {
         chapeu="Fale com a NeoSenses"
         titulo="Vamos conversar sobre a sua próxima jornada"
         resumo="Conte o que você está buscando. Nossa equipe responde com clareza sobre experiências, roteiros, datas e próximos passos."
-        imagem="/images/b2b/amazonas-porsol-flutuante.jpg"
+        imagem="/images/b2b/marrocos-abertura.jpg"
         alinhamento="centro"
       />
 
@@ -122,8 +122,8 @@ export default function ContatoPage() {
             </p>
           </div>
 
-          <div className="grid gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.75fr)] xl:gap-12">
-            <div className="rounded-3xl border border-border bg-surface p-6 shadow-sm sm:p-8 md:p-10">
+          <div className="grid items-start gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.75fr)] xl:gap-12">
+            <div className="self-start rounded-3xl border border-border bg-surface p-6 shadow-sm sm:p-8 md:p-10">
               {estado === "enviado" ? (
                 <div className="flex min-h-[430px] flex-col items-center justify-center text-center">
                   <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-success/10 text-success">
@@ -263,12 +263,12 @@ export default function ContatoPage() {
             </div>
 
             <aside className="space-y-6">
-              <div className="rounded-3xl bg-primary-700 p-7 text-warm-white md:p-8">
-                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-secondary-300">
+              <div className="rounded-3xl bg-[#5a006f] p-7 text-white shadow-sm md:p-8">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#f0c86b]">
                   Contato direto
                 </p>
-                <h2 className="mt-3 font-heading text-2xl">Prefere falar com a gente agora?</h2>
-                <p className="mt-3 text-sm leading-relaxed text-warm-white/70">
+                <h2 className="mt-3 font-heading text-2xl leading-tight text-white">Prefere falar com a gente agora?</h2>
+                <p className="mt-3 text-sm leading-relaxed text-white/90">
                   Pelo WhatsApp você conversa diretamente com a equipe NeoSenses.
                 </p>
 
