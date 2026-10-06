@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * /planejar — o Journey Builder.
+ * /planejar, o Journey Builder.
  *
  * Questionário e resultado na mesma rota: quem acabou de responder vê o
  * roteiro sem recarregar. Para voltar depois, existe /roteiro/[token], gerado
@@ -23,7 +23,7 @@ export default function PlanejarPage() {
         <Capa
           chapeu="Montador de roteiro"
           titulo="Vamos desenhar sua jornada"
-          resumo="Oito perguntas, três minutos. No fim, um caminho pensado a partir do que você contar — com as experiências que estão abertas de verdade."
+          resumo="Oito perguntas, três minutos. No fim, um caminho pensado a partir do que você contar, com as experiências que estão abertas de verdade."
           imagem="/images/b2b/peru-montanhas-coloridas.jpg"
           alinhamento="centro"
         />
