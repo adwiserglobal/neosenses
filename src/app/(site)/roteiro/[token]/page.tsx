@@ -1,9 +1,9 @@
 /**
- * /roteiro/[token] — abre um roteiro salvo.
+ * /roteiro/[token], abre um roteiro salvo.
  *
  * O token é a credencial: aleatório, único e conhecido só por quem recebeu o
  * link. A leitura acontece no servidor com a chave de serviço, e o token é
- * conferido aqui — a tabela não é legível pela chave pública.
+ * conferido aqui, a tabela não é legível pela chave pública.
  *
  * `noindex` de propósito: são páginas pessoais, não conteúdo de site.
  */
@@ -36,7 +36,7 @@ async function buscarRoteiro(token: string): Promise<Roteiro | null> {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const chave = process.env.SUPABASE_SERVICE_ROLE_KEY;
   if (!url || !chave) {
-    console.error("[roteiro] service_role ausente — não há como ler o roteiro salvo");
+    console.error("[roteiro] service_role ausente, não há como ler o roteiro salvo");
     return null;
   }
 
@@ -51,7 +51,7 @@ async function buscarRoteiro(token: string): Promise<Roteiro | null> {
   if (error || !data) return null;
 
   // Reconfere contra o catálogo de HOJE, não contra o do dia da geração.
-  // Assim uma experiência despublicada desde então deixa de virar link — o
+  // Assim uma experiência despublicada desde então deixa de virar link, o
   // roteiro continua legível, mas não aponta para uma página que sumiu.
   const { data: publicadas } = await supabase
     .from("experiences")
