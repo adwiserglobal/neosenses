@@ -109,20 +109,24 @@ export function ExperienceCard({ experience, locale = "pt", index = 0 }: Experie
           )}
 
           {/* Price + CTA */}
-          <div className="flex items-center justify-between border-t border-border pt-4">
-            {experience.price_from ? (
-              <div>
-                <span className="text-xs text-text-muted">A partir de</span>
-                <p className="text-lg font-semibold text-secondary-500">
-                  {formatCurrency(experience.price_from, experience.price_currency)}
-                </p>
-              </div>
-            ) : (
-              <span className="text-sm italic text-text-muted">Consulte</span>
-            )}
-            <span className="text-sm font-medium text-secondary-500 transition-transform group-hover:translate-x-1">
-              Conhecer →
-            </span>
+          <div className="border-t border-border pt-5">
+            <div className="mb-4 text-center">
+              {experience.price_from ? (
+                <div>
+                  <span className="text-xs text-text-muted">A partir de</span>
+                  <p className="text-lg font-semibold text-secondary-500">
+                    {formatCurrency(experience.price_from, experience.price_currency)}
+                  </p>
+                </div>
+              ) : (
+                <span className="text-sm italic text-text-muted">Consulte</span>
+              )}
+            </div>
+            <div className="flex justify-center">
+              <span className="inline-flex min-w-[168px] items-center justify-center rounded-full bg-primary-700 px-6 py-3 text-sm font-semibold text-white shadow-soft transition-all duration-300 group-hover:-translate-y-0.5 group-hover:bg-primary-800 group-hover:shadow-card">
+                Conhecer mais <span aria-hidden="true" className="ml-2">→</span>
+              </span>
+            </div>
           </div>
         </div>
       </Link>
