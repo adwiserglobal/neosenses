@@ -2,8 +2,8 @@
  * Perguntas frequentes.
  *
  * O conteúdo saiu de um array neste arquivo para a tabela `faqs`. Motivo: o
- * Concierge lê essa tabela, então a resposta que mais destrava decisão — a
- * política de cancelamento — passa a ser dada no chat, no momento exato da
+ * Concierge lê essa tabela, então a resposta que mais destrava decisão, a
+ * política de cancelamento, passa a ser dada no chat, no momento exato da
  * dúvida, em vez de só existir para quem achar esta página e rolar até o fim.
  *
  * Server Component: dado vem do banco, e a página ganha os dados estruturados
