@@ -7,7 +7,7 @@
  *
  * Antes tudo era uma grade só, agrupada por país, e cada cartão levava
  * direto para `/experiencias?destino=slug`. Um destino sem experiência
- * publicada levava a um catálogo vazio — o clique era um beco. Agora cada
+ * publicada levava a um catálogo vazio, o clique era um beco. Agora cada
  * um tem página própria, com as fotos, o que existe por lá e as jornadas
  * ligadas a ele.
  */
@@ -62,7 +62,7 @@ function CartaoDeDestino({ destino, prioridade }: { destino: DestinoComContagem;
         )}
 
         {/* 90% e não 85%: o selo precisa se sustentar sozinho, porque a foto
-            atrás dele pode ser clara — ou não carregar. */}
+            atrás dele pode ser clara, ou não carregar. */}
         {pais && (
           <span className="absolute left-4 top-4 rounded-full bg-primary-700/90 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-warm-white backdrop-blur-sm">
             {pais}
@@ -107,7 +107,7 @@ export default async function DestinosPage() {
   const semJornada = destinos.filter((d) => d.totalExperiencias === 0);
 
   // Nenhum destino do banco tem foto hoje (`hero_image` e `gallery` nulos nos
-  // quatro), e sem o último degrau a página abriria com o topo chapado — o
+  // quatro), e sem o último degrau a página abriria com o topo chapado, o
   // mesmo defeito que as outras internas acabaram de perder. O fallback é a
   // rede de segurança, não a escolha: assim que um destino ganhar capa, ela
   // assume.
@@ -119,7 +119,7 @@ export default async function DestinosPage() {
       <Capa
         chapeu="Onde vamos"
         titulo="Territórios que transformam"
-        resumo="Lugares escolhidos pela força do que oferecem a quem chega aberto — e pelo que o grupo consegue viver ali que não viveria em outro lugar."
+        resumo="Lugares escolhidos pela força do que oferecem a quem chega aberto, e pelo que o grupo consegue viver ali que não viveria em outro lugar."
         imagem={capaDaPagina}
         alinhamento="centro"
       />
@@ -166,7 +166,7 @@ export default async function DestinosPage() {
               <TituloDeSecao
                 chapeu="Também no mapa"
                 titulo="Territórios sem data publicada"
-                texto="A NeoSenses conhece e opera nestes lugares, mas não há jornada com data aberta no momento. Eles entram em roteiros sob medida — inclusive para quem leva o próprio grupo."
+                texto="A NeoSenses conhece e opera nestes lugares, mas não há jornada com data aberta no momento. Eles entram em roteiros sob medida, inclusive para quem leva o próprio grupo."
               />
               <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
                 {semJornada.map((d) => {
