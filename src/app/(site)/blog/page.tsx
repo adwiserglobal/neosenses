@@ -2,7 +2,7 @@
  * Blog.
  *
  * Antes era uma lista fixa de seis títulos que não abriam nada. Agora lê do
- * banco — e, enquanto não houver post publicado, diz isso em vez de exibir
+ * banco, e, enquanto não houver post publicado, diz isso em vez de exibir
  * artigos que não existem.
  */
 
