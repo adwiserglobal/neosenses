@@ -1,5 +1,5 @@
 /**
- * Template `roteiro` — B2C para jornada longa.
+ * Template `roteiro`, B2C para jornada longa.
  *
  * As mesmas oito seções obrigatórias do `classico`, na mesma ordem, com um
  * peso diferente: aqui o dia a dia ocupa a largura inteira e vem cedo,
@@ -101,7 +101,7 @@ export function Roteiro({
       {/* Seção 5 */}
       <PorQueParticipar dados={dados} fundo="noite" />
 
-      {/* Seção 6 — o eixo deste layout */}
+      {/* Seção 6, o eixo deste layout */}
       <AJornada dados={dadosComFotos} fundo="areia" />
 
       {/* Seção 7 */}
