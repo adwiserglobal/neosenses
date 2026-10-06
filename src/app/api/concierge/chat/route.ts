@@ -213,7 +213,7 @@ export async function POST(request: NextRequest) {
       chaveNvidia && chaveNvidia.length > 20
         ? {
             provider: "nvidia",
-            model: "meta/muse-glimmer-30b",
+            model: "deepseek-ai/deepseek-v4.1-flash",
             apiKey: chaveNvidia,
           }
         : detectAIConfig();
@@ -298,11 +298,10 @@ export async function POST(request: NextRequest) {
     ];
 
     const resposta = await generateAIResponse(mensagens, configIA, {
-      // Concierge deve ser rápido e objetivo. 900 tokens são suficientes
-      // para responder e ainda recomendar jornadas sem segurar o visitante.
-      maxTokens: 900,
-      temperature: 0.55,
-      timeoutMs: 25_000,
+      // Modelo flash dedicado ao concierge: respostas curtas e rápidas.
+      maxTokens: 700,
+      temperature: 0.5,
+      timeoutMs: 18_000,
       thinking: "low",
     });
 
