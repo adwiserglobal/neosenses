@@ -3,7 +3,7 @@
  *
  * Não existia: o cartão da listagem levava direto para
  * `/experiencias?destino=slug`, o que transformava um destino sem jornada
- * publicada num catálogo vazio — e desperdiçava tudo que o banco já sabe
+ * publicada num catálogo vazio, e desperdiçava tudo que o banco já sabe
  * sobre o lugar (fotos, altitude, clima, guias de viagem).
  *
  * O que a página mostra é o que está cadastrado, e nada além disso. Sem
@@ -191,7 +191,7 @@ export default async function DestinoPage({ params }: Props) {
           texto={
             jornadas.length > 0
               ? undefined
-              : "Este destino faz parte da curadoria da NeoSenses, mas não há jornada com data publicada agora. A equipe monta roteiros sob medida para ele — inclusive para quem leva o próprio grupo."
+              : "Este destino faz parte da curadoria da NeoSenses, mas não há jornada com data publicada agora. A equipe monta roteiros sob medida para ele, inclusive para quem leva o próprio grupo."
           }
         />
 
