@@ -198,8 +198,8 @@ export function Pilares() {
               style={{ borderRadius: "42% 58% 56% 44% / 38% 40% 60% 62%" }}
             >
               <Image
-                src="/images/home/proposito-floresta.webp"
-                alt="Mulher de braços erguidos em uma floresta, em conexão com a natureza"
+                src="https://cdn.openart.ai/openart-uploads/production/attachment-transfers/15ab1e2dfb63dcd7970809309e9b948eb21a31c22c3c037e0ecc56f058cc7f06.jpg"
+                alt="Mulher em meio à floresta em uma prática contemplativa com tambor"
                 fill
                 sizes="(min-width: 1024px) 44vw, (min-width: 640px) 75vw, 100vw"
                 quality={90}
