@@ -16,7 +16,7 @@ import { ExperienceCard } from "@/components/ui/Cards";
 import { linkWhatsApp } from "@/lib/utils";
 
 // A home declara o próprio canonical. Estava no layout raiz, de onde toda
-// rota que não redefinisse o herdava — e quatro páginas acabaram anunciando
+// rota que não redefinisse o herdava, e quatro páginas acabaram anunciando
 // ser cópia da home, inclusive /contato, a única com endereço e telefone.
 export const metadata = {
   alternates: { canonical: "/" },
@@ -32,7 +32,7 @@ export default async function HomePage() {
       <Hero />
       <Pilares />
 
-      {/* Jornadas em destaque — some quando não há nada publicado, em vez de
+      {/* Jornadas em destaque, some quando não há nada publicado, em vez de
           mostrar uma grade vazia. */}
       {destaques.length > 0 && (
         <section className="bg-warm-gray/30 py-24 md:py-32">
@@ -65,7 +65,7 @@ export default async function HomePage() {
       )}
 
       {/* Passo 2.4 do documento: a chamada B2B na home.
-          Fica depois das jornadas e antes dos depoimentos — quem conduz
+          Fica depois das jornadas e antes dos depoimentos, quem conduz
           grupo precisa ver o catálogo primeiro para entender o que a
           NeoSenses opera, e só então o convite faz sentido. */}
       <ConviteAoFacilitador />
