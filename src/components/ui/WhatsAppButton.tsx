@@ -32,9 +32,6 @@ export function WhatsAppButton({ message }: WhatsAppButtonProps) {
         aria-hidden="true"
         className="h-10 w-10 object-contain"
       />
-
-      {/* Pulse ring */}
-      <span className="absolute inset-0 animate-ping rounded-full bg-[#25D366]/20" style={{ animationDuration: "2s" }} />
     </motion.a>
   );
 }
