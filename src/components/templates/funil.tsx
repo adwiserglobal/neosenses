@@ -8,7 +8,7 @@
  * - FACILITADOR (B2B) traz o próprio grupo. Não tem data nem vaga: tem uma
  *   conversa com a consultora, e o que se decide nela é o roteiro.
  *
- * Misturar as duas custa venda dos dois lados — "3 vagas restantes" numa
+ * Misturar as duas custa venda dos dois lados, "3 vagas restantes" numa
  * página feita para quem vai formar o grupo, ou "fale com a consultora"
  * para quem só queria saber quanto custa e quando sai.
  *
@@ -26,7 +26,7 @@ import { Chapeu, Faixa, type Fundo, ehEscuro } from "./blocos";
  *
  * As duas colunas dos três modelos. A da esquerda é o que a facilitadora
  * traz; a da direita, o que a empresa faz. Sem uma das duas listas o bloco
- * não é desenhado — meia balança não comunica troca, comunica pedido.
+ * não é desenhado, meia balança não comunica troca, comunica pedido.
  */
 export function Parceria({
   titulo,
@@ -195,8 +195,8 @@ export function Fechamento({
  *
  * Fica no fim da leitura, não no meio: quem está avaliando uma jornada
  * para si não deve tropeçar numa proposta comercial antes de decidir. Quem
- * conduz grupo, por outro lado, costuma chegar por uma página dessas —
- * lendo como cliente e pensando como facilitador — e hoje não encontrava
+ * conduz grupo, por outro lado, costuma chegar por uma página dessas ,
+ * lendo como cliente e pensando como facilitador, e hoje não encontrava
  * nenhuma porta.
  */
 export function ConviteAoFacilitador({ imagem }: { imagem?: string | null }) {
@@ -227,14 +227,14 @@ export function ConviteAoFacilitador({ imagem }: { imagem?: string | null }) {
               Seu grupo já confia em você. Falta o lugar à altura do trabalho.
             </h2>
             <p className="mt-5 max-w-[62ch] text-lg leading-relaxed text-warm-white/80">
-              Você conduz há anos — na sala, no círculo, na mesa de reiki. Já viu o
+              Você conduz há anos, na sala, no círculo, na mesa de reiki. Já viu o
               que acontece quando alguém se permite. Agora imagine esse mesmo grupo
               num lugar onde a montanha faz metade do trabalho por você.
             </p>
             <p className="mt-4 max-w-[62ch] leading-relaxed text-warm-white/80">
               O que trava não é a vontade: é a logística. Passagem, hospedagem, guia,
               seguro, o imprevisto às onze da noite num país que não é o seu. Essa
-              parte é nossa — para que a sua parte continue sendo a sua.
+              parte é nossa, para que a sua parte continue sendo a sua.
             </p>
             <p className="mt-4 max-w-[62ch] leading-relaxed text-warm-white/65">
               Sem pacote pronto e sem data imposta. O roteiro nasce da intenção que
@@ -266,7 +266,7 @@ export function ConviteAoFacilitador({ imagem }: { imagem?: string | null }) {
 // ── A ponte: B2B → B2C ─────────────────────────────────────────────────────
 /**
  * O caminho de volta. Nem todo mundo que abre uma página de facilitador
- * conduz grupo — parte chega procurando uma viagem para si e, sem esta
+ * conduz grupo, parte chega procurando uma viagem para si e, sem esta
  * saída, sai do site achando que a NeoSenses não vende para pessoas.
  */
 export function ConviteAoViajante() {
@@ -279,7 +279,7 @@ export function ConviteAoViajante() {
         </h2>
         <p className="mx-auto mt-4 max-w-xl leading-relaxed text-text-muted">
           As jornadas com data aberta recebem viajantes um a um, em grupos pequenos,
-          com quem conhece o território. Ninguém precisa vir acompanhado — a maior
+          com quem conhece o território. Ninguém precisa vir acompanhado, a maior
           parte do grupo chega sozinha, e é justamente isso que forma o círculo.
         </p>
         <Link href="/experiencias" className="btn-secundario mt-8">
