@@ -254,8 +254,8 @@ export default async function ParaFacilitadoresPage() {
         <div className="mt-12 grid items-stretch gap-8 overflow-hidden rounded-[28px] border border-primary-100 bg-warm-white lg:grid-cols-[0.9fr_1.1fr]">
           <div className="relative min-h-[320px] lg:min-h-[460px]">
             <Image
-              src="/images/b2b/peru-cerimonia.jpg"
-              alt="Vivência em grupo durante uma jornada NeoSenses"
+              src="https://cdn.openart.ai/openart-uploads/production/attachment-transfers/d2efb638a4bb7d5581aad932c55439d150ccbf887c191c939171bffdfdaea9ae.jpg"
+              alt="Grupo caminhando por uma paisagem de montanha durante uma jornada"
               fill
               sizes="(min-width: 1024px) 42vw, 100vw"
               className="object-cover"
