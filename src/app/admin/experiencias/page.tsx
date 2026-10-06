@@ -15,8 +15,10 @@ import {
 } from "lucide-react";
 import type { Database } from "@/types/database";
 import { t } from "@/lib/utils";
+import { imagemDaExperiencia } from "@/lib/imagens-experiencias";
 import type { I18nField } from "@/types/models";
 import { BotaoSituacao } from "./BotaoSituacao";
+import { BotaoExcluirExperiencia } from "./BotaoExcluirExperiencia";
 import { ImportarExperienciaUrl } from "@/components/admin/ImportarExperienciaUrl";
 
 export const dynamic = "force-dynamic";
@@ -141,7 +143,12 @@ export default async function ListaExperiencias() {
     }
 
     const situacao = SITUACAO[exp.status] ?? SITUACAO.draft;
-    const capa = typeof exp.hero_image === "string" && exp.hero_image.trim() ? exp.hero_image.trim() : null;
+    const capa = imagemDaExperiencia(
+      typeof exp.hero_image === "string" ? exp.hero_image : null,
+      titulo,
+      destino,
+      t(exp.short_description as I18nField, "pt")
+    );
 
     return (
       <article
@@ -261,12 +268,13 @@ export default async function ListaExperiencias() {
               </a>
             )}
 
-            <div className="ml-auto">
+            <div className="ml-auto flex items-center gap-2">
               <BotaoSituacao
                 id={exp.id}
                 situacaoAtual={exp.status}
                 temPendencia={pendencias.length > 0}
               />
+              <BotaoExcluirExperiencia id={exp.id} titulo={titulo} />
             </div>
           </div>
         </div>

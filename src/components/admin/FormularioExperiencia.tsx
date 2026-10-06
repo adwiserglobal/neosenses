@@ -151,6 +151,7 @@ export function FormularioExperiencia({ experiencia, categorias, destinos }: Pro
 
     iniciar(async () => {
       const arquivo = dados.get("hero_image_file");
+      let urlDaCapa = String(dados.get("hero_image_existing") ?? "");
 
       if (arquivo instanceof File && arquivo.size > 0) {
         const preparo = await prepararUploadImagemExperiencia(arquivo.name, arquivo.type, arquivo.size);
@@ -178,17 +179,21 @@ export function FormularioExperiencia({ experiencia, categorias, destinos }: Pro
           return;
         }
 
-        dados.set("hero_image", preparo.url);
-      } else {
-        dados.set("hero_image", String(dados.get("hero_image_existing") ?? ""));
+        urlDaCapa = preparo.url;
+        setPreviewCapa(preparo.url);
       }
 
-      // O arquivo já foi enviado direto ao Storage; não vai junto para a
-      // Server Action que salva os campos da experiência.
-      dados.delete("hero_image_file");
-      dados.delete("hero_image_existing");
+      // Monta um FormData limpo. Assim o File nunca é serializado junto com
+      // os campos e a URL pública que acabou de ser criada é enviada de forma
+      // explícita para a ação de salvamento.
+      const dadosParaSalvar = new FormData();
+      for (const [chave, valor] of dados.entries()) {
+        if (chave === "hero_image_file" || chave === "hero_image_existing") continue;
+        if (typeof valor === "string") dadosParaSalvar.append(chave, valor);
+      }
+      dadosParaSalvar.set("hero_image", urlDaCapa);
 
-      const r = await salvarExperiencia(dados);
+      const r = await salvarExperiencia(dadosParaSalvar);
 
       if (!r.success) {
         setErro(r.error ?? "Não foi possível salvar.");

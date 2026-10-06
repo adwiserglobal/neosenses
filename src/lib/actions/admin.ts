@@ -275,6 +275,8 @@ export async function salvarExperiencia(dados: FormData): Promise<Resultado> {
   const audience = PUBLICOS.includes(publicoEnviado) ? publicoEnviado : "viajante";
   const template = LAYOUTS.includes(layoutEnviado) ? layoutEnviado : "classico";
 
+  const heroImage = limpar(dados.get("hero_image"), 500) || null;
+
   const registro = {
     title: mesclarI18n(campos.title, titulo),
     slug: mesclarI18n(campos.slug, slug),
@@ -303,7 +305,7 @@ export async function salvarExperiencia(dados: FormData): Promise<Resultado> {
     difficulty: (limpar(dados.get("difficulty"), 20) || "all_levels") as never,
     price_from: preco,
     price_currency: limpar(dados.get("price_currency"), 5) || "BRL",
-    hero_image: limpar(dados.get("hero_image"), 500) || null,
+    hero_image: heroImage,
     intentions: intencoes,
     physical_demand: numeroOuNulo(dados.get("physical_demand")),
     status,
@@ -314,8 +316,8 @@ export async function salvarExperiencia(dados: FormData): Promise<Resultado> {
   };
 
   const resposta = id
-    ? await supabase.from("experiences").update(registro as never).eq("id", id).select("id").single()
-    : await supabase.from("experiences").insert(registro as never).select("id").single();
+    ? await supabase.from("experiences").update(registro as never).eq("id", id).select("id, hero_image").single()
+    : await supabase.from("experiences").insert(registro as never).select("id, hero_image").single();
 
   if (resposta.error) {
     console.error("[admin] salvar experiência:", resposta.error.message);
@@ -326,11 +328,105 @@ export async function salvarExperiencia(dados: FormData): Promise<Resultado> {
     return { success: false, error: "Não foi possível salvar. Tente novamente." };
   }
 
+  if ((resposta.data.hero_image ?? null) !== heroImage) {
+    console.error("[admin] hero_image não persistiu como esperado", {
+      esperado: heroImage,
+      salvo: resposta.data.hero_image,
+      id: resposta.data.id,
+    });
+    return {
+      success: false,
+      campo: "hero_image_file",
+      error: "A experiência foi salva, mas a imagem de capa não ficou vinculada. Tente enviar a foto novamente.",
+    };
+  }
+
   revalidatePath("/experiencias");
   revalidatePath("/admin/experiencias");
   revalidatePath("/");
 
   return { success: true, id: resposta.data.id };
+}
+
+function caminhoNoBucketDaCapa(url: string | null): string | null {
+  if (!url) return null;
+  const marcador = "/storage/v1/object/public/experience-images/";
+  const indice = url.indexOf(marcador);
+  if (indice < 0) return null;
+
+  const bruto = url.slice(indice + marcador.length).split("?")[0];
+  if (!bruto) return null;
+
+  try {
+    return decodeURIComponent(bruto);
+  } catch {
+    return bruto;
+  }
+}
+
+export async function excluirExperiencia(id: string): Promise<Resultado> {
+  await exigirPapel(["admin", "editor"]);
+
+  const supabase = conectar();
+  if (!supabase) return { success: false, error: SEM_BANCO };
+
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(id)) {
+    return { success: false, error: "Experiência inválida." };
+  }
+
+  // Reservas usam ON DELETE RESTRICT. Em vez de deixar o banco responder com
+  // um erro técnico, o painel explica por que esse registro precisa ser mantido.
+  const reservas = await supabase
+    .from("bookings")
+    .select("id", { count: "exact", head: true })
+    .eq("experience_id", id);
+
+  if (reservas.error) {
+    console.error("[admin] verificar reservas antes de excluir:", reservas.error.message);
+    return { success: false, error: "Não foi possível verificar se esta experiência pode ser excluída." };
+  }
+
+  if ((reservas.count ?? 0) > 0) {
+    return {
+      success: false,
+      error: "Esta experiência possui reservas vinculadas e não pode ser excluída. Arquive ou despublique no lugar.",
+    };
+  }
+
+  const atual = await supabase
+    .from("experiences")
+    .select("hero_image")
+    .eq("id", id)
+    .maybeSingle();
+
+  if (atual.error) {
+    console.error("[admin] carregar experiência antes de excluir:", atual.error.message);
+    return { success: false, error: "Não foi possível carregar a experiência para exclusão." };
+  }
+
+  const removida = await supabase.from("experiences").delete().eq("id", id);
+
+  if (removida.error) {
+    console.error("[admin] excluir experiência:", removida.error.message);
+    return {
+      success: false,
+      error: "Não foi possível excluir. Se houver reservas ou vínculos protegidos, arquive a experiência.",
+    };
+  }
+
+  const caminho = caminhoNoBucketDaCapa(atual.data?.hero_image ?? null);
+  if (caminho) {
+    const limpeza = await supabase.storage.from(BUCKET_IMAGENS_EXPERIENCIAS).remove([caminho]);
+    if (limpeza.error) {
+      // O registro já foi excluído; falha de limpeza não deve recriá-lo.
+      console.error("[admin] limpar capa órfã:", limpeza.error.message);
+    }
+  }
+
+  revalidatePath("/experiencias");
+  revalidatePath("/admin/experiencias");
+  revalidatePath("/");
+  return { success: true };
 }
 
 export async function alterarSituacao(id: string, status: ExperienceStatus): Promise<Resultado> {
