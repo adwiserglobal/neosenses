@@ -78,6 +78,14 @@ export function Footer() {
                 </svg>
               </a>
             </div>
+
+            <Image
+              src="/images/google-rating-badge.webp"
+              alt="Nota máxima no Google: 5 de 5"
+              width={160}
+              height={154}
+              className="mt-6 h-auto w-[96px] object-contain"
+            />
           </div>
 
           <div>
