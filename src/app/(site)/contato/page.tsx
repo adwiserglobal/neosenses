@@ -3,16 +3,52 @@
 /**
  * Página de contato.
  *
- * Antes, o envio era `await new Promise(r => setTimeout(r, 1500))` seguido de
- * "Mensagem Enviada!". Nada era gravado e todo contato se perdia. Agora chama
- * a server action, que valida e grava com service_role.
+ * O formulário envia os dados para a server action, que valida e grava
+ * o contato no servidor. O layout prioriza o formulário sem esconder os
+ * canais diretos para quem prefere falar com a equipe.
  */
 
 import { useState } from "react";
+import {
+  ArrowUpRight,
+  CheckCircle2,
+  Clock3,
+  Mail,
+  MapPin,
+  MessageCircle,
+  Phone,
+} from "lucide-react";
 import { enviarContato } from "@/lib/actions/forms";
 import { Capa } from "@/components/templates/base";
 
 type Estado = "parado" | "enviando" | "enviado";
+
+const CONTATOS = [
+  {
+    titulo: "E-mail",
+    valor: "contato@neosenses.com.br",
+    href: "mailto:contato@neosenses.com.br",
+    Icone: Mail,
+  },
+  {
+    titulo: "Telefone",
+    valor: "+55 11 94718-8319",
+    href: "tel:+5511947188319",
+    Icone: Phone,
+  },
+  {
+    titulo: "Endereço",
+    valor: "Rua Alegre, 928 · São Caetano do Sul",
+    href: null,
+    Icone: MapPin,
+  },
+  {
+    titulo: "Atendimento",
+    valor: "Segunda a sábado · 9h às 18h",
+    href: null,
+    Icone: Clock3,
+  },
+] as const;
 
 export default function ContatoPage() {
   const [estado, setEstado] = useState<Estado>("parado");
@@ -41,7 +77,7 @@ export default function ContatoPage() {
         setEstado("enviado");
         return;
       }
-      // O erro aparece na tela: falha silenciosa aqui é contato perdido.
+
       setErro(r.error ?? "Não foi possível enviar.");
       setCampoComErro(r.campo ?? null);
       setEstado("parado");
@@ -53,122 +89,251 @@ export default function ContatoPage() {
   }
 
   const classeCampo = (campo: string) =>
-    `w-full rounded-lg border bg-surface px-4 py-3 text-sm focus:outline-none focus:ring-2 ${
+    `w-full rounded-xl border bg-surface px-4 py-3.5 text-sm text-text-primary outline-none transition placeholder:text-text-muted/55 focus:ring-4 ${
       campoComErro === campo
-        ? "border-red-400 focus:border-red-500 focus:ring-red-500/20"
-        : "border-border focus:border-secondary-500 focus:ring-secondary-500/20"
+        ? "border-red-400 focus:border-red-500 focus:ring-red-500/10"
+        : "border-border hover:border-primary-200 focus:border-secondary-500 focus:ring-secondary-500/10"
     }`;
 
   return (
     <>
       <Capa
-        chapeu="Fale conosco"
-        titulo="Entre em contato"
-        resumo="Conte o que você procura. A gente responde com o que existe de verdade, data, roteiro e valor."
+        chapeu="Fale com a NeoSenses"
+        titulo="Vamos conversar sobre a sua próxima jornada"
+        resumo="Conte o que você está buscando. Nossa equipe responde com clareza sobre experiências, roteiros, datas e próximos passos."
         imagem="/images/b2b/amazonas-porsol-flutuante.jpg"
         alinhamento="centro"
       />
 
-      <section className="py-16 md:py-24">
-        <div className="container-content">
-          <div className="grid gap-12 lg:grid-cols-5">
-            <div className="lg:col-span-3">
+      <section className="bg-warm-white py-16 md:py-24">
+        <div className="container-wide">
+          <div className="mb-12 grid gap-8 border-b border-border pb-10 lg:grid-cols-[1.15fr_0.85fr] lg:items-end">
+            <div>
+              <p className="mb-3 text-xs font-semibold uppercase tracking-[0.18em] text-secondary-600">
+                Atendimento
+              </p>
+              <h2 className="max-w-2xl font-heading text-3xl leading-tight text-primary-700 md:text-4xl">
+                Conte para a gente o que você tem em mente
+              </h2>
+            </div>
+            <p className="max-w-xl text-base leading-relaxed text-text-muted lg:justify-self-end">
+              Se você já sabe qual experiência procura, diga qual é. Se ainda está escolhendo,
+              conte o tipo de viagem, momento ou transformação que busca e a gente orienta o caminho.
+            </p>
+          </div>
+
+          <div className="grid gap-8 lg:grid-cols-[minmax(0,1.4fr)_minmax(320px,0.75fr)] xl:gap-12">
+            <div className="rounded-3xl border border-border bg-surface p-6 shadow-sm sm:p-8 md:p-10">
               {estado === "enviado" ? (
-                <div className="rounded-2xl border border-success/20 bg-success/5 p-12 text-center">
-                  <h2 className="mb-2 font-heading text-2xl text-primary-700">Mensagem enviada!</h2>
-                  <p className="text-text-muted">Retornaremos em até 24 horas. 🙏</p>
+                <div className="flex min-h-[430px] flex-col items-center justify-center text-center">
+                  <div className="mb-6 flex h-14 w-14 items-center justify-center rounded-full bg-success/10 text-success">
+                    <CheckCircle2 className="h-7 w-7" aria-hidden="true" />
+                  </div>
+                  <h2 className="mb-3 font-heading text-3xl text-primary-700">Mensagem enviada</h2>
+                  <p className="max-w-md leading-relaxed text-text-muted">
+                    Recebemos seu contato. Nossa equipe retorna em até 24 horas.
+                  </p>
                   <button
+                    type="button"
                     onClick={() => setEstado("parado")}
-                    className="mt-6 text-sm font-medium text-secondary-500 underline underline-offset-4"
+                    className="mt-8 rounded-full border border-border bg-white px-5 py-2.5 text-sm font-semibold text-primary-700 transition hover:border-secondary-400 hover:text-secondary-600"
                   >
                     Enviar outra mensagem
                   </button>
                 </div>
               ) : (
-                <form onSubmit={aoEnviar} className="space-y-6" noValidate>
-                  {erro && (
-                    <div role="alert" className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
-                      {erro}
-                    </div>
-                  )}
-
-                  {/* Isca para robô. Escondida do olho e do leitor de tela; um
-                      humano nunca preenche, então valor aqui indica automação. */}
-                  <div className="absolute left-[-9999px]" aria-hidden="true">
-                    <label htmlFor="c-website">Não preencha este campo</label>
-                    <input id="c-website" name="website" type="text" tabIndex={-1} autoComplete="off" />
+                <>
+                  <div className="mb-8">
+                    <h2 className="font-heading text-2xl text-primary-700">Envie uma mensagem</h2>
+                    <p className="mt-2 text-sm leading-relaxed text-text-muted">
+                      Preencha os campos abaixo e nossa equipe continua a conversa com você.
+                    </p>
                   </div>
 
-                  <div className="grid gap-6 sm:grid-cols-2">
-                    <div>
-                      <label htmlFor="c-name" className="mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-primary-700">
-                        Nome *
-                      </label>
-                      <input id="c-name" name="name" type="text" required maxLength={120} className={classeCampo("name")} />
-                    </div>
-                    <div>
-                      <label htmlFor="c-email" className="mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-primary-700">
-                        Email *
-                      </label>
-                      <input id="c-email" name="email" type="email" required maxLength={160} className={classeCampo("email")} />
-                    </div>
-                  </div>
+                  <form onSubmit={aoEnviar} className="space-y-6" noValidate>
+                    {erro && (
+                      <div
+                        role="alert"
+                        className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800"
+                      >
+                        {erro}
+                      </div>
+                    )}
 
-                  <div className="grid gap-6 sm:grid-cols-2">
-                    <div>
-                      <label htmlFor="c-phone" className="mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-primary-700">
-                        Telefone
-                      </label>
-                      <input id="c-phone" name="phone" type="tel" maxLength={30} placeholder="(11) 90000-0000" className={classeCampo("phone")} />
+                    <div className="absolute left-[-9999px]" aria-hidden="true">
+                      <label htmlFor="c-website">Não preencha este campo</label>
+                      <input id="c-website" name="website" type="text" tabIndex={-1} autoComplete="off" />
                     </div>
-                    <div>
-                      <label htmlFor="c-subject" className="mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-primary-700">
-                        Assunto
-                      </label>
-                      <input id="c-subject" name="subject" type="text" maxLength={120} className={classeCampo("subject")} />
+
+                    <div className="grid gap-5 sm:grid-cols-2">
+                      <div>
+                        <label htmlFor="c-name" className="mb-2 block text-sm font-medium text-primary-800">
+                          Nome
+                        </label>
+                        <input
+                          id="c-name"
+                          name="name"
+                          type="text"
+                          required
+                          maxLength={120}
+                          autoComplete="name"
+                          placeholder="Seu nome"
+                          className={classeCampo("name")}
+                        />
+                      </div>
+
+                      <div>
+                        <label htmlFor="c-email" className="mb-2 block text-sm font-medium text-primary-800">
+                          E-mail
+                        </label>
+                        <input
+                          id="c-email"
+                          name="email"
+                          type="email"
+                          required
+                          maxLength={160}
+                          autoComplete="email"
+                          placeholder="voce@email.com"
+                          className={classeCampo("email")}
+                        />
+                      </div>
                     </div>
-                  </div>
 
-                  <div>
-                    <label htmlFor="c-msg" className="mb-2 block text-xs font-semibold uppercase tracking-[0.15em] text-primary-700">
-                      Mensagem *
-                    </label>
-                    <textarea id="c-msg" name="message" required rows={5} maxLength={2000} className={`resize-none ${classeCampo("message")}`} />
-                  </div>
+                    <div className="grid gap-5 sm:grid-cols-2">
+                      <div>
+                        <label htmlFor="c-phone" className="mb-2 block text-sm font-medium text-primary-800">
+                          Telefone
+                        </label>
+                        <input
+                          id="c-phone"
+                          name="phone"
+                          type="tel"
+                          maxLength={30}
+                          autoComplete="tel"
+                          placeholder="(11) 90000-0000"
+                          className={classeCampo("phone")}
+                        />
+                      </div>
 
-                  <button
-                    type="submit"
-                    disabled={estado === "enviando"}
-                    className="rounded-lg bg-secondary-600 hover:bg-secondary-700 px-8 py-4 text-sm font-semibold text-white shadow-md transition-all hover:shadow-lg disabled:opacity-50"
-                  >
-                    {estado === "enviando" ? "Enviando..." : "Enviar Mensagem"}
-                  </button>
-                </form>
+                      <div>
+                        <label htmlFor="c-subject" className="mb-2 block text-sm font-medium text-primary-800">
+                          Assunto
+                        </label>
+                        <input
+                          id="c-subject"
+                          name="subject"
+                          type="text"
+                          maxLength={120}
+                          placeholder="Ex.: viagem para o Peru"
+                          className={classeCampo("subject")}
+                        />
+                      </div>
+                    </div>
+
+                    <div>
+                      <label htmlFor="c-msg" className="mb-2 block text-sm font-medium text-primary-800">
+                        Como podemos ajudar?
+                      </label>
+                      <textarea
+                        id="c-msg"
+                        name="message"
+                        required
+                        rows={6}
+                        maxLength={2000}
+                        placeholder="Conte um pouco sobre o que você procura, quando pretende viajar ou qual experiência chamou sua atenção."
+                        className={`resize-none ${classeCampo("message")}`}
+                      />
+                    </div>
+
+                    <div className="flex flex-col gap-3 border-t border-border pt-2 sm:flex-row sm:items-center sm:justify-between">
+                      <p className="text-xs leading-relaxed text-text-muted">
+                        Seus dados são usados apenas para responder ao seu contato.
+                      </p>
+                      <button
+                        type="submit"
+                        disabled={estado === "enviando"}
+                        className="inline-flex min-w-40 items-center justify-center rounded-full bg-secondary-600 px-7 py-3.5 text-sm font-semibold text-white shadow-sm transition hover:bg-secondary-700 hover:shadow-md disabled:cursor-not-allowed disabled:opacity-50"
+                      >
+                        {estado === "enviando" ? "Enviando..." : "Enviar mensagem"}
+                      </button>
+                    </div>
+                  </form>
+                </>
               )}
             </div>
 
-            <div className="space-y-8 lg:col-span-2">
-              <div className="rounded-xl border border-border bg-warm-gray/30 p-8">
-                <h2 className="mb-4 font-heading text-xl text-primary-700">Contato Direto</h2>
-                <ul className="space-y-3 text-sm text-text-muted">
-                  <li>📧 contato@neosenses.com.br</li>
-                  <li>📞 +55 11 94718-8319</li>
-                  <li>📍 Rua Alegre, 928 – São Caetano do Sul</li>
-                  <li>🕐 Seg–Sáb 9:00–18:00</li>
-                </ul>
-              </div>
-              <div className="rounded-xl border border-border bg-warm-gray/30 p-8">
-                <h2 className="mb-4 font-heading text-xl text-primary-700">WhatsApp</h2>
+            <aside className="space-y-6">
+              <div className="rounded-3xl bg-primary-700 p-7 text-warm-white md:p-8">
+                <p className="text-xs font-semibold uppercase tracking-[0.18em] text-secondary-300">
+                  Contato direto
+                </p>
+                <h2 className="mt-3 font-heading text-2xl">Prefere falar com a gente agora?</h2>
+                <p className="mt-3 text-sm leading-relaxed text-warm-white/70">
+                  Pelo WhatsApp você conversa diretamente com a equipe NeoSenses.
+                </p>
+
                 <a
                   href="https://wa.me/5511947188319"
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-lg bg-[var(--color-whatsapp)] px-6 py-3 text-sm font-semibold text-[#0b2e18] transition-all hover:shadow-lg"
+                  className="mt-7 inline-flex w-full items-center justify-between rounded-full bg-[var(--color-whatsapp)] px-5 py-3.5 text-sm font-semibold text-[#0b2e18] transition hover:brightness-95"
                 >
-                  Falar no WhatsApp
+                  <span className="inline-flex items-center gap-2.5">
+                    <MessageCircle className="h-4 w-4" aria-hidden="true" />
+                    Falar no WhatsApp
+                  </span>
+                  <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
                 </a>
               </div>
-            </div>
+
+              <div className="overflow-hidden rounded-3xl border border-border bg-surface">
+                <div className="border-b border-border px-7 py-5">
+                  <h2 className="font-heading text-xl text-primary-700">Canais de atendimento</h2>
+                </div>
+
+                <div className="divide-y divide-border">
+                  {CONTATOS.map(({ titulo, valor, href, Icone }) => {
+                    const conteudo = (
+                      <>
+                        <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-primary-50 text-primary-700">
+                          <Icone className="h-4 w-4" aria-hidden="true" />
+                        </span>
+                        <span className="min-w-0">
+                          <span className="block text-xs font-medium uppercase tracking-[0.12em] text-text-muted">
+                            {titulo}
+                          </span>
+                          <span className="mt-1 block text-sm leading-relaxed text-primary-800">
+                            {valor}
+                          </span>
+                        </span>
+                      </>
+                    );
+
+                    return href ? (
+                      <a
+                        key={titulo}
+                        href={href}
+                        className="flex items-center gap-4 px-7 py-5 transition hover:bg-warm-gray/35"
+                      >
+                        {conteudo}
+                      </a>
+                    ) : (
+                      <div key={titulo} className="flex items-center gap-4 px-7 py-5">
+                        {conteudo}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              <div className="rounded-3xl border border-secondary-200/70 bg-secondary-50/60 p-7">
+                <h2 className="font-heading text-xl text-primary-700">Ainda escolhendo?</h2>
+                <p className="mt-2 text-sm leading-relaxed text-text-muted">
+                  Não precisa chegar com tudo decidido. Conte o que deseja viver, quanto tempo tem
+                  disponível e o que espera dessa viagem. A conversa pode começar daí.
+                </p>
+              </div>
+            </aside>
           </div>
         </div>
       </section>
