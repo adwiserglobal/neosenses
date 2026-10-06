@@ -1,12 +1,12 @@
 /**
- * Template `classico` — B2C, o padrão.
+ * Template `classico`, B2C, o padrão.
  *
  * Segue as oito seções obrigatórias do documento de reformulação (passo 5),
  * na ordem, com a coluna de reserva fixa ao lado do miolo. Serve à jornada
  * curta: um retiro de fim de semana não tem dia a dia longo para carregar
  * a página inteira.
  *
- * A diferença para o `roteiro` não é de conteúdo — as duas mostram as
+ * A diferença para o `roteiro` não é de conteúdo, as duas mostram as
  * mesmas oito seções, que moram em `esqueleto.tsx`. É de peso: aqui o
  * miolo é uma coluna com a reserva ao lado o tempo todo; lá a jornada
  * ocupa a largura toda e a reserva vem depois da leitura.
@@ -185,7 +185,7 @@ export function Classico({
 }: PropsB2C) {
   return (
     <>
-      {/* Seção 1 — título, subtítulo e período */}
+      {/* Seção 1, título, subtítulo e período */}
       <Capa
         chapeu={dados.chapeu}
         titulo={dados.titulo}
@@ -222,7 +222,7 @@ export function Classico({
               </section>
             )}
 
-            {/* "Para quem é" — numa compra de vinte mil para viajar com
+            {/* "Para quem é", numa compra de vinte mil para viajar com
                 desconhecidos, dizer para quem NÃO é evita frustração e
                 vende mais que outra foto. */}
             {dados.paraQuem && (
