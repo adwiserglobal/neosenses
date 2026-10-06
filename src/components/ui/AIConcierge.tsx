@@ -20,7 +20,6 @@ import {
   X,
   Send,
   RotateCcw,
-  MessageCircle,
   ChevronDown,
   AlertTriangle,
   RefreshCw,
@@ -158,6 +157,7 @@ function clearStoredConversationId() {
 
 // ── WhatsApp ───────────────────────────────────────────────────────────────
 const WA_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "5511947188319";
+const WHATSAPP_LOGO = "https://cdn.openart.ai/openart-uploads/production/attachment-transfers/71002963de651937ea88f0d55262ace69cc14e88cdb8087ad5417178b9f75d65.webp";
 
 function buildWhatsAppUrl(context?: string): string {
   const base = `https://wa.me/${WA_NUMBER}`;
@@ -514,7 +514,9 @@ export function AIConcierge() {
                           rel="noopener noreferrer"
                           className="flex items-center gap-1 rounded-lg bg-[var(--color-whatsapp)] px-3 py-1.5 text-xs font-medium text-[#0b2e18] transition hover:bg-[var(--color-whatsapp-hover)]"
                         >
-                          <MessageCircle className="h-3 w-3" />
+                          <span className="flex h-4 w-4 items-center justify-center rounded-full bg-white/95">
+                            <img src={WHATSAPP_LOGO} alt="" aria-hidden="true" className="h-3 w-3 object-contain" />
+                          </span>
                           {t.whatsapp}
                         </a>
                       </div>
@@ -647,7 +649,9 @@ export function AIConcierge() {
                   className="flex flex-1 items-center justify-center gap-2 rounded-xl bg-[var(--color-whatsapp)] px-3 py-2 text-xs font-semibold text-[#0b2e18] shadow-sm transition hover:bg-[var(--color-whatsapp-hover)] active:scale-95"
                   id="concierge-whatsapp-link"
                 >
-                  <MessageCircle className="h-3.5 w-3.5" />
+                  <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/95 shadow-sm">
+                    <img src={WHATSAPP_LOGO} alt="" aria-hidden="true" className="h-4 w-4 object-contain" />
+                  </span>
                   {t.whatsapp}
                   <ExternalLink className="h-3 w-3 opacity-70" />
                 </a>
