@@ -31,25 +31,25 @@ const surgir = {
 const PILARES = [
   {
     titulo: "Jornadas de Alma",
-    descricao: "Intenção e aprendizados com experiências profundas para transformar a sua vida.",
+    descricao: "Um convite para ouvir o que importa, criar memórias e descobrir novas perspectivas.",
     imagem: "/images/home/proposito-floresta.webp",
     alt: "Vivência de conexão interior em meio à natureza",
   },
   {
     titulo: "Autoconhecimento",
-    descricao: "Avançar cada dia mais em sua jornada interior e evoluir continuamente como pessoa.",
+    descricao: "Uma pausa no ritmo de sempre para se escutar, respirar e se redescobrir.",
     imagem: "/images/b2b/peru-lagoa-sagrada.jpg",
     alt: "Paisagem natural de uma jornada de autoconhecimento no Peru",
   },
   {
     titulo: "Roteiros e Vivências",
-    descricao: "Caminhos e itinerários desenhados para você viver grandes transformações.",
+    descricao: "Sabores, histórias, rituais e lugares que fazem cada dia valer a lembrança.",
     imagem: "/images/b2b/peru-machu-picchu.jpg",
     alt: "Roteiro de viagem por Machu Picchu",
   },
   {
     titulo: "Conexão",
-    descricao: "Harmonia com a natureza e com pessoas que vibram na mesma energia e intenções.",
+    descricao: "As conversas, os abraços e os encontros que dão outro sentido a viajar.",
     imagem: "/images/b2b/amazonas-comunidade.jpg",
     alt: "Convívio e conexão humana em comunidade na Amazônia",
   },
@@ -57,82 +57,116 @@ const PILARES = [
 
 export function Hero() {
   return (
-    <section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-primary-700">
+    <section className="relative isolate flex min-h-[94svh] items-center overflow-hidden bg-[#221627]">
+      {/* Fundo fotográfico preservado, mas com direção editorial mais quente. */}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       <img
         src="/images/hero/homepage.png"
         alt=""
         aria-hidden="true"
-        className="absolute inset-0 h-full w-full object-cover"
+        className="absolute inset-0 -z-20 h-full w-full object-cover object-center"
       />
-      {/* A capa volta ao tratamento anterior, neutro/azulado. A paleta roxa
-          continua no restante da marca, mas não colore a fotografia. */}
-      <div className="absolute inset-0 bg-gradient-to-b from-[#16232b]/70 via-[#16232b]/50 to-[#16232b]/80" />
+      <div className="absolute inset-0 -z-10 bg-[linear-gradient(90deg,rgba(23,14,26,0.91)_0%,rgba(31,16,35,0.81)_44%,rgba(33,15,34,0.49)_100%)]" />
+      <div className="absolute inset-x-0 bottom-0 -z-10 h-40 bg-gradient-to-t from-[#221627]/50 to-transparent" />
 
-      <div className="container-wide relative z-10 flex flex-col items-center py-32 text-center">
-        <motion.p
-          {...surgir}
-          className="mb-6 text-xs font-semibold uppercase tracking-[0.2em] text-secondary-300"
-        >
-          Experiências Transformadoras de Viagem
-        </motion.p>
-
-        <motion.h1
-          {...surgir}
-          transition={{ ...transicao, delay: 0.1 }}
-          className="mb-8 max-w-4xl font-heading text-5xl font-normal leading-[1.05] text-warm-white md:text-7xl"
-        >
-          Um Novo <span className="italic text-[#f0ca61]">Sentir</span>
-        </motion.h1>
-
-        <motion.p
-          {...surgir}
-          transition={{ ...transicao, delay: 0.2 }}
-          className="mb-12 max-w-2xl text-lg leading-relaxed text-warm-white/80 md:text-xl"
-        >
-          Jornadas e retiros transformadores, experiências que elevam sua vibração e
-          conectam com seu melhor.
-        </motion.p>
-
-        <motion.div
-          {...surgir}
-          transition={{ ...transicao, delay: 0.3 }}
-          className="flex flex-col gap-4 sm:flex-row"
-        >
-          {/* Os dois botões do documento (passo 2.1). O segundo era "Conheça
-              a NeoSenses" e virou a porta do outro funil: quem conduz grupo
-              chega pela home como qualquer visitante, e sem esta saída lia
-              a página inteira achando que o site só vende vaga avulsa. */}
-          <Link href="/experiencias" className="btn-primario px-8 py-4">
-            Explorar Experiências
-          </Link>
-          <Link
-            href="/para-facilitadores"
-            className="btn-secundario btn-secundario-claro px-8 py-4"
+      <div className="container-wide relative z-10 grid w-full items-center gap-12 pb-24 pt-36 lg:grid-cols-[minmax(0,1.04fr)_minmax(0,0.96fr)] lg:gap-16 lg:pb-28 lg:pt-40">
+        <div className="max-w-[750px] text-center lg:text-left">
+          <motion.p
+            {...surgir}
+            className="mb-6 inline-flex items-center gap-3 text-xs font-semibold uppercase tracking-[0.2em] text-[#f4d98a]"
           >
-            Para Facilitadores
-          </Link>
-        </motion.div>
+            <span className="h-px w-8 bg-[#f4d98a]/80" aria-hidden="true" />
+            NeoSenses · Um novo sentir
+          </motion.p>
+
+          <motion.h1
+            {...surgir}
+            transition={{ ...transicao, delay: 0.1 }}
+            className="font-heading text-[clamp(2.8rem,5.2vw,5.3rem)] font-normal leading-[1.07] tracking-[-0.025em] text-warm-white"
+          >
+            Há viagens que nos levam para longe.
+            <span className="mt-3 block italic text-[#f0c76b]">
+              Outras nos aproximam de nós mesmas.
+            </span>
+          </motion.h1>
+
+          <motion.p
+            {...surgir}
+            transition={{ ...transicao, delay: 0.2 }}
+            className="mx-auto mt-8 max-w-[57ch] text-base leading-[1.85] text-white/86 md:text-lg lg:mx-0"
+          >
+            Encontros que acolhem, culturas que despertam os sentidos e experiências
+            para viver com presença. Sua próxima jornada pode começar aqui.
+          </motion.p>
+
+          <motion.div
+            {...surgir}
+            transition={{ ...transicao, delay: 0.3 }}
+            className="mt-10 flex flex-col justify-center gap-3 sm:flex-row lg:justify-start"
+          >
+            <Link href="/experiencias" className="btn-primario px-8 py-4">
+              Descobrir minha jornada
+            </Link>
+            <Link href="/para-facilitadores" className="btn-secundario btn-secundario-claro px-8 py-4">
+              Quero levar meu grupo
+            </Link>
+          </motion.div>
+
+          <motion.div
+            {...surgir}
+            transition={{ ...transicao, delay: 0.45 }}
+            className="mt-12 flex flex-wrap items-center justify-center gap-x-5 gap-y-2 text-[11px] font-medium uppercase tracking-[0.15em] text-white/70 lg:justify-start"
+          >
+            <span>Descoberta</span>
+            <span className="h-1 w-1 rounded-full bg-[#e9c269]" aria-hidden="true" />
+            <span>Conexão</span>
+            <span className="h-1 w-1 rounded-full bg-[#e9c269]" aria-hidden="true" />
+            <span>Pertencimento</span>
+          </motion.div>
+        </div>
 
         <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ delay: 1, duration: 0.8 }}
-          className="absolute bottom-12 animate-float"
+          initial={{ opacity: 0, x: 36 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ duration: 0.85, ease: suave, delay: 0.22 }}
+          className="relative mx-auto hidden h-[540px] w-full max-w-[560px] lg:block"
+          aria-label="Imagens de cultura, viagem e encontros"
         >
-          <div className="flex flex-col items-center gap-2 text-warm-white/50">
-            <span className="text-xs uppercase tracking-widest">Descubra</span>
-            <svg width="20" height="20" viewBox="0 0 20 20" fill="none" className="opacity-60" aria-hidden="true">
-              <path
-                d="M10 4v12M10 16l-4-4M10 16l4-4"
-                stroke="currentColor"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              />
-            </svg>
+          <div className="absolute right-0 top-4 h-[410px] w-[72%] overflow-hidden rounded-[46%_46%_13%_13%/31%_31%_9%_9%] border-[5px] border-white/12 bg-[#4b2650] shadow-[0_32px_80px_rgba(0,0,0,0.28)]">
+            <Image
+              src="/images/b2b/marrocos-henna.jpg"
+              alt="Encontro com tradições e rituais de henna no Marrocos"
+              fill
+              sizes="(min-width: 1024px) 32vw, 100vw"
+              className="object-cover"
+              priority
+            />
           </div>
+
+          <div className="absolute bottom-3 left-2 h-[260px] w-[54%] rotate-[-5deg] overflow-hidden rounded-[44%_44%_12%_12%/34%_34%_8%_8%] border-[5px] border-[#fff5dc] bg-[#341b39] shadow-[0_22px_65px_rgba(0,0,0,0.32)]">
+            <Image
+              src="/images/b2b/amazonas-comunidade.jpg"
+              alt="Encontro comunitário em uma experiência de viagem"
+              fill
+              sizes="(min-width: 1024px) 24vw, 100vw"
+              className="object-cover"
+            />
+          </div>
+
+          <div className="absolute bottom-7 right-2 rounded-2xl border border-white/25 bg-[#25152b]/80 px-5 py-4 shadow-xl backdrop-blur-lg">
+            <span className="block font-heading text-xl italic text-[#f1d287]">O mundo é para sentir.</span>
+            <span className="mt-1 block text-xs text-white/75">E a jornada é sua.</span>
+          </div>
+
+          <span
+            aria-hidden="true"
+            className="absolute -left-1 top-[22%] h-24 w-24 rounded-full border border-[#eecf82]/60"
+          />
         </motion.div>
+      </div>
+
+      <div className="absolute bottom-8 left-1/2 z-10 -translate-x-1/2 text-[10px] uppercase tracking-[0.22em] text-white/55 lg:left-auto lg:right-12 lg:translate-x-0">
+        Deslize para descobrir
       </div>
     </section>
   );
@@ -155,25 +189,27 @@ export function Pilares() {
               A essência da NeoSenses
             </p>
             <h2 className="max-w-xl font-heading text-4xl leading-[1.1] text-primary-700 md:text-5xl lg:text-[3.6rem]">
-              Nosso <span className="italic text-secondary-500">Propósito</span>
+              Sentir o mundo. <span className="italic text-secondary-500">Se encontrar nele.</span>
             </h2>
             <div className="mt-8 h-px w-20 bg-secondary-300" aria-hidden="true" />
             <div className="mt-8 max-w-[64ch] space-y-5 text-[15px] leading-[1.85] text-text-muted md:text-base">
               <p>
-                Nossa proposta de valor é realizar experiências de viagem a lugares que tragam a você
-                um novo sentir, em jornadas que elevem sua vibração e conectem com seu melhor.
+                Algumas viagens começam com a vontade de conhecer um lugar. Outras, com
+                uma vontade mais íntima: respirar fundo, encontrar novas pessoas,
+                experimentar outras culturas e voltar a olhar para si.
               </p>
               <p>
-                Criamos roteiros espirituais que proporcionam um mergulho interno, grandes
-                transformações e o resgate da nossa verdadeira essência: a Essência do Amor.
+                É desse encontro entre o mundo lá fora e o que acontece dentro de nós
+                que nasce a NeoSenses. Jornadas com intenção, roteiros espirituais e
+                vivências que convidam a estar presente de verdade.
               </p>
               <p>
-                Cada viagem tem sua particularidade energética. As experiências são conduzidas
-                por profissionais qualificados e facilitadores, com destinos cuidadosamente
-                escolhidos ao redor do mundo.
+                Cada experiência tem seu próprio ritmo, seus encontros e seus saberes,
+                com a presença de profissionais e facilitadores e destinos escolhidos
+                para despertar novos sentidos.
               </p>
               <p className="font-heading text-xl italic text-primary-700">
-                Venha fazer parte deste novo sentir.
+                Há um mundo para descobrir. E um lugar para você nessa história.
               </p>
             </div>
             <Link
@@ -197,14 +233,16 @@ export function Pilares() {
               className="relative aspect-[4/4.4] overflow-hidden bg-primary-100 shadow-[0_28px_80px_rgba(62,11,83,0.14)] sm:aspect-[5/4.5]"
               style={{ borderRadius: "42% 58% 56% 44% / 38% 40% 60% 62%" }}
             >
-              <Image
-                src="https://cdn.openart.ai/openart-uploads/production/attachment-transfers/15ab1e2dfb63dcd7970809309e9b948eb21a31c22c3c037e0ecc56f058cc7f06.jpg"
-                alt="Mulher em meio à floresta em uma prática contemplativa com tambor"
-                fill
-                sizes="(min-width: 1024px) 44vw, (min-width: 640px) 75vw, 100vw"
-                quality={90}
-                className="object-cover object-center"
+              {/* Fotografia da celebração Holi, fornecida como referência pela equipe. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="https://i.natgeofe.com/n/b16edb14-92d9-4177-b511-a6e791250092/gettyimages-471366604.jpeg"
+                alt="Mulher dançando durante o Holi, envolta em pós coloridos"
+                loading="lazy"
+                referrerPolicy="no-referrer"
+                className="absolute inset-0 h-full w-full object-cover object-center"
               />
+              <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#230b2e]/35 to-transparent" />
             </div>
           </motion.div>
         </div>
