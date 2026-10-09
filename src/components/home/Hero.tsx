@@ -240,9 +240,16 @@ export function Pilares() {
                 alt="Mulher dançando durante o Holi, envolta em pós coloridos"
                 loading="lazy"
                 referrerPolicy="no-referrer"
+                onError={(event) => {
+                  const alternativa = "https://cdn.openart.ai/openart-uploads/production/attachment-transfers/15ab1e2dfb63dcd7970809309e9b948eb21a31c22c3c037e0ecc56f058cc7f06.jpg";
+                  if (event.currentTarget.src !== alternativa) event.currentTarget.src = alternativa;
+                }}
                 className="absolute inset-0 h-full w-full object-cover object-center"
               />
               <div aria-hidden="true" className="pointer-events-none absolute inset-x-0 bottom-0 h-24 bg-gradient-to-t from-[#230b2e]/35 to-transparent" />
+              <span className="absolute bottom-6 right-7 rounded-full border border-white/45 bg-[#32102b]/60 px-4 py-2 text-[10px] font-semibold uppercase tracking-[0.16em] text-white backdrop-blur">
+                Cultura em movimento · Holi, Índia
+              </span>
             </div>
           </motion.div>
         </div>
