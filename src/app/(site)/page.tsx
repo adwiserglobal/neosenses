@@ -13,7 +13,6 @@ import { Hero, Pilares } from "@/components/home/Hero";
 import { DepoimentosHome } from "@/components/home/DepoimentosHome";
 import { ConviteAoFacilitador } from "@/components/templates/funil";
 import { JornadasCarousel } from "@/components/home/JornadasCarousel";
-import { PertencimentoHome } from "@/components/home/PertencimentoHome";
 import { linkWhatsApp } from "@/lib/utils";
 
 // A home declara o próprio canonical. Estava no layout raiz, de onde toda
@@ -32,24 +31,19 @@ export default async function HomePage() {
     <>
       <Hero />
       <Pilares />
-      <PertencimentoHome />
 
       {/* Jornadas em destaque, some quando não há nada publicado, em vez de
           mostrar uma grade vazia. */}
       {destaques.length > 0 && (
-        <section className="relative overflow-hidden bg-[#f7eddd] py-20 md:py-28">
+        <section className="bg-warm-gray/30 py-24 md:py-32">
           <div className="container-wide">
-            <div className="mb-11 max-w-3xl">
-              <p className="mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-secondary-500">
-                Próximos capítulos
+            <div className="mb-12 text-center">
+              <p className="mx-auto mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-secondary-500">
+                Nossas Jornadas
               </p>
-              <h2 className="font-heading text-4xl leading-tight text-primary-700 md:text-5xl">
-                Qual história você quer <span className="italic text-[#ae791c]">viver agora?</span>
+              <h2 className="mx-auto max-w-2xl font-heading text-3xl text-primary-700 md:text-4xl">
+                Conheça nossas jornadas
               </h2>
-              <p className="mt-5 max-w-2xl text-base leading-relaxed text-text-muted">
-                Das paisagens que tiram o fôlego aos encontros que surpreendem:
-                explore as experiências e sinta qual delas conversa com o seu momento.
-              </p>
             </div>
 
             <JornadasCarousel experiencias={destaques} />
@@ -59,7 +53,7 @@ export default async function HomePage() {
                 href="/experiencias"
                 className="inline-flex items-center justify-center rounded-lg border border-border bg-surface px-8 py-4 text-sm font-semibold text-primary-700 transition-all hover:border-secondary-500 hover:text-secondary-500"
               >
-                Explorar todas as jornadas
+                Ver todas as experiências
               </Link>
             </div>
           </div>
@@ -92,10 +86,10 @@ export default async function HomePage() {
 
         <div className="container-wide text-center">
           <h2 className="mx-auto mb-6 max-w-2xl font-heading text-3xl text-warm-white md:text-4xl">
-            A próxima história pode ser a sua.
+            Pronto para um Novo Sentir?
           </h2>
           <p className="mx-auto mb-10 max-w-xl text-warm-white/80">
-            Está imaginando qual experiência combina com o seu momento? Vamos conversar e encontrar um começo para essa jornada.
+            Converse com nossos especialistas e descubra a experiência ideal para sua jornada.
           </p>
           <a
             href={linkWhatsApp("Olá! Vim pelo site e quero conhecer as jornadas da NeoSenses.")}
