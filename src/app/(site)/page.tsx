@@ -13,6 +13,7 @@ import { Hero, Pilares } from "@/components/home/Hero";
 import { DepoimentosHome } from "@/components/home/DepoimentosHome";
 import { ConviteAoFacilitador } from "@/components/templates/funil";
 import { JornadasCarousel } from "@/components/home/JornadasCarousel";
+import { TematicosHome } from "@/components/home/TematicosHome";
 import { linkWhatsApp } from "@/lib/utils";
 
 // A home declara o próprio canonical. Estava no layout raiz, de onde toda
@@ -31,24 +32,25 @@ export default async function HomePage() {
     <>
       <Hero />
       <Pilares />
+      <TematicosHome />
 
       {/* Jornadas em destaque, some quando não há nada publicado, em vez de
           mostrar uma grade vazia. */}
       {destaques.length > 0 && (
-        <section className="bg-warm-gray/30 py-24 md:py-32">
+        <section className="bg-[#f5eddf] py-16 md:py-20">
           <div className="container-wide">
-            <div className="mb-12 text-center">
+            <div className="mb-8 text-center">
               <p className="mx-auto mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-secondary-500">
                 Nossas Jornadas
               </p>
-              <h2 className="mx-auto max-w-2xl font-heading text-3xl text-primary-700 md:text-4xl">
+              <h2 className="mx-auto max-w-2xl font-heading text-4xl text-primary-700 md:text-5xl">
                 Conheça nossas jornadas
               </h2>
             </div>
 
             <JornadasCarousel experiencias={destaques} />
 
-            <div className="mt-12 text-center">
+            <div className="mt-8 text-center">
               <Link
                 href="/experiencias"
                 className="inline-flex items-center justify-center rounded-lg border border-border bg-surface px-8 py-4 text-sm font-semibold text-primary-700 transition-all hover:border-secondary-500 hover:text-secondary-500"
@@ -70,7 +72,7 @@ export default async function HomePage() {
           antes do convite final. Rascunhos e arquivados nunca entram aqui. */}
       <DepoimentosHome depoimentos={depoimentos} />
 
-      <section className="relative isolate overflow-hidden py-24 md:py-32">
+      <section className="relative isolate overflow-hidden py-16 md:py-20">
         <div
           aria-hidden="true"
           className="absolute inset-0 -z-20 bg-cover bg-center"
@@ -85,10 +87,10 @@ export default async function HomePage() {
         />
 
         <div className="container-wide text-center">
-          <h2 className="mx-auto mb-6 max-w-2xl font-heading text-3xl text-warm-white md:text-4xl">
+          <h2 className="mx-auto mb-5 max-w-2xl font-heading text-4xl text-warm-white md:text-5xl">
             Pronto para um Novo Sentir?
           </h2>
-          <p className="mx-auto mb-10 max-w-xl text-warm-white/80">
+          <p className="mx-auto mb-8 max-w-xl text-base leading-relaxed text-warm-white/85 md:text-lg">
             Converse com nossos especialistas e descubra a experiência ideal para sua jornada.
           </p>
           <a

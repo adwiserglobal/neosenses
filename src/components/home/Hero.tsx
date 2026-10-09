@@ -141,10 +141,10 @@ export function Hero() {
 /** A proposta da marca: uma história à esquerda, fotografia orgânica à direita. */
 export function Pilares() {
   return (
-    <section id="nosso-proposito" className="relative overflow-hidden bg-warm-white py-24 md:py-32">
+    <section id="nosso-proposito" className="relative overflow-hidden bg-[#f5eddf] py-16 md:py-20">
       <div aria-hidden="true" className="pointer-events-none absolute -right-36 top-20 h-96 w-96 rounded-full bg-secondary-200/15 blur-[90px]" />
       <div className="container-wide relative">
-        <div className="grid items-center gap-14 lg:grid-cols-[minmax(0,1.07fr)_minmax(0,0.93fr)] lg:gap-20">
+        <div className="grid items-center gap-10 lg:grid-cols-[minmax(0,1.07fr)_minmax(0,0.93fr)] lg:gap-14">
           <motion.div
             initial={{ opacity: 0, y: 20 }}
             whileInView={{ opacity: 1, y: 0 }}
@@ -158,7 +158,7 @@ export function Pilares() {
               Nosso <span className="italic text-secondary-500">Propósito</span>
             </h2>
             <div className="mt-8 h-px w-20 bg-secondary-300" aria-hidden="true" />
-            <div className="mt-8 max-w-[64ch] space-y-5 text-[15px] leading-[1.85] text-text-muted md:text-base">
+            <div className="mt-6 max-w-[64ch] space-y-4 text-[16px] leading-[1.8] text-text-muted md:text-[17px]">
               <p>
                 Nossa proposta de valor é realizar experiências de viagem a lugares que tragam a você
                 um novo sentir, em jornadas que elevem sua vibração e conectem com seu melhor.
@@ -191,31 +191,30 @@ export function Pilares() {
             transition={{ duration: 0.75, delay: 0.12 }}
             className="relative mx-auto w-full max-w-[570px]"
           >
-            <div aria-hidden="true" className="absolute -left-5 top-8 h-[76%] w-[87%] rotate-[-9deg] rounded-[49%_51%_62%_38%/39%_38%_62%_61%] border border-secondary-300/65" />
-            <div aria-hidden="true" className="absolute -bottom-7 right-0 h-52 w-52 rounded-full bg-primary-200/25 blur-3xl" />
             <div
-              className="relative aspect-[4/4.4] overflow-hidden bg-primary-100 shadow-[0_28px_80px_rgba(62,11,83,0.14)] sm:aspect-[5/4.5]"
+              className="relative aspect-[4/4.2] overflow-hidden bg-[#411a35] shadow-[0_22px_60px_rgba(62,11,83,0.15)] sm:aspect-[5/4.3]"
               style={{ borderRadius: "42% 58% 56% 44% / 38% 40% 60% 62%" }}
             >
-              <Image
-                src="https://cdn.openart.ai/openart-uploads/production/attachment-transfers/15ab1e2dfb63dcd7970809309e9b948eb21a31c22c3c037e0ecc56f058cc7f06.jpg"
-                alt="Mulher em meio à floresta em uma prática contemplativa com tambor"
-                fill
-                sizes="(min-width: 1024px) 44vw, (min-width: 640px) 75vw, 100vw"
-                quality={90}
-                className="object-cover object-center"
+              {/* Foto da celebração Holi escolhida para esta seção. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="https://i.natgeofe.com/n/b16edb14-92d9-4177-b511-a6e791250092/gettyimages-471366604.jpeg"
+                alt="Mulher celebrando o Holi, envolta em cores vibrantes"
+                loading="lazy"
+                referrerPolicy="no-referrer"
+                className="h-full w-full object-cover object-center"
               />
             </div>
           </motion.div>
         </div>
 
-        <div className="mt-20 border-t border-secondary-300/35 pt-10 md:mt-28">
-          <div className="mb-10 flex w-full justify-center">
+        <div className="mt-14 border-t border-secondary-300/35 pt-8 md:mt-20">
+          <div className="mb-7 flex w-full justify-center">
             <p className="mx-auto w-max max-w-none text-center text-xs font-semibold uppercase tracking-[0.21em] text-secondary-500">
               O que nos move
             </p>
           </div>
-          <div className="grid gap-6 sm:grid-cols-2 xl:grid-cols-4">
+          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
             {PILARES.map((pilar, i) => (
               <motion.article
                 key={pilar.titulo}
@@ -235,9 +234,9 @@ export function Pilares() {
                     className="object-cover transition-transform duration-700 group-hover:scale-105"
                   />
                 </div>
-                <div className="flex flex-1 flex-col px-6 pb-8 pt-7 text-center">
+                <div className="flex flex-1 flex-col px-5 pb-7 pt-6 text-center">
                   <h3 className="mb-3 font-heading text-2xl leading-tight text-primary-700">{pilar.titulo}</h3>
-                  <p className="mx-auto max-w-[32ch] text-sm leading-[1.8] text-text-muted">{pilar.descricao}</p>
+                  <p className="mx-auto max-w-[32ch] text-base leading-[1.7] text-text-muted">{pilar.descricao}</p>
                 </div>
               </motion.article>
             ))}
