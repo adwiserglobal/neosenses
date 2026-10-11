@@ -10,7 +10,6 @@ const faixas = [
     destino: "/experiencias/caminho-de-maria-madalena",
     fundo: "bg-[#260408]",
     gradiente: "bg-gradient-to-r from-[#180306]/98 via-[#39060d]/85 to-transparent",
-    alinhamento: "esquerda",
     cta: "text-[#f2f794]",
   },
   {
@@ -20,7 +19,6 @@ const faixas = [
     destino: "/experiencias/tailandia-iluminada",
     fundo: "bg-[#825020]",
     gradiente: "bg-gradient-to-r from-[#a46a25]/95 via-[#75461b]/82 to-[#211207]/38",
-    alinhamento: "esquerda",
     cta: "text-[#f2f794]",
   },
   {
@@ -30,7 +28,6 @@ const faixas = [
     destino: "/experiencias",
     fundo: "bg-[#10291a]",
     gradiente: "bg-gradient-to-r from-[#061a12]/95 via-[#0a2017]/78 to-transparent",
-    alinhamento: "esquerda",
     cta: "text-[#ff8e9a]",
   },
 ] as const;
@@ -55,7 +52,7 @@ export function TematicosHome() {
               />
               <div aria-hidden="true" className={`absolute inset-0 ${faixa.gradiente}`} />
               <div
-                className={`relative z-10 flex w-full items-center px-6 py-12 sm:px-9 md:px-14 lg:px-[7%] ${faixa.alinhamento === "direita" ? "md:justify-start" : "md:justify-start"}`}
+                className={`relative z-10 flex w-full items-center px-6 py-12 sm:px-9 md:px-14 lg:px-[7%] md:justify-start`}
               >
                 <div className="max-w-[650px] text-left">
                   <h2 className="font-heading text-[clamp(2.5rem,4.1vw,4.1rem)] leading-[1.04] text-white">
