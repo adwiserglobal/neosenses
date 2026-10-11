@@ -9,8 +9,8 @@ const faixas = [
     imagem: "/images/destinations/france.png",
     destino: "/experiencias/caminho-de-maria-madalena",
     fundo: "bg-[#260408]",
-    gradiente: "bg-gradient-to-l from-[#180306]/98 via-[#39060d]/88 to-[#3b0208]/55",
-    alinhamento: "direita",
+    gradiente: "bg-gradient-to-r from-[#180306]/98 via-[#39060d]/85 to-transparent",
+    alinhamento: "esquerda",
     cta: "text-[#f2f794]",
   },
   {
@@ -29,22 +29,22 @@ const faixas = [
     imagem: "/images/b2b/amazonas-floresta-aerea.jpg",
     destino: "/experiencias",
     fundo: "bg-[#10291a]",
-    gradiente: "bg-gradient-to-l from-[#061a12]/95 via-[#0a2017]/78 to-[#12341e]/25",
-    alinhamento: "direita",
+    gradiente: "bg-gradient-to-r from-[#061a12]/95 via-[#0a2017]/78 to-transparent",
+    alinhamento: "esquerda",
     cta: "text-[#ff8e9a]",
   },
 ] as const;
 
 export function TematicosHome() {
   return (
-    <section aria-label="Jornadas temáticas" className="bg-[#f2e8d7] py-12 md:py-16">
-      <div className="container-wide">
+    <section aria-label="Jornadas temáticas" className="bg-[#f2e8d7] py-8 md:py-12">
+      <div className="mx-auto w-[min(96%,1640px)]">
         <div className="overflow-hidden rounded-[18px] shadow-[0_15px_55px_rgba(48,27,18,0.12)]">
           {faixas.map((faixa) => (
             <Link
               key={faixa.titulo}
               href={faixa.destino}
-              className={`group relative isolate flex min-h-[430px] overflow-hidden ${faixa.fundo} md:min-h-[430px]`}
+              className={`group relative isolate flex min-h-[400px] overflow-hidden ${faixa.fundo} md:min-h-[400px]`}
             >
               <Image
                 src={faixa.imagem}
@@ -55,17 +55,17 @@ export function TematicosHome() {
               />
               <div aria-hidden="true" className={`absolute inset-0 ${faixa.gradiente}`} />
               <div
-                className={`relative z-10 flex w-full items-center px-6 py-12 sm:px-9 md:px-14 lg:px-[7%] ${faixa.alinhamento === "direita" ? "md:justify-end" : "md:justify-start"}`}
+                className={`relative z-10 flex w-full items-center px-6 py-12 sm:px-9 md:px-14 lg:px-[7%] ${faixa.alinhamento === "direita" ? "md:justify-start" : "md:justify-start"}`}
               >
-                <div className="max-w-[650px]">
+                <div className="max-w-[650px] text-left">
                   <h2 className="font-heading text-[clamp(2.5rem,4.1vw,4.1rem)] leading-[1.04] text-white">
                     {faixa.titulo}
                   </h2>
                   <p className="mt-5 text-base leading-[1.7] text-white/95 md:text-lg">
                     {faixa.texto}
                   </p>
-                  <span className={`mt-7 inline-flex items-center gap-2 font-heading text-[clamp(2.4rem,4.6vw,5rem)] leading-none transition-transform duration-300 group-hover:translate-x-2 ${faixa.cta}`}>
-                    <ArrowRight className="h-[0.75em] w-[0.75em]" strokeWidth={2.8} aria-hidden="true" />
+                  <span className={`mt-7 inline-flex items-center gap-2 font-heading text-[clamp(1.6rem,2.5vw,2.4rem)] leading-none transition-transform duration-300 group-hover:translate-x-2 ${faixa.cta}`}>
+                    <ArrowRight className="h-[0.85em] w-[0.85em]" strokeWidth={2.8} aria-hidden="true" />
                     Conheça
                   </span>
                 </div>
