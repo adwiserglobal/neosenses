@@ -9,7 +9,7 @@
 import Link from "next/link";
 import { listarDestaques } from "@/lib/dal/experiences";
 import { listarDepoimentos } from "@/lib/dal/content";
-import { Hero, Pilares } from "@/components/home/Hero";
+import { Hero, Pilares, OQueNosMove } from "@/components/home/Hero";
 import { DepoimentosHome } from "@/components/home/DepoimentosHome";
 import { ConviteAoFacilitador } from "@/components/templates/funil";
 import { JornadasCarousel } from "@/components/home/JornadasCarousel";
@@ -33,6 +33,7 @@ export default async function HomePage() {
       <Hero />
       <Pilares />
       <TematicosHome />
+      <OQueNosMove />
 
       {/* Jornadas em destaque, some quando não há nada publicado, em vez de
           mostrar uma grade vazia. */}

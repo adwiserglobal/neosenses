@@ -178,9 +178,9 @@ export function Pilares() {
             </div>
             <Link
               href="/sobre"
-              className="mt-8 inline-flex items-center gap-3 border-b border-secondary-400 pb-2 text-sm font-semibold text-primary-700 transition-colors hover:text-secondary-500"
+              className="mt-8 inline-flex items-center justify-center rounded-lg border border-border bg-surface px-8 py-4 text-sm font-semibold text-primary-700 transition-all hover:border-secondary-500 hover:text-secondary-500"
             >
-              Conheça a NeoSenses <span aria-hidden="true">↗</span>
+              Conheça a NeoSenses
             </Link>
           </motion.div>
 
@@ -208,7 +208,16 @@ export function Pilares() {
           </motion.div>
         </div>
 
-        <div className="mt-14 border-t border-secondary-300/35 pt-8 md:mt-20">
+      </div>
+    </section>
+  );
+}
+
+export function OQueNosMove() {
+  return (
+    <section className="bg-[#f5eddf] py-16 md:py-20">
+      <div className="container-wide">
+        <div className="border-t border-secondary-300/35 pt-8">
           <div className="mb-7 flex w-full justify-center">
             <p className="mx-auto w-max max-w-none text-center text-xs font-semibold uppercase tracking-[0.21em] text-secondary-500">
               O que nos move
