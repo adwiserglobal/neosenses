@@ -6,19 +6,19 @@ const faixas = [
   {
     titulo: "Caminho de Maria Madalena",
     texto: "Embarque em uma jornada transcendental pelas trilhas sagradas do Caminho de Maria Madalena, onde cada passo é uma dança entre o divino e o terreno. Descubra os segredos ancestrais que sussurram nas brisas das paisagens místicas. Neste roteiro de transformação espiritual, o Caminho de Maria Madalena tornam-se entrada para uma imersão interior profunda. Desperte seu espírito, abrace a jornada, e permita que os sentimentos despertos guiem seu caminho para a autodescoberta.",
-    imagem: "/images/destinations/france.png",
+    imagem: "/images/tematicos/maria-madalena-rosas.webp",
     destino: "/experiencias/caminho-de-maria-madalena",
     fundo: "bg-[#260408]",
-    gradiente: "bg-gradient-to-r from-[#180306]/98 via-[#39060d]/85 to-transparent",
+    gradiente: "bg-gradient-to-r from-[#140204]/90 via-[#26050a]/60 to-transparent",
     cta: "text-[#f2f794]",
   },
   {
     titulo: "Jornada Espiritual Tailândia",
     texto: "Viajar para a Tailândia significa vivenciar os sentimentos de felicidade e tranquilidade em seus estados mais puros. A Terra dos Sorrisos, como o país é conhecido, é guiada de acordo com o lema budista: sanuk sabai e saduak (seja feliz, fique tranquilo e contente-se com aquilo que a vida te oferece).",
-    imagem: "/images/destinations/thailand.png",
+    imagem: "/images/tematicos/tailandia-buda.webp",
     destino: "/experiencias/tailandia-iluminada",
     fundo: "bg-[#825020]",
-    gradiente: "bg-gradient-to-r from-[#a46a25]/95 via-[#75461b]/82 to-[#211207]/38",
+    gradiente: "bg-gradient-to-r from-[#432408]/75 via-[#6e4017]/45 to-transparent",
     cta: "text-[#f2f794]",
   },
   {
