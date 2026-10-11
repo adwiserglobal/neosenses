@@ -31,27 +31,35 @@ const surgir = {
 const PILARES = [
   {
     titulo: "Jornadas de Alma",
-    descricao: "Intenção e aprendizados com experiências profundas para transformar a sua vida.",
-    imagem: "/images/home/proposito-floresta.webp",
-    alt: "Vivência de conexão interior em meio à natureza",
+    descricao: "Experiências que despertam sentidos, emoções e novos significados.",
+    imagem: "https://images.unsplash.com/photo-1687875495230-96dfea96d9da?auto=format&fit=crop&w=1000&q=85",
+    alt: "Fotografia real de mulheres reunidas ao ar livre em uma vivência de bem-estar",
+    fotografo: "Marea Wellness",
+    fonte: "https://unsplash.com/photos/a-group-of-people-sitting-on-top-of-a-lush-green-field-YEjwA2TofhQ",
   },
   {
     titulo: "Autoconhecimento",
-    descricao: "Avançar cada dia mais em sua jornada interior e evoluir continuamente como pessoa.",
-    imagem: "/images/b2b/peru-lagoa-sagrada.jpg",
-    alt: "Paisagem natural de uma jornada de autoconhecimento no Peru",
+    descricao: "Um convite para olhar para dentro e se reconectar com sua essência.",
+    imagem: "https://images.unsplash.com/photo-1694181918496-8052c5a97294?auto=format&fit=crop&w=1000&q=85",
+    alt: "Fotografia real de uma mulher contemplando um lago entre montanhas",
+    fotografo: "Jametlene Reskp",
+    fonte: "https://unsplash.com/photos/a-woman-sitting-on-a-rock-in-front-of-a-mountain-lake-KRudCTBisHY",
   },
   {
     titulo: "Roteiros e Vivências",
-    descricao: "Caminhos e itinerários desenhados para você viver grandes transformações.",
-    imagem: "/images/b2b/peru-machu-picchu.jpg",
-    alt: "Roteiro de viagem por Machu Picchu",
+    descricao: "Culturas, destinos e encontros que transformam cada jornada em uma história.",
+    imagem: "https://images.unsplash.com/photo-1762380831564-82c895083889?auto=format&fit=crop&w=1000&q=85",
+    alt: "Fotografia documental de mulheres caminhando por um mercado em Marrakech",
+    fotografo: "Bernd Dittrich",
+    fonte: "https://unsplash.com/photos/women-walking-through-a-bustling-moroccan-marketplace-7udXStKcSGI",
   },
   {
     titulo: "Conexão",
-    descricao: "Harmonia com a natureza e com pessoas que vibram na mesma energia e intenções.",
-    imagem: "/images/b2b/amazonas-comunidade.jpg",
-    alt: "Convívio e conexão humana em comunidade na Amazônia",
+    descricao: "Pessoas, histórias e momentos que criam laços além da viagem.",
+    imagem: "https://images.unsplash.com/photo-1780851436638-fa385e12d90b?auto=format&fit=crop&w=1000&q=85",
+    alt: "Fotografia real de duas amigas se abraçando e sorrindo ao ar livre",
+    fotografo: "Ilya Semenov",
+    fonte: "https://unsplash.com/photos/two-young-women-hugging-and-smiling-outdoors-Ut6dR6wZr6E",
   },
 ];
 
@@ -215,42 +223,80 @@ export function Pilares() {
 
 export function OQueNosMove() {
   return (
-    <section className="bg-[#f5eddf] py-16 md:py-20">
-      <div className="container-wide">
-        <div className="border-t border-secondary-300/35 pt-8">
-          <div className="mb-7 flex w-full justify-center">
-            <p className="mx-auto w-max max-w-none text-center text-xs font-semibold uppercase tracking-[0.21em] text-secondary-500">
-              O que nos move
-            </p>
-          </div>
-          <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-            {PILARES.map((pilar, i) => (
-              <motion.article
-                key={pilar.titulo}
-                initial={{ opacity: 0, y: 20 }}
-                whileInView={{ opacity: 1, y: 0 }}
-                viewport={{ once: true }}
-                transition={{ duration: 0.5, delay: i * 0.09 }}
-                className="group flex h-full flex-col overflow-hidden rounded-[22px] border border-secondary-300/30 bg-surface shadow-[0_10px_36px_rgba(58,21,73,0.055)] transition-all duration-300 hover:-translate-y-1 hover:border-secondary-300/65 hover:shadow-[0_22px_56px_rgba(58,21,73,0.14)]"
-              >
-                <div className="relative aspect-[4/3] overflow-hidden bg-primary-100">
-                  <Image
-                    src={pilar.imagem}
-                    alt={pilar.alt}
-                    fill
-                    sizes="(min-width: 1280px) 23vw, (min-width: 640px) 46vw, 100vw"
-                    quality={90}
-                    className="object-cover transition-transform duration-700 group-hover:scale-105"
-                  />
-                </div>
-                <div className="flex flex-1 flex-col px-5 pb-7 pt-6 text-center">
-                  <h3 className="mb-3 font-heading text-2xl leading-tight text-primary-700">{pilar.titulo}</h3>
-                  <p className="mx-auto max-w-[32ch] text-base leading-[1.7] text-text-muted">{pilar.descricao}</p>
-                </div>
-              </motion.article>
-            ))}
-          </div>
+    <section
+      id="o-que-nos-move"
+      aria-labelledby="o-que-nos-move-titulo"
+      className="relative overflow-hidden bg-[#f0e5d3] py-12 md:py-16"
+    >
+      <div
+        aria-hidden="true"
+        className="pointer-events-none absolute inset-0 opacity-60 [background:radial-gradient(circle_at_0%_15%,rgba(215,168,40,0.12),transparent_27%),radial-gradient(circle_at_100%_85%,rgba(126,35,155,0.06),transparent_30%)]"
+      />
+
+      <div className="container-wide relative">
+        <header className="mx-auto mb-9 max-w-[810px] text-center md:mb-11">
+          <p className="text-xs font-semibold uppercase tracking-[0.21em] text-secondary-500">
+            O que nos move
+          </p>
+          <h2
+            id="o-que-nos-move-titulo"
+            className="mt-4 font-heading text-[clamp(2.5rem,4.2vw,3.7rem)] leading-[1.12] text-primary-700"
+          >
+            Muito além de uma viagem.
+          </h2>
+          <p className="mx-auto mt-5 max-w-[68ch] text-base leading-[1.8] text-[#625348] md:text-lg">
+            Cada jornada é uma oportunidade de descobrir novos lugares, criar
+            conexões e transformar a maneira como sentimos o mundo.
+          </p>
+        </header>
+
+        <div className="grid gap-4 sm:grid-cols-2 lg:gap-5 xl:grid-cols-4">
+          {PILARES.map((pilar, i) => (
+            <motion.article
+              key={pilar.titulo}
+              initial={{ opacity: 0, y: 20 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, amount: 0.15 }}
+              transition={{ duration: 0.5, delay: i * 0.08 }}
+              className="group flex h-full flex-col overflow-hidden rounded-[22px] border border-[#e5d4b3] bg-[#fffaf2] shadow-[0_8px_28px_rgba(70,37,27,0.05)] transition-all duration-300 hover:-translate-y-1 hover:border-secondary-300/70 hover:shadow-[0_18px_45px_rgba(70,37,27,0.12)]"
+            >
+              <div className="relative aspect-[6/5] overflow-hidden bg-primary-100">
+                <Image
+                  src={pilar.imagem}
+                  alt={pilar.alt}
+                  fill
+                  sizes="(min-width: 1280px) 23vw, (min-width: 640px) 47vw, 100vw"
+                  quality={85}
+                  className="object-cover transition-transform duration-700 group-hover:scale-[1.04]"
+                />
+                <div
+                  aria-hidden="true"
+                  className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/50 to-transparent"
+                />
+                <a
+                  href={pilar.fonte}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="absolute bottom-3 right-3 z-10 rounded-full bg-[#251523]/65 px-3 py-1 text-[10px] font-medium text-white/95 backdrop-blur-sm transition-colors hover:bg-[#251523] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
+                  aria-label={`Fotografia de ${pilar.fotografo} na Unsplash, abre em nova aba`}
+                >
+                  Foto: {pilar.fotografo}
+                </a>
+              </div>
+              <div className="flex flex-1 flex-col items-center px-5 pb-7 pt-6 text-center">
+                <h3 className="font-heading text-[1.7rem] leading-[1.18] text-primary-700">
+                  {pilar.titulo}
+                </h3>
+                <p className="mx-auto mt-3 max-w-[31ch] text-[16px] leading-[1.7] text-[#655648]">
+                  {pilar.descricao}
+                </p>
+              </div>
+            </motion.article>
+          ))}
         </div>
+        <p className="mt-5 text-center text-xs leading-relaxed text-[#7b6d5d]">
+          Fotografias ilustrativas de autores independentes. Não retratam necessariamente participantes de viagens da NeoSenses.
+        </p>
       </div>
     </section>
   );
