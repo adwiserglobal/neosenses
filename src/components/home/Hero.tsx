@@ -28,38 +28,36 @@ const surgir = {
  * pede "Jornadas de Alma" — é o termo que a equipe escolheu para nomear o
  * que a NeoSenses vende, e não é sinônimo do que estava aqui.
  */
+// Fotografias reais sob licença gratuita da Unsplash; URLs das fontes
+// preservadas aqui para conferência editorial, sem créditos visíveis no layout.
+// Jornadas de Alma: https://unsplash.com/photos/dQm-kS_l1dg
+// Autoconhecimento: https://unsplash.com/photos/VD-Vjc8VmRA
+// Roteiros e Vivências: https://unsplash.com/photos/dvaF23kPc-0
+// Conexão: https://unsplash.com/photos/pc8BUVAVXzo
 const PILARES = [
   {
     titulo: "Jornadas de Alma",
     descricao: "Experiências que despertam sentidos, emoções e novos significados.",
-    imagem: "https://images.unsplash.com/photo-1687875495230-96dfea96d9da?auto=format&fit=crop&w=1000&q=85",
-    alt: "Fotografia real de mulheres reunidas ao ar livre em uma vivência de bem-estar",
-    fotografo: "Marea Wellness",
-    fonte: "https://unsplash.com/photos/a-group-of-people-sitting-on-top-of-a-lush-green-field-YEjwA2TofhQ",
+    imagem: "https://images.unsplash.com/photo-1758797315487-b3b225dff7d8?auto=format&fit=crop&w=1000&q=85",
+    alt: "Participantes em uma vivência de yoga ao ar livre em Rishikesh, Índia",
   },
   {
     titulo: "Autoconhecimento",
     descricao: "Um convite para olhar para dentro e se reconectar com sua essência.",
-    imagem: "https://images.unsplash.com/photo-1694181918496-8052c5a97294?auto=format&fit=crop&w=1000&q=85",
-    alt: "Fotografia real de uma mulher contemplando um lago entre montanhas",
-    fotografo: "Jametlene Reskp",
-    fonte: "https://unsplash.com/photos/a-woman-sitting-on-a-rock-in-front-of-a-mountain-lake-KRudCTBisHY",
+    imagem: "https://images.unsplash.com/photo-1559595500-e15296bdbb48?auto=format&fit=crop&w=1000&q=85",
+    alt: "Mulher meditando diante da paisagem do Grand Canyon",
   },
   {
     titulo: "Roteiros e Vivências",
     descricao: "Culturas, destinos e encontros que transformam cada jornada em uma história.",
-    imagem: "https://images.unsplash.com/photo-1762380831564-82c895083889?auto=format&fit=crop&w=1000&q=85",
-    alt: "Fotografia documental de mulheres caminhando por um mercado em Marrakech",
-    fotografo: "Bernd Dittrich",
-    fonte: "https://unsplash.com/photos/women-walking-through-a-bustling-moroccan-marketplace-7udXStKcSGI",
+    imagem: "https://images.unsplash.com/photo-1526052056866-810289073817?auto=format&fit=crop&w=1000&q=85",
+    alt: "Viajante conhecendo as ruínas de Machu Picchu, no Peru",
   },
   {
     titulo: "Conexão",
     descricao: "Pessoas, histórias e momentos que criam laços além da viagem.",
-    imagem: "https://images.unsplash.com/photo-1780851436638-fa385e12d90b?auto=format&fit=crop&w=1000&q=85",
-    alt: "Fotografia real de duas amigas se abraçando e sorrindo ao ar livre",
-    fotografo: "Ilya Semenov",
-    fonte: "https://unsplash.com/photos/two-young-women-hugging-and-smiling-outdoors-Ut6dR6wZr6E",
+    imagem: "https://images.unsplash.com/photo-1758599668542-53e8c63c8e68?auto=format&fit=crop&w=1000&q=85",
+    alt: "Amigos conversando durante uma trilha na floresta",
   },
 ];
 
@@ -269,34 +267,19 @@ export function OQueNosMove() {
                   quality={85}
                   className="object-cover transition-transform duration-700 group-hover:scale-[1.04]"
                 />
-                <div
-                  aria-hidden="true"
-                  className="pointer-events-none absolute inset-x-0 bottom-0 h-16 bg-gradient-to-t from-black/50 to-transparent"
-                />
-                <a
-                  href={pilar.fonte}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="absolute bottom-3 right-3 z-10 rounded-full bg-[#251523]/65 px-3 py-1 text-[10px] font-medium text-white/95 backdrop-blur-sm transition-colors hover:bg-[#251523] focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white"
-                  aria-label={`Fotografia de ${pilar.fotografo} na Unsplash, abre em nova aba`}
-                >
-                  Foto: {pilar.fotografo}
-                </a>
               </div>
-              <div className="flex flex-1 flex-col items-center px-5 pb-7 pt-6 text-center">
-                <h3 className="font-heading text-[1.7rem] leading-[1.18] text-primary-700">
+              <div className="flex flex-1 flex-col items-center px-5 pb-7 pt-5 text-center">
+                <h3 className="flex min-h-[2.5em] w-full items-center justify-center text-center font-heading text-[1.7rem] leading-[1.18] text-primary-700">
                   {pilar.titulo}
                 </h3>
-                <p className="mx-auto mt-3 max-w-[31ch] text-[16px] leading-[1.7] text-[#655648]">
+                <p className="mx-auto mt-2 max-w-[31ch] text-center text-[16px] leading-[1.7] text-[#655648]">
                   {pilar.descricao}
                 </p>
               </div>
             </motion.article>
           ))}
         </div>
-        <p className="mt-5 text-center text-xs leading-relaxed text-[#7b6d5d]">
-          Fotografias ilustrativas de autores independentes. Não retratam necessariamente participantes de viagens da NeoSenses.
-        </p>
+
       </div>
     </section>
   );
