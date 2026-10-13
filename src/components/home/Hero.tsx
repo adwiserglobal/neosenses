@@ -232,8 +232,8 @@ export function OQueNosMove() {
       />
 
       <div className="container-wide relative">
-        <header className="mx-auto mb-9 max-w-[810px] text-center md:mb-11">
-          <p className="text-xs font-semibold uppercase tracking-[0.21em] text-secondary-500">
+        <header className="mx-auto mb-9 flex w-full max-w-[810px] flex-col items-center text-center md:mb-11">
+          <p className="block w-full text-center text-xs font-semibold uppercase tracking-[0.21em] text-secondary-500">
             O que nos move
           </p>
           <h2
