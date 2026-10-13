@@ -4,6 +4,8 @@
  * Os fallbacks usam somente fotografias já pertencentes ao projeto.
  */
 const IMAGENS_POR_DESTINO: Array<[RegExp, string]> = [
+  // O retiro com Monja Ani precisa de uma fotografia real, não do bloco roxo de fallback.
+  [/monja ani|imersao entre o som|som e o silencio/, "/images/home/circulo-de-vivencia.webp"],
   [/peru|machu picchu|cusco|cuzco|inka sol|vale sagrado/, "/images/destinations/peru.png"],
   [/marrocos|marrakech|deserto do saara/, "/images/destinations/morocco.png"],
   [/tailandia|thailand|chiang mai|bangkok/, "/images/destinations/thailand.png"],

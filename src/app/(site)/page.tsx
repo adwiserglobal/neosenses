@@ -39,7 +39,7 @@ export default async function HomePage() {
       {/* Jornadas em destaque, some quando não há nada publicado, em vez de
           mostrar uma grade vazia. */}
       {destaques.length > 0 && (
-        <section className="relative isolate overflow-hidden bg-[#f5eddf] pb-28 pt-28 md:pb-36 md:pt-36">
+        <section className="relative isolate overflow-hidden bg-[linear-gradient(180deg,#f0e5d3_0%,#f0e5d3_5%,#311b22_18%,#311b22_73%,#422152_100%)] pb-20 pt-24 md:pb-24 md:pt-28">
           {/* Deserto do Marrocos com véu escuro e máscara em degradê: as bordas
               dissolvem no fundo areia das seções vizinhas, sem corte seco. */}
           <div
@@ -47,7 +47,7 @@ export default async function HomePage() {
             className="absolute inset-0 -z-10"
             style={{
               maskImage:
-                "linear-gradient(to bottom, transparent 0%, #000 14%, #000 86%, transparent 100%)",
+                "linear-gradient(to bottom, transparent 0%, #000 12%, #000 82%, transparent 100%)",
               WebkitMaskImage:
                 "linear-gradient(to bottom, transparent 0%, #000 14%, #000 86%, transparent 100%)",
             }}
@@ -60,7 +60,7 @@ export default async function HomePage() {
               quality={85}
               className="object-cover object-center"
             />
-            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(24,10,30,0.5)_0%,rgba(30,12,22,0.42)_50%,rgba(24,10,30,0.55)_100%)]" />
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(26,10,20,0.22)_0%,rgba(26,10,20,0.44)_28%,rgba(26,10,20,0.30)_68%,rgba(66,33,82,0.42)_100%)]" />
           </div>
           <div className="container-wide">
             <div className="mb-8 text-center">
