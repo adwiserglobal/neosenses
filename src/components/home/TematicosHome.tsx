@@ -16,7 +16,7 @@ const faixas = [
   {
     titulo: "Jornada Espiritual Tailândia",
     texto: "Viajar para a Tailândia significa vivenciar os sentimentos de felicidade e tranquilidade em seus estados mais puros. A Terra dos Sorrisos, como o país é conhecido, é guiada de acordo com o lema budista: sanuk sabai e saduak (seja feliz, fique tranquilo e contente-se com aquilo que a vida te oferece).",
-    imagem: "/images/tematicos/tailandia-buda-original.avif",
+    imagem: "/images/tematicos/tailandia-buda.webp",
     destino: "/experiencias/tailandia-iluminada",
     lado: "esquerda",
     fundo: "bg-[#825020]",
@@ -26,7 +26,7 @@ const faixas = [
   {
     titulo: "Jornada Egito Espiritual",
     texto: "Um passeio para acessar os seis sentidos. Assim é o pacote que nós desenhamos especialmente para aqueles que, além de realizar o sonho de conhecer o Egito, querem desfrutar das sensações que a energia egípcia emana de sua espiritualidade latente e misteriosa.",
-    imagem: "/images/tematicos/egito-piramides-original.avif",
+    imagem: "/images/destinations/egito.jpg",
     destino: "/destinos/egito",
     lado: "esquerda",
     fundo: "bg-[#825020]",
