@@ -8,9 +8,9 @@ const faixas = [
     texto: "Embarque em uma jornada transcendental pelas trilhas sagradas do Caminho de Maria Madalena, onde cada passo é uma dança entre o divino e o terreno. Descubra os segredos ancestrais que sussurram nas brisas das paisagens místicas. Neste roteiro de transformação espiritual, o Caminho de Maria Madalena tornam-se entrada para uma imersão interior profunda. Desperte seu espírito, abrace a jornada, e permita que os sentimentos despertos guiem seu caminho para a autodescoberta.",
     imagem: "/images/tematicos/maria-madalena-rosas-original.avif",
     destino: "/experiencias/caminho-de-maria-madalena",
-    lado: "direita",
+    lado: "esquerda",
     fundo: "bg-[#260408]",
-    gradiente: "bg-gradient-to-l from-[#140204]/90 via-[#26050a]/60 to-transparent",
+    gradiente: "bg-gradient-to-r from-[#140204]/90 via-[#26050a]/60 to-transparent",
     cta: "text-[#f2f794]",
   },
   {
@@ -50,7 +50,8 @@ export function TematicosHome() {
                 src={faixa.imagem}
                 alt=""
                 fill
-                sizes="(min-width: 1024px) 1400px, 100vw"
+                sizes="(min-width: 1640px) 1640px, 96vw"
+                unoptimized
                 className="object-cover transition-transform duration-700 group-hover:scale-[1.035]"
               />
               <div aria-hidden="true" className={`absolute inset-0 ${faixa.gradiente}`} />
