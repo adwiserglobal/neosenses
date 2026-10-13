@@ -39,24 +39,35 @@ export default async function HomePage() {
       {/* Jornadas em destaque, some quando não há nada publicado, em vez de
           mostrar uma grade vazia. */}
       {destaques.length > 0 && (
-        <section className="relative isolate overflow-hidden bg-[#1c0f08] py-16 md:py-20">
-          {/* Deserto do Marrocos escurecido: o véu garante o contraste do
-              título qualquer que seja a foto. */}
-          <Image
-            src="/images/home/jornadas-deserto.jpg"
-            alt=""
-            fill
-            sizes="100vw"
-            quality={85}
-            className="-z-20 object-cover object-center"
-          />
-          <div aria-hidden="true" className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(24,10,30,0.82)_0%,rgba(30,12,22,0.72)_50%,rgba(24,10,30,0.86)_100%)]" />
+        <section className="relative isolate overflow-hidden bg-[#f5eddf] pb-28 pt-28 md:pb-36 md:pt-36">
+          {/* Deserto do Marrocos com véu escuro e máscara em degradê: as bordas
+              dissolvem no fundo areia das seções vizinhas, sem corte seco. */}
+          <div
+            aria-hidden="true"
+            className="absolute inset-0 -z-10"
+            style={{
+              maskImage:
+                "linear-gradient(to bottom, transparent 0%, #000 14%, #000 86%, transparent 100%)",
+              WebkitMaskImage:
+                "linear-gradient(to bottom, transparent 0%, #000 14%, #000 86%, transparent 100%)",
+            }}
+          >
+            <Image
+              src="/images/home/jornadas-deserto.jpg"
+              alt=""
+              fill
+              sizes="100vw"
+              quality={85}
+              className="object-cover object-center"
+            />
+            <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(24,10,30,0.5)_0%,rgba(30,12,22,0.42)_50%,rgba(24,10,30,0.55)_100%)]" />
+          </div>
           <div className="container-wide">
             <div className="mb-8 text-center">
               <p className="mx-auto mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-secondary-300">
                 Nossas Jornadas
               </p>
-              <h2 className="mx-auto max-w-2xl font-heading text-4xl text-warm-white md:text-5xl">
+              <h2 className="mx-auto max-w-2xl font-heading text-4xl text-warm-white [text-shadow:0_2px_18px_rgba(20,8,24,0.55)] md:text-5xl">
                 Conheça nossas jornadas
               </h2>
             </div>
