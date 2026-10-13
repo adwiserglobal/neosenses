@@ -99,16 +99,14 @@ export function PublicHeader() {
   const blogComFundoClaro = pathname?.startsWith("/blog") ?? false;
   const headerClaro = scrolled || blogComFundoClaro;
 
-  const navColor = headerClaro
-    ? "text-primary-700 hover:text-secondary-500"
-    : "text-warm-white/90 hover:text-warm-white";
+  const navColor = "text-warm-white/90 hover:text-warm-white";
 
   const closeMobile = () => setMobileOpen(false);
 
   return (
     <header
       className={`fixed inset-x-0 top-0 z-50 w-full transition-all duration-300 ${
-        headerClaro ? "bg-warm-white/95 shadow-soft backdrop-blur-md" : "bg-transparent"
+        headerClaro ? "bg-primary-800/95 shadow-soft backdrop-blur-md" : "bg-transparent"
       }`}
     >
       <div className="container-wide flex h-[72px] items-center justify-between gap-4">
@@ -120,7 +118,7 @@ export function PublicHeader() {
           aria-label="NeoSenses — início"
         >
           <Image
-            src={headerClaro || mobileOpen ? "/images/neosenses-logo-claro.svg" : "/images/neosenses-logo.svg"}
+            src={mobileOpen ? "/images/neosenses-logo-claro.svg" : "/images/neosenses-logo.svg"}
             alt="NeoSenses"
             width={200}
             height={25}
@@ -219,7 +217,7 @@ export function PublicHeader() {
           aria-controls="public-mobile-menu"
           aria-label={mobileOpen ? "Fechar menu" : "Abrir menu"}
           className={`relative z-50 rounded-full p-2 xl:hidden ${
-            headerClaro || mobileOpen ? "text-primary-700" : "text-warm-white"
+            mobileOpen ? "text-primary-700" : "text-warm-white"
           }`}
         >
           {mobileOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
