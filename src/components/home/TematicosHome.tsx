@@ -22,13 +22,13 @@ const faixas = [
     cta: "text-[#f2f794]",
   },
   {
-    titulo: "Despertar Na Floresta",
-    texto: "Como a palavra afirma, espiritualidade é viver segundo o espírito. Quando no homem aparece a pergunta do sentido, quando o homem querendo conhecer a si mesmo começa a explorar aquilo que é nele interior, quando começa a observar o mundo, a escutar, a pensar, a meditar, a interpretar e, de consequência, a escolher, a decidir, então inicia nele a sua busca pela vida espiritual.",
-    imagem: "/images/b2b/amazonas-floresta-aerea.jpg",
-    destino: "/experiencias",
-    fundo: "bg-[#10291a]",
-    gradiente: "bg-gradient-to-r from-[#061a12]/95 via-[#0a2017]/78 to-transparent",
-    cta: "text-[#ff8e9a]",
+    titulo: "Jornada Egito Espiritual",
+    texto: "Um passeio para acessar os seis sentidos. Assim é o pacote que nós desenhamos especialmente para aqueles que, além de realizar o sonho de conhecer o Egito, querem desfrutar das sensações que a energia egípcia emana de sua espiritualidade latente e misteriosa.",
+    imagem: "/images/destinations/egito.jpg",
+    destino: "/destinos/egito",
+    fundo: "bg-[#825020]",
+    gradiente: "bg-gradient-to-r from-[#3c220b]/92 via-[#855019]/68 to-transparent",
+    cta: "text-[#f2f794]",
   },
 ] as const;
 
