@@ -7,6 +7,7 @@
  */
 
 import Link from "next/link";
+import Image from "next/image";
 import { listarDestaques } from "@/lib/dal/experiences";
 import { listarDepoimentos } from "@/lib/dal/content";
 import { Hero, Pilares, OQueNosMove } from "@/components/home/Hero";
@@ -38,13 +39,24 @@ export default async function HomePage() {
       {/* Jornadas em destaque, some quando não há nada publicado, em vez de
           mostrar uma grade vazia. */}
       {destaques.length > 0 && (
-        <section className="bg-[#f5eddf] py-16 md:py-20">
+        <section className="relative isolate overflow-hidden bg-[#1c0f08] py-16 md:py-20">
+          {/* Deserto do Marrocos escurecido: o véu garante o contraste do
+              título qualquer que seja a foto. */}
+          <Image
+            src="/images/home/jornadas-deserto.jpg"
+            alt=""
+            fill
+            sizes="100vw"
+            quality={85}
+            className="-z-20 object-cover object-center"
+          />
+          <div aria-hidden="true" className="absolute inset-0 -z-10 bg-[linear-gradient(180deg,rgba(24,10,30,0.82)_0%,rgba(30,12,22,0.72)_50%,rgba(24,10,30,0.86)_100%)]" />
           <div className="container-wide">
             <div className="mb-8 text-center">
-              <p className="mx-auto mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-secondary-500">
+              <p className="mx-auto mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-secondary-300">
                 Nossas Jornadas
               </p>
-              <h2 className="mx-auto max-w-2xl font-heading text-4xl text-primary-700 md:text-5xl">
+              <h2 className="mx-auto max-w-2xl font-heading text-4xl text-warm-white md:text-5xl">
                 Conheça nossas jornadas
               </h2>
             </div>

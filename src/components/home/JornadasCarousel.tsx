@@ -87,7 +87,7 @@ export function JornadasCarousel({ experiencias }: Props) {
       </div>
 
       {experiencias.length > 1 && (
-        <p className="mt-2 text-center text-xs text-text-muted md:hidden">
+        <p className="mt-2 text-center text-xs text-warm-white/70 md:hidden">
           Deslize para o lado para ver outras jornadas
         </p>
       )}
