@@ -6,7 +6,7 @@ const faixas = [
   {
     titulo: "Caminho de Maria Madalena",
     texto: "Embarque em uma jornada transcendental pelas trilhas sagradas do Caminho de Maria Madalena, onde cada passo é uma dança entre o divino e o terreno. Descubra os segredos ancestrais que sussurram nas brisas das paisagens místicas. Neste roteiro de transformação espiritual, o Caminho de Maria Madalena tornam-se entrada para uma imersão interior profunda. Desperte seu espírito, abrace a jornada, e permita que os sentimentos despertos guiem seu caminho para a autodescoberta.",
-    imagem: "/images/tematicos/maria-madalena-rosas-original.avif",
+    imagem: "/images/tematicos/maria-madalena-rosas-faixa.webp",
     destino: "/experiencias/caminho-de-maria-madalena",
     fundo: "bg-[#260408]",
     gradiente: "bg-gradient-to-r from-[#140204]/90 via-[#26050a]/60 to-transparent",
@@ -15,7 +15,7 @@ const faixas = [
   {
     titulo: "Jornada Espiritual Tailândia",
     texto: "Viajar para a Tailândia significa vivenciar os sentimentos de felicidade e tranquilidade em seus estados mais puros. A Terra dos Sorrisos, como o país é conhecido, é guiada de acordo com o lema budista: sanuk sabai e saduak (seja feliz, fique tranquilo e contente-se com aquilo que a vida te oferece).",
-    imagem: "/images/tematicos/tailandia-buda.webp",
+    imagem: "/images/tematicos/tailandia-buda-faixa.webp",
     destino: "/experiencias/tailandia-iluminada",
     lado: "esquerda",
     fundo: "bg-[#825020]",
@@ -25,7 +25,7 @@ const faixas = [
   {
     titulo: "Jornada Egito Espiritual",
     texto: "Um passeio para acessar os seis sentidos. Assim é o pacote que nós desenhamos especialmente para aqueles que, além de realizar o sonho de conhecer o Egito, querem desfrutar das sensações que a energia egípcia emana de sua espiritualidade latente e misteriosa.",
-    imagem: "/images/destinations/egito.jpg",
+    imagem: "/images/tematicos/egito-piramides-cairo.jpg",
     destino: "/destinos/egito",
     lado: "esquerda",
     fundo: "bg-[#825020]",
