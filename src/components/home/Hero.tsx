@@ -38,8 +38,8 @@ const PILARES = [
   {
     titulo: "Jornadas de Alma",
     descricao: "Experiências que despertam sentidos, emoções e novos significados.",
-    imagem: "https://images.unsplash.com/photo-1758797315487-b3b225dff7d8?auto=format&fit=crop&w=1000&q=85",
-    alt: "Participantes em uma vivência de yoga ao ar livre em Rishikesh, Índia",
+    imagem: "/images/home/circulo-de-vivencia.webp",
+    alt: "Grupo sentado em círculo numa vivência com música, sob um telhado de palha",
   },
   {
     titulo: "Autoconhecimento",
