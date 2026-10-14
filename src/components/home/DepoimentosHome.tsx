@@ -17,9 +17,9 @@ export function DepoimentosHome({ depoimentos }: { depoimentos: Testimonial[] })
         : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3";
 
   return (
-    <section aria-labelledby="titulo-depoimentos" className="relative overflow-hidden bg-[#f8f4f8] py-24 md:py-32">
-      <div aria-hidden="true" className="pointer-events-none absolute -right-28 -top-36 h-[26rem] w-[26rem] rounded-full bg-primary-100/45 blur-3xl" />
-      <div aria-hidden="true" className="pointer-events-none absolute -bottom-40 -left-24 h-[25rem] w-[25rem] rounded-full bg-secondary-100/30 blur-3xl" />
+    <section aria-labelledby="titulo-depoimentos" className="relative isolate overflow-hidden bg-[linear-gradient(180deg,#f3e9d6_0%,#efe1e4_45%,#e6d8ee_100%)] py-24 md:py-32">
+      <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-32 h-[30rem] w-[30rem] rounded-full bg-primary-300/30 blur-3xl" />
+      <div aria-hidden="true" className="pointer-events-none absolute -bottom-32 -left-24 h-[30rem] w-[30rem] rounded-full bg-secondary-300/35 blur-3xl" />
 
       <div className="container-wide relative">
         <div className="mb-12 text-center md:mb-16">
@@ -45,7 +45,7 @@ export function DepoimentosHome({ depoimentos }: { depoimentos: Testimonial[] })
             const inicial = depoimento.name.trim().charAt(0).toLocaleUpperCase("pt-BR");
 
             return (
-              <li key={depoimento.id} className="flex h-full flex-col rounded-[22px] border border-primary-100/80 bg-surface p-7 shadow-[0_10px_34px_rgba(51,14,65,0.045)] md:p-9">
+              <li key={depoimento.id} className="relative flex h-full flex-col overflow-hidden rounded-[22px] border border-secondary-300/40 bg-[#fffaf2] p-7 shadow-[0_18px_46px_rgba(70,24,80,0.14)] before:absolute before:inset-x-0 before:top-0 before:h-1 before:bg-gradient-to-r before:from-secondary-300 before:via-secondary-200 before:to-primary-400 md:p-9">
                 <div className="mb-6 flex items-start justify-between gap-4">
                   <span aria-hidden="true" className="font-heading text-6xl leading-[0.75] text-secondary-300">“</span>
                   {nota !== null && (
