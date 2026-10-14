@@ -17,6 +17,8 @@ import Image from "next/image";
 import { listarParaFacilitadores } from "@/lib/dal/experiences";
 import { Capa, Chapeu, Faixa, Grade, TituloDeSecao } from "@/components/templates/blocos";
 import { Parceria } from "@/components/templates/funil";
+import { Surge } from "@/components/ui/Surge";
+import { FaixaDeFotos, type FotoDaFaixa } from "@/components/ui/FaixaDeFotos";
 import { JsonLd } from "@/components/seo/JsonLd";
 import * as schema from "@/lib/seo/dadosEstruturados";
 import { linkWhatsApp, t, podeOtimizar } from "@/lib/utils";
@@ -36,6 +38,41 @@ export const metadata: Metadata = {
 };
 
 export const revalidate = 3600;
+
+/** Fotos da NeoSenses, em arquivos próprios (ver public/images/b2b/ORIGEM.md). */
+const FOTOS_DA_FAIXA: FotoDaFaixa[] = [
+  { src: "/images/b2b/peru-montanhas-coloridas.jpg", alt: "Montanha das Sete Cores, no Peru" },
+  { src: "/images/b2b/marrocos-gnaoua.jpg", alt: "Viajantes descansando nas dunas do Marrocos" },
+  { src: "/images/b2b/amazonas-cta.jpg", alt: "Grupo num barco ao entardecer, na Amazônia" },
+  { src: "/images/b2b/marrocos-todra.jpg", alt: "Cidadela de barro no Marrocos ao entardecer" },
+  { src: "/images/b2b/peru-humantay.jpg", alt: "Lagoa turquesa cercada de montanhas, no Peru" },
+  { src: "/images/b2b/amazonas-trilha.jpg", alt: "Grupo reunido na floresta amazônica" },
+  { src: "/images/b2b/marrocos-souk.jpg", alt: "Praça movimentada em Marrakech ao pôr do sol" },
+  { src: "/images/b2b/amazonas-hero-canoas.jpg", alt: "Canoas com viajantes remando num rio da Amazônia" },
+];
+
+const MOMENTOS = [
+  {
+    src: "/images/b2b/peru-xama.jpg",
+    alt: "Facilitadora e parceiro local numa vivência no Peru",
+    legenda: "Rituais conduzidos com parceiros locais",
+  },
+  {
+    src: "/images/b2b/peru-cerimonia.jpg",
+    alt: "Conversa e cerimônia diante de uma rocha sagrada, no Peru",
+    legenda: "A sabedoria do território, no tempo certo",
+  },
+  {
+    src: "/images/b2b/amazonas-trilha.jpg",
+    alt: "Grupo reunido e sorrindo na floresta amazônica",
+    legenda: "O grupo inteiro, sem pressa",
+  },
+  {
+    src: "/images/b2b/amazonas-porsol-flutuante.jpg",
+    alt: "Viajantes assistindo ao pôr do sol à beira do rio",
+    legenda: "Fim de tarde, rio e silêncio",
+  },
+];
 
 const MENSAGEM =
   "Olá! Sou terapeuta/facilitadora e quero levar meu grupo numa jornada. Podemos agendar uma conversa?";
@@ -174,20 +211,25 @@ export default async function ParaFacilitadoresPage() {
 
       <Faixa fundo="areia" largura="content">
         <TituloDeSecao chapeu="A proposta" titulo="A parceira estratégica do seu projeto" />
-        <div className="mt-8 space-y-5">
+        <Surge className="mt-8 space-y-5">
           <p className="max-w-[68ch] leading-relaxed text-text-primary/85">
             Sabemos que organizar uma imersão ou viagem exige tempo, planejamento impecável
             e gestão de riscos. A NeoSenses é a parceira estratégica de terapeutas, mentores
             e facilitadores que desejam realizar seus projetos sem se preocupar com reservas,
             passagens, hospedagens energeticamente alinhadas ou burocracias operacionais.
           </p>
-        </div>
+        </Surge>
       </Faixa>
+
+      <section aria-label="Território em imagens" className="overflow-hidden bg-warm-white py-8 md:py-12">
+        <FaixaDeFotos fotos={FOTOS_DA_FAIXA} />
+      </section>
 
       <section className="bg-warm-white py-6 md:py-10">
         <div className="container-wide">
           <div className="grid gap-4 md:grid-cols-[1.35fr_0.85fr]">
-            <figure className="group relative min-h-[360px] overflow-hidden rounded-[26px] md:min-h-[560px]">
+            <Surge className="relative min-h-[360px] overflow-hidden rounded-[26px] md:min-h-[560px]">
+            <figure className="group absolute inset-0">
               <Image
                 src="/images/b2b/peru-machu-picchu.jpg"
                 alt="Machu Picchu, um dos territórios onde a NeoSenses desenvolve jornadas para grupos"
@@ -205,9 +247,11 @@ export default async function ParaFacilitadoresPage() {
                 </p>
               </figcaption>
             </figure>
+            </Surge>
 
             <div className="grid gap-4">
-              <figure className="group relative min-h-[260px] overflow-hidden rounded-[26px]">
+              <Surge atraso={0.12} className="relative min-h-[260px] overflow-hidden rounded-[26px]">
+              <figure className="group absolute inset-0">
                 <Image
                   src="/images/b2b/marrocos-deserto.jpg"
                   alt="Deserto do Marrocos"
@@ -221,8 +265,10 @@ export default async function ParaFacilitadoresPage() {
                   <p className="mt-1 text-sm text-warm-white/80">Travessias, silêncio e presença.</p>
                 </figcaption>
               </figure>
+              </Surge>
 
-              <figure className="group relative min-h-[260px] overflow-hidden rounded-[26px]">
+              <Surge atraso={0.24} className="relative min-h-[260px] overflow-hidden rounded-[26px]">
+              <figure className="group absolute inset-0">
                 <Image
                   src="/images/b2b/amazonas-hero-lago.jpg"
                   alt="Paisagem amazônica"
@@ -236,6 +282,7 @@ export default async function ParaFacilitadoresPage() {
                   <p className="mt-1 text-sm text-warm-white/80">Natureza, ancestralidade e reconexão.</p>
                 </figcaption>
               </figure>
+              </Surge>
             </div>
           </div>
         </div>
@@ -251,7 +298,7 @@ export default async function ParaFacilitadoresPage() {
           titulo="Quatro frentes que saem das suas mãos"
           fundo="clara"
         />
-        <div className="mt-12 grid items-stretch gap-8 overflow-hidden rounded-[28px] border border-primary-100 bg-warm-white lg:grid-cols-[0.9fr_1.1fr]">
+        <Surge className="mt-12 grid items-stretch gap-8 overflow-hidden rounded-[28px] border border-primary-100 bg-warm-white lg:grid-cols-[0.9fr_1.1fr]">
           <div className="relative min-h-[320px] lg:min-h-[460px]">
             <Image
               src="https://cdn.openart.ai/openart-uploads/production/attachment-transfers/d2efb638a4bb7d5581aad932c55439d150ccbf887c191c939171bffdfdaea9ae.jpg"
@@ -272,12 +319,14 @@ export default async function ParaFacilitadoresPage() {
               continue sendo o centro da experiência.
             </p>
           </div>
-        </div>
+        </Surge>
 
         <ol className="mt-14 space-y-px">
           {BENEFICIOS.map((b, i) => (
-            <li
+            <Surge
+              as="li"
               key={b.titulo}
+              atraso={Math.min(i, 3) * 0.08}
               className="grid gap-4 border-t border-border py-8 md:grid-cols-[auto_1fr] md:gap-10"
             >
               <span
@@ -306,9 +355,27 @@ export default async function ParaFacilitadoresPage() {
                   </ul>
                 )}
               </div>
-            </li>
+            </Surge>
           ))}
         </ol>
+
+        <ul className="mt-14 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
+          {MOMENTOS.map((m, i) => (
+            <Surge as="li" key={m.src} atraso={i * 0.08} className="group relative aspect-[3/4] overflow-hidden rounded-2xl">
+              <Image
+                src={m.src}
+                alt={m.alt}
+                fill
+                sizes="(min-width: 768px) 25vw, 50vw"
+                className="object-cover transition-transform duration-700 group-hover:scale-[1.06]"
+              />
+              <div aria-hidden="true" className="absolute inset-0 bg-gradient-to-t from-primary-900/75 via-transparent to-transparent" />
+              <p className="absolute inset-x-0 bottom-0 p-4 font-heading text-base leading-snug text-warm-white md:p-5 md:text-lg">
+                {m.legenda}
+              </p>
+            </Surge>
+          ))}
+        </ul>
       </Faixa>
 
       <Parceria
@@ -425,8 +492,9 @@ export default async function ParaFacilitadoresPage() {
               q: "Como funciona a parte financeira?",
               a: "Isso é conversado direto com a consultora, caso a caso, depende do território, do tamanho do grupo e do formato da jornada.",
             },
-          ].map((item) => (
-            <details key={item.q} className="group rounded-xl border border-border bg-warm-white px-6 py-5">
+          ].map((item, i) => (
+            <Surge key={item.q} atraso={i * 0.05}>
+            <details className="group rounded-xl border border-border bg-warm-white px-6 py-5">
               <summary className="flex cursor-pointer items-center justify-between gap-4 font-medium text-primary-700 marker:content-['']">
                 {item.q}
                 <span
@@ -438,12 +506,23 @@ export default async function ParaFacilitadoresPage() {
               </summary>
               <p className="mt-4 max-w-[68ch] leading-relaxed text-text-muted">{item.a}</p>
             </details>
+            </Surge>
           ))}
         </div>
       </Faixa>
 
-      <section className="relative overflow-hidden bg-forest-700 py-24 md:py-28">
-        <div className="container-content relative z-10 text-center">
+      <section className="relative isolate overflow-hidden bg-forest-700 py-24 md:py-32">
+        <div aria-hidden="true" className="absolute inset-0 -z-10 overflow-hidden">
+          <Image
+            src="/images/b2b/marrocos-final.jpg"
+            alt=""
+            fill
+            sizes="100vw"
+            className="zoom-lento object-cover object-center"
+          />
+          <div className="absolute inset-0 bg-forest-700/70" />
+        </div>
+        <Surge className="container-content relative z-10 text-center">
           <Chapeu escuro className="mb-5">
             O convite
           </Chapeu>
@@ -467,7 +546,7 @@ export default async function ParaFacilitadoresPage() {
               Enviar uma mensagem
             </Link>
           </div>
-        </div>
+        </Surge>
       </section>
     </>
   );
