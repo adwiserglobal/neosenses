@@ -6,6 +6,12 @@ import type { AIProviderConfig, AIResponse, ChatMessage } from "@/lib/ai/provide
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
+// Teto somado de todas as tentativas. Antes, cada provedor tinha o seu prazo e a
+// soma passava de 60 s: a Vercel derrubava a função no meio e o painel recebia
+// uma página de erro em HTML, não o JSON que esperava.
+const ORCAMENTO_TOTAL_MS = 52_000;
+const FOLGA_MINIMA_MS = 4_000;
+
 type RespostaRedacao = { titulo: string; resumo: string; texto: string };
 
 function analisarResposta(texto: string, tema: string): RespostaRedacao {
@@ -78,7 +84,8 @@ Entregue o artigo diretamente em Markdown, sem JSON.
 A primeira linha deve ser "# Título do artigo". Em seguida escreva uma introdução curta.
 Use ## para 3 seções, parágrafos de 2 a 4 frases e listas com - apenas quando forem úteis.
 Não escreva HTML nem cercas de código.
-Tamanho desejado: 220 a 300 palavras. Seja objetiva, natural e evite repetições.`;
+Tamanho desejado: 220 a 300 palavras. Seja objetiva, natural e evite repetições.
+Termine sempre o artigo com uma frase de fechamento completa.`;
 
   const pedido = modo === "revisar"
     ? `Revise e melhore o texto preservando fatos, intenção e voz original.
@@ -159,10 +166,18 @@ Direção editorial ou informações fornecidas pela equipe: ${orientacoes || "S
   }
 
   const tentativas: Array<{ provedor: string; modelo: string; erro: string }> = [];
+  const inicioGeral = Date.now();
+  let respostaIncompleta = false;
 
   let falha: AIError | null = null;
   for (let tentativa = 0; tentativa < alternativas.length; tentativa++) {
-    const { config, tempo } = alternativas[tentativa];
+    const restante = ORCAMENTO_TOTAL_MS - (Date.now() - inicioGeral);
+    if (restante < FOLGA_MINIMA_MS) {
+      falha = falha ?? new AIError("AI_TIMEOUT", "orçamento de tempo esgotado");
+      break;
+    }
+    const { config } = alternativas[tentativa];
+    const tempo = Math.min(alternativas[tentativa].tempo, restante);
     // Limites da conta, bloqueios e chave inválida não são curados por
     // repetir a mesma chamada ao mesmo provedor.
     if (
@@ -174,7 +189,9 @@ Direção editorial ou informações fornecidas pela equipe: ${orientacoes || "S
 
     try {
       const resposta: AIResponse = await generateAIResponse(messages, config, {
-        maxTokens: 800,
+        // Folgado de propósito: o raciocínio interno dos modelos sai do mesmo
+        // orçamento, e 800 cortava o artigo no meio ("resposta incompleta").
+        maxTokens: 2048,
         temperature: 0.45,
         timeoutMs: tempo,
         json: false,
@@ -194,6 +211,7 @@ Direção editorial ou informações fornecidas pela equipe: ${orientacoes || "S
         },
       });
     } catch (err) {
+      if (!(err instanceof AIError)) respostaIncompleta = true;
       falha = err instanceof AIError
         ? err
         : new AIError("AI_PROVIDER_ERROR", err instanceof Error ? err.message : "resposta inválida");
@@ -223,7 +241,9 @@ Direção editorial ou informações fornecidas pela equipe: ${orientacoes || "S
             ? "A solicitação foi bloqueada pelo provedor. Reformule a instrução."
             : codigo === "AI_UNSUPPORTED_MODEL"
               ? "O modelo configurado não está disponível. Altere-o no Vercel."
-              : "Os modelos de IA estão indisponíveis. Tente novamente em instantes.";
+              : respostaIncompleta
+                ? "A IA devolveu um texto incompleto. Tente de novo; se persistir, descreva o assunto com menos detalhes."
+                : "Os modelos de IA estão indisponíveis. Tente novamente em instantes.";
   const resumoTentativas = tentativas
     .map((item) => `${item.provedor} (${item.erro.replace("AI_", "").toLowerCase()})`)
     .join(", ");

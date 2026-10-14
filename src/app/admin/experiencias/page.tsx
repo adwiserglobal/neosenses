@@ -327,7 +327,7 @@ export default async function ListaExperiencias() {
             <p className="text-[10px] font-semibold uppercase tracking-[0.2em] text-[#f2cd70]">
               Catálogo
             </p>
-            <h1 className="mt-2 font-heading text-3xl md:text-4xl">Experiências</h1>
+            <h1 className="mt-2 font-heading text-3xl text-white md:text-4xl">Experiências</h1>
             <p className="mt-2 text-sm text-white/65">
               {itens.length} cadastrada{itens.length === 1 ? "" : "s"} · {publicadas.length} no ar · {rascunhos.length} rascunho{rascunhos.length === 1 ? "" : "s"}
             </p>

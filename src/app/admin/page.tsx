@@ -126,7 +126,7 @@ export default async function PaginaAdmin() {
             <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#f2cd70]">
               Visão geral
             </p>
-            <h1 className="mt-3 max-w-xl font-heading text-3xl leading-tight md:text-4xl">
+            <h1 className="mt-3 max-w-xl font-heading text-3xl leading-tight text-white md:text-4xl">
               O que está acontecendo na NeoSenses agora
             </h1>
             <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/65">

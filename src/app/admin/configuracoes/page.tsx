@@ -56,7 +56,7 @@ export default async function ConfiguracoesPage() {
             <p className="text-[10px] font-semibold uppercase tracking-[0.22em] text-[#f2ce72]">
               Configurações do site
             </p>
-            <h1 className="mt-3 max-w-2xl font-heading text-3xl leading-tight md:text-4xl">
+            <h1 className="mt-3 max-w-2xl font-heading text-3xl leading-tight text-white md:text-4xl">
               Dados institucionais da NeoSenses
             </h1>
             <p className="mt-3 max-w-2xl text-sm leading-relaxed text-white/68 md:text-base">

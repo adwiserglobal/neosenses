@@ -4,7 +4,8 @@ import { useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { CorpoArtigo } from "@/components/blog/CorpoArtigo";
-import { excluirArtigoBlog, salvarArtigoBlog } from "@/lib/actions/blog";
+import { excluirArtigoBlog, prepararUploadImagemBlog, salvarArtigoBlog } from "@/lib/actions/blog";
+import { createClient } from "@/lib/supabase/client";
 import { t } from "@/lib/utils";
 import type { BlogPost, I18nField } from "@/types/models";
 
@@ -36,24 +37,41 @@ export function EditorBlog({ artigo, categorias, podeExcluir = false }: Props) {
   const [ocupado, setOcupado] = useState("");
   const [erro, setErro] = useState("");
   const [aviso, setAviso] = useState("");
+  // Confirmação dentro da página: window.confirm é bloqueado por alguns
+  // navegadores ("impedir novas caixas de diálogo") e então nada acontecia.
+  const [confirmar, setConfirmar] = useState<null | "publicar" | "substituir">(null);
   const capaRef = useRef<HTMLInputElement>(null);
   const corpoRef = useRef<HTMLInputElement>(null);
   const textoRef = useRef<HTMLTextAreaElement>(null);
 
-  async function redigir(modo: "criar" | "revisar") {
+  async function redigir(modo: "criar" | "revisar", jaConfirmado = false) {
     if (modo === "criar" && tema.trim().length < 5) return setErro("Descreva o assunto para a redatora.");
     if (modo === "revisar" && conteudo.trim().length < 20) return setErro("Escreva um texto antes de pedir uma revisão.");
-    if (modo === "criar" && conteudo.trim() && !window.confirm("Substituir o texto atual pelo novo rascunho da IA?")) return;
+    if (modo === "criar" && conteudo.trim() && !jaConfirmado) {
+      setErro(""); setAviso(""); setConfirmar("substituir");
+      return;
+    }
+    setConfirmar(null);
     setErro(""); setAviso(""); setOcupado("ia");
     try {
       const response = await fetch("/api/admin/blog/redigir", {
         method: "POST", headers: { "Content-Type": "application/json" },
+        signal: AbortSignal.timeout(65_000),
         body: JSON.stringify({
           modo, tema, orientacoes, textoAtual: modo === "revisar" ? conteudo : "",
           tituloAtual: titulo,
         }),
       });
-      const data = await response.json() as ResultadoIA & { error?: string; providersTried?: string };
+      // Se o servidor estourar o tempo, a resposta é uma página de erro em HTML,
+      // não JSON: lê como texto antes, para dar uma mensagem que se entenda.
+      const bruto = await response.text();
+      let data: ResultadoIA & { error?: string; providersTried?: string };
+      try { data = JSON.parse(bruto); }
+      catch {
+        throw new Error(response.status === 504 || response.status === 502
+          ? "A IA demorou demais para responder. Tente de novo."
+          : "O servidor devolveu uma resposta inesperada. Tente de novo em instantes.");
+      }
       if (!response.ok) {
         const detalhe = data.providersTried ? ` Provedores tentados: ${data.providersTried}.` : "";
         throw new Error((data.error || "Não foi possível gerar o artigo.") + detalhe);
@@ -65,7 +83,9 @@ export function EditorBlog({ artigo, categorias, podeExcluir = false }: Props) {
       setPrevia(false);
       setAviso("Rascunho pronto. Revise os fatos e a redação antes de publicar.");
     } catch (e) {
-      setErro(e instanceof Error ? e.message : "Erro ao chamar a redatora.");
+      setErro(e instanceof Error && e.name === "TimeoutError"
+        ? "A IA demorou demais para responder. Tente de novo."
+        : e instanceof Error ? e.message : "Erro ao chamar a redatora.");
     } finally { setOcupado(""); }
   }
 
@@ -76,11 +96,16 @@ export function EditorBlog({ artigo, categorias, podeExcluir = false }: Props) {
     }
     setErro(""); setAviso(""); setOcupado(destino);
     try {
-      const form = new FormData();
-      form.append("file", file);
-      const response = await fetch("/api/admin/blog/imagem", { method: "POST", body: form });
-      const data = await response.json() as { url?: string; error?: string };
-      if (!response.ok || !data.url) throw new Error(data.error || "O envio falhou.");
+      // Envio direto ao Storage por URL assinada: o arquivo não passa pelo
+      // servidor, que na Vercel recusa corpo acima de 4,5 MB.
+      const preparo = await prepararUploadImagemBlog(file.name, file.type, file.size);
+      if (!preparo.success || !preparo.bucket || !preparo.path || !preparo.token || !preparo.url)
+        throw new Error(preparo.error || "Não foi possível preparar o envio da imagem.");
+      const envio = await createClient().storage
+        .from(preparo.bucket)
+        .uploadToSignedUrl(preparo.path, preparo.token, file, { contentType: file.type, cacheControl: "31536000" });
+      if (envio.error) throw new Error("O envio da imagem falhou. Tente novamente.");
+      const data = { url: preparo.url };
       if (destino === "capa") {
         setCapa(data.url);
         setAviso("Imagem de capa enviada.");
@@ -101,14 +126,17 @@ export function EditorBlog({ artigo, categorias, podeExcluir = false }: Props) {
     }
   }
 
-  async function salvar(status: "draft" | "published" | "archived") {
+  async function salvar(status: "draft" | "published" | "archived", jaConfirmado = false) {
     setErro(""); setAviso("");
-    if (!titulo.trim()) return setErro("Informe o título.");
+    if (titulo.trim().length < 5) return setErro("Informe um título com pelo menos 5 caracteres.");
     if (status === "published") {
-      if (resumo.trim().length < 20 || conteudo.trim().length < 150)
-        return setErro("Antes de publicar, informe um resumo e revise o conteúdo completo.");
-      if (!window.confirm("Você revisou os dados e autoriza a publicação deste artigo?")) return;
+      const faltas: string[] = [];
+      if (resumo.trim().length < 20) faltas.push(`o resumo (${resumo.trim().length} de 20 caracteres)`);
+      if (conteudo.trim().length < 150) faltas.push(`o texto completo (${conteudo.trim().length} de 150 caracteres)`);
+      if (faltas.length) return setErro(`Para publicar, complete ${faltas.join(" e ")}.`);
+      if (!jaConfirmado) { setConfirmar("publicar"); return; }
     }
+    setConfirmar(null);
     setOcupado("salvar");
     const form = new FormData();
     if (artigo?.id) form.set("id", artigo.id);
@@ -128,8 +156,8 @@ export function EditorBlog({ artigo, categorias, podeExcluir = false }: Props) {
       setSituacao(status);
       if (r.slug) setSlug(r.slug);
       setAviso(status === "published"
-        ? "Artigo publicado! Ele já pode aparecer no blog público."
-        : "Artigo salvo com sucesso.");
+        ? `Artigo publicado! Ele já está no blog${r.slug ? `: /blog/${r.slug}` : ""}.`
+        : status === "archived" ? "Artigo retirado do ar." : "Rascunho salvo.");
       if (!artigo?.id && r.id) router.push(`/admin/blog/${r.id}`);
       router.refresh();
     } catch (e) { setErro(e instanceof Error ? e.message : "Falha ao salvar."); }
@@ -162,6 +190,26 @@ export function EditorBlog({ artigo, categorias, podeExcluir = false }: Props) {
         </span>
       </div>
 
+      {confirmar && (
+        <div role="alertdialog" className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-secondary-300 bg-secondary-50 p-4 text-sm text-primary-700">
+          <p>
+            {confirmar === "publicar"
+              ? "Você revisou os fatos e autoriza a publicação deste artigo?"
+              : "Substituir o texto atual pelo novo rascunho da IA?"}
+          </p>
+          <div className="flex gap-3">
+            <button type="button" onClick={() => setConfirmar(null)}
+              className="rounded-lg border border-primary-700 px-4 py-2 text-xs font-semibold text-primary-700">
+              Cancelar
+            </button>
+            <button type="button"
+              onClick={() => (confirmar === "publicar" ? salvar("published", true) : redigir("criar", true))}
+              className="rounded-lg bg-primary-700 px-4 py-2 text-xs font-semibold text-white hover:bg-primary-800">
+              {confirmar === "publicar" ? "Sim, publicar" : "Sim, substituir"}
+            </button>
+          </div>
+        </div>
+      )}
       {erro && <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">{erro}</div>}
       {aviso && <div role="status" className="rounded-lg border border-secondary-300 bg-secondary-50 p-4 text-sm text-primary-700">{aviso}</div>}
 

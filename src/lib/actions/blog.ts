@@ -24,6 +24,62 @@ function validarImagem(value: string): boolean {
   catch { return false; }
 }
 
+const BUCKET_IMAGENS_BLOG = "blog-images";
+const TIPOS_IMAGEM_BLOG = new Set(["image/jpeg", "image/png", "image/webp"]);
+const LIMITE_IMAGEM_BLOG = 8 * 1024 * 1024;
+
+/**
+ * Prepara o envio direto da imagem do navegador para o Storage.
+ *
+ * Antes a foto passava pela função do servidor, e a Vercel recusa corpo de
+ * requisição acima de 4,5 MB: fotos de celular (comuns em 5 a 8 MB) falhavam
+ * com uma página de erro. Com a URL assinada o arquivo não passa pelo servidor.
+ */
+export async function prepararUploadImagemBlog(
+  nome: string,
+  tipo: string,
+  tamanho: number
+): Promise<{ success: boolean; error?: string; bucket?: string; path?: string; token?: string; url?: string }> {
+  const perfil = await exigirPapel(["admin", "editor"]);
+
+  if (!TIPOS_IMAGEM_BLOG.has(tipo)) return { success: false, error: "Use uma imagem JPG, PNG ou WebP." };
+  if (!Number.isFinite(tamanho) || tamanho <= 0 || tamanho > LIMITE_IMAGEM_BLOG)
+    return { success: false, error: "A imagem precisa ter no máximo 8 MB." };
+
+  let admin;
+  try { admin = createAdminClient(); }
+  catch { return { success: false, error: "Configure o Supabase do painel." }; }
+
+  const { data: existente } = await admin.storage.getBucket(BUCKET_IMAGENS_BLOG);
+  if (!existente) {
+    const { error } = await admin.storage.createBucket(BUCKET_IMAGENS_BLOG, {
+      public: true,
+      fileSizeLimit: LIMITE_IMAGEM_BLOG,
+      allowedMimeTypes: Array.from(TIPOS_IMAGEM_BLOG),
+    });
+    if (error && !/already|exist|duplicate/i.test(error.message)) {
+      console.error("[blog] criar bucket:", error.message);
+      return { success: false, error: "Não foi possível preparar a biblioteca de imagens." };
+    }
+  }
+
+  const extensao = tipo === "image/png" ? "png" : tipo === "image/webp" ? "webp" : "jpg";
+  const caminho = `${perfil.id}/${crypto.randomUUID()}.${extensao}`;
+  const assinatura = await admin.storage.from(BUCKET_IMAGENS_BLOG).createSignedUploadUrl(caminho);
+  if (assinatura.error || !assinatura.data) {
+    console.error("[blog] assinar upload:", assinatura.error?.message);
+    return { success: false, error: "Não foi possível preparar o envio da imagem." };
+  }
+
+  return {
+    success: true,
+    bucket: BUCKET_IMAGENS_BLOG,
+    path: caminho,
+    token: assinatura.data.token,
+    url: admin.storage.from(BUCKET_IMAGENS_BLOG).getPublicUrl(caminho).data.publicUrl,
+  };
+}
+
 export async function salvarArtigoBlog(form: FormData): Promise<ResultadoBlog> {
   const perfil = await exigirPapel(["admin", "editor"]);
   let supabase;
@@ -85,8 +141,14 @@ export async function salvarArtigoBlog(form: FormData): Promise<ResultadoBlog> {
     : supabase.from("blog_posts").insert(registro as never).select("id").single();
   const { data, error } = await gravar;
   if (error || !data) {
-    console.error("[blog] salvar artigo:", error?.message);
-    return { success: false, error: "Não foi possível salvar o artigo. Confira a conexão com o banco." };
+    console.error("[blog] salvar artigo:", error?.message, error?.details);
+    const falhaDeEsquema = /column|schema cache|does not exist/i.test(error?.message ?? "");
+    return {
+      success: false,
+      error: falhaDeEsquema
+        ? "O banco está desatualizado em relação ao painel (falta aplicar as migrations). Avise quem cuida do Supabase."
+        : `Não foi possível salvar o artigo${error?.message ? `: ${error.message}` : ". Confira a conexão com o banco."}`,
+    };
   }
 
   // Rastro de geração é opcional: a edição não depende da migration 018.
