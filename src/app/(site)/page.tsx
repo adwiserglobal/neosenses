@@ -90,7 +90,7 @@ export default async function HomePage() {
           Fica depois das jornadas e antes dos depoimentos, quem conduz
           grupo precisa ver o catálogo primeiro para entender o que a
           NeoSenses opera, e só então o convite faz sentido. */}
-      <ConviteAoFacilitador />
+      <ConviteAoFacilitador claro />
 
       {/* Só aparece com depoimentos realmente publicados, sempre imediatamente
           antes do convite final. Rascunhos e arquivados nunca entram aqui. */}

@@ -199,9 +199,21 @@ export function Fechamento({
  * lendo como cliente e pensando como facilitador, e hoje não encontrava
  * nenhuma porta.
  */
-export function ConviteAoFacilitador({ imagem }: { imagem?: string | null }) {
+export function ConviteAoFacilitador({
+  imagem,
+  claro = false,
+}: {
+  imagem?: string | null;
+  /** Versão areia, para páginas cuja seção vizinha já é escura (a home). */
+  claro?: boolean;
+}) {
+  const sobreClaro = claro && !imagem;
   return (
-    <section className={`relative overflow-hidden ${imagem ? "bg-forest-800" : "bg-forest-700"}`}>
+    <section
+      className={`relative overflow-hidden ${
+        sobreClaro ? "bg-[#f5eddf]" : imagem ? "bg-forest-800" : "bg-forest-700"
+      }`}
+    >
       {imagem && (
         <>
           <Image
@@ -220,23 +232,23 @@ export function ConviteAoFacilitador({ imagem }: { imagem?: string | null }) {
       <div className="container-wide relative z-10 py-20 md:py-24">
         <div className="grid items-center gap-10 lg:grid-cols-[1.15fr_auto]">
           <div>
-            <Chapeu escuro comRisco className="mb-5">
+            <Chapeu escuro={!sobreClaro} comRisco className="mb-5">
               Para quem conduz
             </Chapeu>
-            <h2 className="max-w-2xl font-heading text-3xl text-warm-white md:text-4xl">
+            <h2 className={`max-w-2xl font-heading text-3xl md:text-4xl ${sobreClaro ? "text-primary-700" : "text-warm-white"}`}>
               Seu grupo já confia em você. Falta o lugar à altura do trabalho.
             </h2>
-            <p className="mt-5 max-w-[62ch] text-lg leading-relaxed text-warm-white/80">
+            <p className={`mt-5 max-w-[62ch] text-lg leading-relaxed ${sobreClaro ? "text-text-muted" : "text-warm-white/80"}`}>
               Você conduz há anos, na sala, no círculo, na mesa de reiki. Já viu o
               que acontece quando alguém se permite. Agora imagine esse mesmo grupo
               num lugar onde a montanha faz metade do trabalho por você.
             </p>
-            <p className="mt-4 max-w-[62ch] leading-relaxed text-warm-white/80">
+            <p className={`mt-4 max-w-[62ch] leading-relaxed ${sobreClaro ? "text-text-muted" : "text-warm-white/80"}`}>
               O que trava não é a vontade: é a logística. Passagem, hospedagem, guia,
               seguro, o imprevisto às onze da noite num país que não é o seu. Essa
               parte é nossa, para que a sua parte continue sendo a sua.
             </p>
-            <p className="mt-4 max-w-[62ch] leading-relaxed text-warm-white/65">
+            <p className={`mt-4 max-w-[62ch] leading-relaxed ${sobreClaro ? "text-text-muted/85" : "text-warm-white/65"}`}>
               Sem pacote pronto e sem data imposta. O roteiro nasce da intenção que
               você já tem para essas pessoas.
             </p>
@@ -252,7 +264,7 @@ export function ConviteAoFacilitador({ imagem }: { imagem?: string | null }) {
               )}
               target="_blank"
               rel="noopener noreferrer"
-              className="btn-secundario btn-secundario-claro w-full"
+              className={`btn-secundario w-full ${sobreClaro ? "" : "btn-secundario-claro"}`}
             >
               Falar com a consultora
             </a>
