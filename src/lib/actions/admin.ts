@@ -240,12 +240,14 @@ export async function salvarExperiencia(dados: FormData): Promise<Resultado> {
     relax_text: null as unknown,
   };
 
+  let publicadaEm: string | null = null;
+
   // Ao editar, lê os valores atuais para não perder as traduções.
   if (id) {
     const { data } = await supabase
       .from("experiences")
       .select(
-        "title, slug, short_description, description, who_is_this_for, hero_kicker, closing_title, closing_text, subtitle, period_label, why_created, value_proposition, relax_text"
+        "title, slug, short_description, description, who_is_this_for, hero_kicker, closing_title, closing_text, subtitle, period_label, why_created, value_proposition, relax_text, published_at"
       )
       .eq("id", id)
       .maybeSingle();
@@ -263,6 +265,7 @@ export async function salvarExperiencia(dados: FormData): Promise<Resultado> {
       campos.why_created = data.why_created;
       campos.value_proposition = data.value_proposition;
       campos.relax_text = data.relax_text;
+      publicadaEm = (data as { published_at?: string | null }).published_at ?? null;
     }
   }
 
@@ -311,8 +314,9 @@ export async function salvarExperiencia(dados: FormData): Promise<Resultado> {
     status,
     is_featured: dados.get("is_featured") === "on",
     sort_order: numeroOuNulo(dados.get("sort_order")) ?? 0,
-    // Carimba a primeira publicação; reeditar não altera a data original.
-    ...(status === "published" ? { published_at: new Date().toISOString() } : {}),
+    // Carimba a primeira publicação; reeditar não altera a data original (antes
+    // cada salvamento sobrescrevia a data e reordenava o catálogo).
+    ...(status === "published" ? { published_at: publicadaEm ?? new Date().toISOString() } : {}),
   };
 
   const resposta = id
@@ -342,6 +346,9 @@ export async function salvarExperiencia(dados: FormData): Promise<Resultado> {
   }
 
   revalidatePath("/experiencias");
+  // O detalhe é estático com revalidate de 1 h: sem isto a edição só aparecia
+  // no site uma hora depois de salva.
+  revalidatePath("/experiencias/[slug]", "page");
   revalidatePath("/admin/experiencias");
   revalidatePath("/");
 
@@ -424,6 +431,9 @@ export async function excluirExperiencia(id: string): Promise<Resultado> {
   }
 
   revalidatePath("/experiencias");
+  // O detalhe é estático com revalidate de 1 h: sem isto a edição só aparecia
+  // no site uma hora depois de salva.
+  revalidatePath("/experiencias/[slug]", "page");
   revalidatePath("/admin/experiencias");
   revalidatePath("/");
   return { success: true };
@@ -435,9 +445,14 @@ export async function alterarSituacao(id: string, status: ExperienceStatus): Pro
   const supabase = conectar();
   if (!supabase) return { success: false, error: SEM_BANCO };
 
+  const { data: atual } = await supabase.from("experiences").select("published_at").eq("id", id).maybeSingle();
+
   const { error } = await supabase
     .from("experiences")
-    .update({ status, ...(status === "published" ? { published_at: new Date().toISOString() } : {}) } as never)
+    .update({
+      status,
+      ...(status === "published" ? { published_at: atual?.published_at ?? new Date().toISOString() } : {}),
+    } as never)
     .eq("id", id);
 
   if (error) {
@@ -446,6 +461,9 @@ export async function alterarSituacao(id: string, status: ExperienceStatus): Pro
   }
 
   revalidatePath("/experiencias");
+  // O detalhe é estático com revalidate de 1 h: sem isto a edição só aparecia
+  // no site uma hora depois de salva.
+  revalidatePath("/experiencias/[slug]", "page");
   revalidatePath("/admin/experiencias");
   revalidatePath("/");
   return { success: true };
@@ -512,6 +530,7 @@ export async function salvarData(dados: FormData): Promise<Resultado> {
   }
 
   revalidatePath("/experiencias");
+  revalidatePath("/experiencias/[slug]", "page");
   revalidatePath(`/admin/experiencias/${experienceId}`);
   return { success: true };
 }
@@ -547,6 +566,7 @@ export async function excluirData(id: string, experienceId: string): Promise<Res
   }
 
   revalidatePath("/experiencias");
+  revalidatePath("/experiencias/[slug]", "page");
   revalidatePath(`/admin/experiencias/${experienceId}`);
   return { success: true };
 }

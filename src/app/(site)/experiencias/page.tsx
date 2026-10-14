@@ -14,7 +14,7 @@ import { ExperienceCard } from "@/components/ui/Cards";
 import { MarrocosExperienceCard } from "@/components/experiences/MarrocosExperienceCard";
 import { MigratedExperienceCard } from "@/components/experiences/MigratedExperience";
 import { migratedExperiences } from "@/content/migratedExperiences";
-import { t } from "@/lib/utils";
+import { t, linkWhatsApp } from "@/lib/utils";
 import type { ExperienceWithRelations, I18nField } from "@/types/models";
 import { Capa } from "@/components/templates/base";
 import { ConviteAoFacilitador } from "@/components/templates/funil";
@@ -270,7 +270,7 @@ export default async function ExperienciasPage({ searchParams }: Props) {
                   <>
                     Estamos preparando as próximas jornadas. Fale com nossa equipe pelo{" "}
                     <a
-                      href="https://wa.me/5511947188319"
+                      href={linkWhatsApp()}
                       target="_blank"
                       rel="noopener noreferrer"
                       className="text-secondary-500 underline underline-offset-4"

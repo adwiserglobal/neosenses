@@ -289,6 +289,10 @@ export async function salvarDestino(dados: FormData): Promise<ResultadoSalvar> {
 
   revalidatePath("/admin/destinos");
   revalidatePath("/destinos");
+  // A página de cada destino é estática (revalidate de 1 h): sem isto, a
+  // edição só aparecia no site uma hora depois.
+  revalidatePath("/destinos/[slug]", "page");
+  revalidatePath("/");
   return { success: true, id: data?.id };
 }
 
@@ -384,5 +388,9 @@ export async function alternarDestino(id: string, ativo: boolean): Promise<Resul
 
   revalidatePath("/admin/destinos");
   revalidatePath("/destinos");
+  // A página de cada destino é estática (revalidate de 1 h): sem isto, a
+  // edição só aparecia no site uma hora depois.
+  revalidatePath("/destinos/[slug]", "page");
+  revalidatePath("/");
   return { success: true };
 }

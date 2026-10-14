@@ -19,6 +19,7 @@ import {
   Phone,
 } from "lucide-react";
 import { enviarContato } from "@/lib/actions/forms";
+import { linkWhatsApp } from "@/lib/utils";
 import { Capa } from "@/components/templates/base";
 
 type Estado = "parado" | "enviando" | "enviado";
@@ -273,7 +274,7 @@ export default function ContatoPage() {
                 </p>
 
                 <a
-                  href="https://wa.me/5511947188319"
+                  href={linkWhatsApp()}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="mt-7 inline-flex w-full items-center justify-between rounded-full bg-[var(--color-whatsapp)] px-5 py-3.5 text-sm font-semibold text-[#0b2e18] transition hover:brightness-95"

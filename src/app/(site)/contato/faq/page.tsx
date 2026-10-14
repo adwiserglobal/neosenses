@@ -15,7 +15,7 @@ import Link from "next/link";
 import { listarPerguntasFrequentes } from "@/lib/dal/content";
 import { JsonLd } from "@/components/seo/JsonLd";
 import { perguntasFrequentes } from "@/lib/seo/dadosEstruturados";
-import { t } from "@/lib/utils";
+import { t, linkWhatsApp } from "@/lib/utils";
 import type { I18nField } from "@/types/models";
 import { Capa } from "@/components/templates/base";
 
@@ -75,7 +75,7 @@ export default async function FAQPage() {
             <p className="rounded-xl border border-dashed border-border p-10 text-center text-sm text-text-muted">
               Ainda não há perguntas publicadas.{" "}
               <a
-                href="https://wa.me/5511947188319"
+                href={linkWhatsApp()}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="text-secondary-500 underline underline-offset-4"
@@ -127,7 +127,7 @@ export default async function FAQPage() {
             </p>
             <div className="mt-5 flex flex-col justify-center gap-3 sm:flex-row">
               <a
-                href="https://wa.me/5511947188319"
+                href={linkWhatsApp()}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center justify-center rounded-lg bg-[var(--color-whatsapp)] px-6 py-3 text-sm font-semibold text-[#0b2e18] transition hover:opacity-95"
