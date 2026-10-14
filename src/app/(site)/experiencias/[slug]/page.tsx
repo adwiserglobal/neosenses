@@ -67,6 +67,15 @@ function ExperienciaEspelhada({ sourceUrl, titulo }: { sourceUrl: string; titulo
   );
 }
 
+/** Parágrafos da cópia guardada, para o texto que os buscadores e leitores de tela enxergam. */
+function paragrafosDaCopia(copia: ConfiguracaoEspelho["copia"], limite = 24): string[] {
+  return (copia?.texto ?? "")
+    .split(/\n+/)
+    .map((p) => p.trim())
+    .filter((p) => p.length > 30)
+    .slice(0, limite);
+}
+
 export async function generateStaticParams() {
   const slugs = await listarSlugsDeExperiencias();
   const explicitas = new Set(migratedExperiences.map((experience) => experience.slug));
@@ -80,7 +89,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   if (!experiencia) return { title: "Experiência não encontrada" };
 
   const titulo = t(experiencia.title as I18nField, "pt");
-  const resumo = t(experiencia.short_description as I18nField, "pt");
+  const espelhoMeta = lerEspelho(experiencia.metadata);
+  // Espelho sem descrição própria: usa o começo do texto guardado, em vez de
+  // deixar o Google escolher um trecho qualquer.
+  const resumo =
+    t(experiencia.short_description as I18nField, "pt") ||
+    (espelhoMeta ? (paragrafosDaCopia(espelhoMeta.copia, 1)[0] ?? "").slice(0, 155) : "");
+  const imagemSocial = experiencia.hero_image ?? espelhoMeta?.copia?.fotos[0] ?? null;
 
   return {
     title: titulo,
@@ -89,7 +104,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title: titulo,
       description: resumo,
-      images: experiencia.hero_image ? [{ url: experiencia.hero_image }] : undefined,
+      images: imagemSocial ? [{ url: imagemSocial }] : undefined,
     },
   };
 }
@@ -120,7 +135,30 @@ export default async function ExperienciaPage({ params }: Props) {
       );
     }
 
-    return <ExperienciaEspelhada sourceUrl={espelho.sourceUrl} titulo={titulo} />;
+    // O conteúdo do iframe não conta como da nossa página para o Google. Por
+    // isso a página também traz, em HTML real, o título e o texto guardados na
+    // importação (os mesmos que o iframe exibe), além dos dados estruturados.
+    const textos = paragrafosDaCopia(espelho.copia);
+
+    return (
+      <>
+        <JsonLd dados={schema.experiencia(experiencia)} />
+        <JsonLd
+          dados={schema.trilha([
+            { nome: "Início", url: "/" },
+            { nome: "Experiências", url: "/experiencias" },
+            { nome: titulo, url: `/experiencias/${slug}` },
+          ])}
+        />
+        <article className="sr-only">
+          <h1>{titulo}</h1>
+          {textos.map((p, i) => (
+            <p key={i}>{p}</p>
+          ))}
+        </article>
+        <ExperienciaEspelhada sourceUrl={espelho.sourceUrl} titulo={titulo} />
+      </>
+    );
   }
 
   const [guias, relacionadas, config] = await Promise.all([
