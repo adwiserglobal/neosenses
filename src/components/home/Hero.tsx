@@ -66,7 +66,9 @@ const FUNDOS_DA_CAPA = [
   "/images/hero/homepage.png",
   "/images/hero/marrocos-deserto.jpg",
   "/images/hero/amazonia-por-do-sol.jpg",
+  "/images/hero/camelo-por-do-sol.jpg",
   "/images/hero/marrocos-noite.jpg",
+  "/images/hero/aurora-boreal.jpg",
 ] as const;
 
 const INTERVALO_DA_CAPA_MS = 3000;
@@ -112,9 +114,11 @@ function FundoDaCapa() {
           sizes="100vw"
           quality={85}
           priority={i === 0}
+          // O céu do camelo é quase branco no centro, onde fica o título: o
+          // brilho reduzido garante o contraste do texto branco por cima.
           className={`object-cover transition-opacity duration-[1600ms] ease-in-out ${
-            i === atual ? "opacity-100" : "opacity-0"
-          }`}
+            src.includes("camelo") ? "brightness-[0.68]" : ""
+          } ${i === atual ? "opacity-100" : "opacity-0"}`}
         />
         );
       })}
