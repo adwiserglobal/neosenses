@@ -48,7 +48,7 @@ export function JornadasCarousel({ experiencias }: Props) {
 
   return (
     <div className="relative">
-      {experiencias.length > 1 && (
+      {experiencias.length > 4 && (
         <div className="mb-5 flex justify-end gap-2">
           <button
             type="button"

@@ -64,7 +64,7 @@ export default async function HomePage() {
           </div>
           <div className="container-wide">
             <div className="mb-8 text-center">
-              <p className="mx-auto mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-secondary-300">
+              <p className="mx-auto mb-4 text-xs font-semibold uppercase tracking-[0.2em] text-primary-700">
                 Nossas Jornadas
               </p>
               <h2 className="mx-auto max-w-2xl font-heading text-4xl text-warm-white [text-shadow:0_2px_18px_rgba(20,8,24,0.55)] md:text-5xl">
