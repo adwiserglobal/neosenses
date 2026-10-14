@@ -5,6 +5,7 @@
  */
 
 import { criarClientePublico } from "@/lib/supabase/server";
+import { slugSeguro } from "@/lib/dal/slug";
 import type { Category, DestinationWithCountry } from "@/types/models";
 
 export interface DestinoComContagem extends DestinationWithCountry {
@@ -110,7 +111,9 @@ export async function listarDestinos(paisSlug?: string): Promise<DestinoComConta
   });
 }
 
-export async function buscarDestino(slug: string): Promise<DestinationWithCountry | null> {
+export async function buscarDestino(slugRecebido: string): Promise<DestinationWithCountry | null> {
+  const slug = slugSeguro(slugRecebido);
+  if (!slug) return null;
   const supabase = criarClientePublico();
 
   const { data, error } = await supabase

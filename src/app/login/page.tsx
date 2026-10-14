@@ -64,8 +64,11 @@ function FormularioLogin() {
     // O redirecionamento acontece aqui, e não dentro da server action:
     // `redirect()` numa action lança uma exceção de controle que o try/catch
     // do formulário engoliria, deixando a tela travada em "Entrando...".
-    const destino = params.get("redirect") ?? "/admin";
-    router.replace(destino.startsWith("/") ? destino : "/admin");
+    // Só caminhos internos: "//site.com" e "/\\site.com" começam com "/" mas o
+    // navegador os trata como outro domínio (redirecionamento aberto).
+    const pedido = params.get("redirect") ?? "/admin";
+    const destino = /^\/(?![/\\])/.test(pedido) ? pedido : "/admin";
+    router.replace(destino);
     router.refresh();
   }
 

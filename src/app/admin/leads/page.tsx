@@ -39,6 +39,15 @@ function quando(iso: string): string {
   return new Date(iso).toLocaleDateString("pt-BR");
 }
 
+/**
+ * wa.me exige o código do país. O formulário aceita telefone com DDD e sem
+ * "55" (10 ou 11 dígitos), e o link abria uma conversa com número inexistente.
+ */
+function numeroParaWhatsApp(telefone: string): string {
+  const digitos = telefone.replace(/\D/g, "");
+  return digitos.length <= 11 ? `55${digitos}` : digitos;
+}
+
 export default async function LeadsPage() {
   // Redundante com o layout de propósito: se um dia alguém mover esta página
   // para fora de /admin, a checagem vem junto.
@@ -74,6 +83,11 @@ export default async function LeadsPage() {
       .limit(20),
   ]);
 
+  // Erro de consulta não pode virar "nenhum contato": é o mesmo defeito do
+  // catálogo vazio com o banco fora do ar, e aqui esconderia leads de verdade.
+  const falhas = [leads.error, capturas.error, roteiros.error].filter(Boolean);
+  if (falhas.length) console.error("[admin/leads]", falhas.map((f) => f?.message).join(" | "));
+
   const listaLeads = leads.data ?? [];
   const listaCapturas = capturas.data ?? [];
   const listaRoteiros = roteiros.data ?? [];
@@ -86,6 +100,13 @@ export default async function LeadsPage() {
 
   return (
     <div className="space-y-10">
+      {falhas.length > 0 && (
+        <div role="alert" className="rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-800">
+          Não consegui carregar parte dos dados ({falhas.map((f) => f?.message).join("; ")}). O que
+          aparece abaixo pode estar incompleto. Confira a conexão e as migrations do Supabase.
+        </div>
+      )}
+
       <header>
         <h1 className="font-heading text-2xl text-primary-700">Leads</h1>
         <p className="mt-1 text-sm text-text-muted">
@@ -125,7 +146,7 @@ export default async function LeadsPage() {
                       )}
                       {lead.phone && (
                         <a
-                          href={`https://wa.me/${lead.phone.replace(/\D/g, "")}`}
+                          href={`https://wa.me/${numeroParaWhatsApp(lead.phone)}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="underline underline-offset-2 hover:text-primary-700"

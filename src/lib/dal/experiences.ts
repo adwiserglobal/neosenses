@@ -9,6 +9,7 @@
  */
 
 import { criarClientePublico } from "@/lib/supabase/server";
+import { slugSeguro } from "@/lib/dal/slug";
 import { idsDaCategoria } from "./destinations";
 import { t } from "@/lib/utils";
 import type { I18nField } from "@/types/models";
@@ -129,10 +130,12 @@ export async function listarExperiencias(
   }
 
   if (destino) {
+    const destinoSeguro = slugSeguro(destino);
+    if (!destinoSeguro) return { itens: [], total: 0, temMais: false };
     const { data } = await supabase
       .from("destinations")
       .select("id")
-      .or(`slug->>pt.eq.${destino},slug->>en.eq.${destino},slug->>es.eq.${destino}`)
+      .or(`slug->>pt.eq.${destinoSeguro},slug->>en.eq.${destinoSeguro},slug->>es.eq.${destinoSeguro}`)
       .maybeSingle();
     if (!data) return { itens: [], total: 0, temMais: false };
     query = query.eq("destination_id", data.id);
@@ -168,7 +171,9 @@ export async function listarDestaques(limite = 3): Promise<ExperienceWithRelatio
  * Busca por slug em qualquer idioma: um link compartilhado em espanhol precisa
  * abrir mesmo para quem navega em português.
  */
-export async function buscarExperiencia(slug: string): Promise<ExperienceWithRelations | null> {
+export async function buscarExperiencia(slugRecebido: string): Promise<ExperienceWithRelations | null> {
+  const slug = slugSeguro(slugRecebido);
+  if (!slug) return null;
   const supabase = criarClientePublico();
 
   const { data, error } = await supabase

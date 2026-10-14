@@ -214,6 +214,12 @@ export async function assinarNewsletter(
     return { success: false, campo: "email", error: "Esse e-mail não parece válido." };
   }
 
+  // Sem limite, qualquer um inscreveria listas inteiras de e-mails alheios.
+  const limite = verificarLimite(identificar(await headers()), LIMITE_FORMULARIO);
+  if (!limite.permitido) {
+    return { success: false, error: "Muitas tentativas seguidas. Aguarde um pouco e tente de novo." };
+  }
+
   const supabase = conectar();
   if (!supabase) return { success: false, error: ERRO_GENERICO };
 

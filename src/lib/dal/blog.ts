@@ -7,6 +7,7 @@
  */
 
 import { criarClientePublico } from "@/lib/supabase/server";
+import { slugSeguro } from "@/lib/dal/slug";
 import type { BlogCategory, BlogPostWithRelations } from "@/types/models";
 
 const CAMPOS_LISTA = `
@@ -66,7 +67,9 @@ export async function listarPosts(opcoes?: {
   };
 }
 
-export async function buscarPost(slug: string): Promise<BlogPostWithRelations | null> {
+export async function buscarPost(slugRecebido: string): Promise<BlogPostWithRelations | null> {
+  const slug = slugSeguro(slugRecebido);
+  if (!slug) return null;
   const supabase = criarClientePublico();
 
   const { data, error } = await supabase

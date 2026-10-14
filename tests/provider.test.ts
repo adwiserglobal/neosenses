@@ -3,13 +3,10 @@
  * Verifica o comportamento real do código, sem chamar a API de verdade.
  */
 
-import { pathToFileURL } from "node:url";
-
-const CAMINHO_PROVIDER =
-  "C:/Users/Ale/Documents/Ale Pessoal novo/neosenses/neosenses/src/lib/ai/provider.ts";
-
+// Caminho relativo a este arquivo: o absoluto de uma máquina (C:/Users/...)
+// fazia o teste falhar em qualquer outro computador e na CI.
 const { detectAIConfig, generateAIResponse, validateAIConfig, limparCacheDeModelo } = await import(
-  pathToFileURL(CAMINHO_PROVIDER).href
+  new URL("../src/lib/ai/provider.ts", import.meta.url).href
 );
 
 type ChatMessage = { role: "system" | "user" | "assistant"; content: string };

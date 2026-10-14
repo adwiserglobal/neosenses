@@ -2,6 +2,11 @@ import { NextResponse } from "next/server";
 
 const ORIGEM = "https://marrocos-com-neosenses.netlify.app/";
 
+// Absoluta de propósito: com o <base href> apontando para a Netlify, um
+// canonical relativo resolvia para o domínio da Netlify (e para uma página
+// que não existe lá), e o Google passava a ranquear o endereço errado.
+const CANONICA = `${process.env.NEXT_PUBLIC_SITE_URL || "https://www.neosenses.com.br"}/experiencias/marrocos-com-neosenses`;
+
 export const revalidate = 3600;
 
 export async function GET() {
@@ -22,7 +27,7 @@ export async function GET() {
 
     const headExtra = `
       <base href="${ORIGEM}">
-      <link rel="canonical" href="/experiencias/marrocos-com-neosenses">
+      <link rel="canonical" href="${CANONICA}">
       <meta name="robots" content="index,follow">
     `;
 
@@ -51,7 +56,7 @@ export async function GET() {
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width,initial-scale=1">
   <title>Marrocos com NeoSenses</title>
-  <link rel="canonical" href="/experiencias/marrocos-com-neosenses">
+  <link rel="canonical" href="${CANONICA}">
 </head>
 <body style="margin:0;font-family:system-ui,sans-serif;background:#f7f4ed;color:#15382f;display:grid;min-height:100vh;place-items:center">
   <main style="max-width:560px;padding:32px;text-align:center">
