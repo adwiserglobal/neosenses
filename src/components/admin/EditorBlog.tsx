@@ -190,29 +190,6 @@ export function EditorBlog({ artigo, categorias, podeExcluir = false }: Props) {
         </span>
       </div>
 
-      {confirmar && (
-        <div role="alertdialog" className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-secondary-300 bg-secondary-50 p-4 text-sm text-primary-700">
-          <p>
-            {confirmar === "publicar"
-              ? "Você revisou os fatos e autoriza a publicação deste artigo?"
-              : "Substituir o texto atual pelo novo rascunho da IA?"}
-          </p>
-          <div className="flex gap-3">
-            <button type="button" onClick={() => setConfirmar(null)}
-              className="rounded-lg border border-primary-700 px-4 py-2 text-xs font-semibold text-primary-700">
-              Cancelar
-            </button>
-            <button type="button"
-              onClick={() => (confirmar === "publicar" ? salvar("published", true) : redigir("criar", true))}
-              className="rounded-lg bg-primary-700 px-4 py-2 text-xs font-semibold text-white hover:bg-primary-800">
-              {confirmar === "publicar" ? "Sim, publicar" : "Sim, substituir"}
-            </button>
-          </div>
-        </div>
-      )}
-      {erro && <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">{erro}</div>}
-      {aviso && <div role="status" className="rounded-lg border border-secondary-300 bg-secondary-50 p-4 text-sm text-primary-700">{aviso}</div>}
-
       <section className="rounded-2xl border border-secondary-300/45 bg-secondary-50/40 p-6 md:p-8">
         <p className="mb-2 text-xs font-semibold uppercase tracking-[0.17em] text-secondary-500">Sua redatora de IA</p>
         <h2 className="font-heading text-2xl text-primary-700">Sobre o que vamos escrever?</h2>
@@ -321,7 +298,35 @@ export function EditorBlog({ artigo, categorias, podeExcluir = false }: Props) {
         )}
       </section>
 
-      <div className="flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-surface p-5">
+      {/* Barra fixa no rodapé da tela: confirmação, erro e aviso aparecem aqui,
+          junto dos botões, e não no topo da página, onde ninguém via. */}
+      <div className="sticky bottom-4 z-20 flex flex-wrap items-center gap-3 rounded-2xl border border-border bg-surface p-5 shadow-[0_10px_40px_rgba(60,20,70,0.18)]">
+        {(confirmar || erro || aviso) && (
+          <div className="w-full space-y-3">
+            {confirmar && (
+              <div role="alertdialog" className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-secondary-300 bg-secondary-50 p-4 text-sm text-primary-700">
+                <p>
+                  {confirmar === "publicar"
+                    ? "Você revisou os fatos e autoriza a publicação deste artigo?"
+                    : "Substituir o texto atual pelo novo rascunho da IA?"}
+                </p>
+                <div className="flex gap-3">
+                  <button type="button" onClick={() => setConfirmar(null)}
+                    className="rounded-lg border border-primary-700 px-4 py-2 text-xs font-semibold text-primary-700">
+                    Cancelar
+                  </button>
+                  <button type="button" autoFocus
+                    onClick={() => (confirmar === "publicar" ? salvar("published", true) : redigir("criar", true))}
+                    className="rounded-lg bg-primary-700 px-4 py-2 text-xs font-semibold text-white hover:bg-primary-800">
+                    {confirmar === "publicar" ? "Sim, publicar" : "Sim, substituir"}
+                  </button>
+                </div>
+              </div>
+            )}
+            {erro && <div role="alert" className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800">{erro}</div>}
+            {aviso && <div role="status" className="rounded-lg border border-secondary-300 bg-secondary-50 p-4 text-sm text-primary-700">{aviso}</div>}
+          </div>
+        )}
         <button type="button" disabled={trabalhando} onClick={() => salvar("draft")}
           className="rounded-lg border border-primary-700 px-6 py-3 text-sm font-semibold text-primary-700 disabled:opacity-50">
           {ocupado === "salvar" ? "Salvando…" : "Salvar rascunho"}
