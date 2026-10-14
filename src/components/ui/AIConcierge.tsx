@@ -402,11 +402,11 @@ export function AIConcierge() {
             animate={{ opacity: 1, y: 0, scale: 1 }}
             exit={{ opacity: 0, y: 24, scale: 0.94 }}
             transition={{ duration: 0.2, ease: "easeOut" }}
-            className="fixed z-50 flex flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-overlay max-sm:inset-3 max-sm:bottom-20 sm:bottom-44 sm:right-6"
-            style={{
-              width: "min(400px, calc(100vw - 24px))",
-              height: "min(600px, calc(100dvh - 120px))",
-            }}
+            // A altura sai do espaço livre entre o cabeçalho do site (72 px) e os
+            // botões flutuantes (176 px do rodapé). Antes era `100dvh - 120px`
+            // com o painel a 176 px do rodapé: em janela baixa o topo passava
+            // da borda da tela e o título do chat ficava escondido.
+            className="fixed z-50 flex flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-overlay max-sm:inset-x-3 max-sm:bottom-24 max-sm:top-24 sm:bottom-44 sm:right-6 sm:h-[min(600px,calc(100dvh-16.5rem))] sm:w-[min(400px,calc(100vw-24px))]"
           >
             <div className="flex shrink-0 items-center gap-3 border-b border-border bg-gradient-to-r from-primary-700 to-primary-600 px-4 py-3">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/15">

@@ -172,6 +172,48 @@ export async function salvarArtigoBlog(form: FormData): Promise<ResultadoBlog> {
   return { success: true, id: data.id, slug };
 }
 
+/**
+ * Muda só a situação do artigo (publicar, tirar do ar, arquivar), sem abrir o
+ * editor. Publicar repete a checagem do editor: resumo e texto completos.
+ */
+export async function alterarSituacaoArtigo(
+  id: string,
+  status: "draft" | "published" | "archived"
+): Promise<ResultadoBlog> {
+  await exigirPapel(["admin", "editor"]);
+  if (!["draft", "published", "archived"].includes(status)) return { success: false, error: "Situação inválida." };
+
+  let supabase;
+  try { supabase = createAdminClient(); }
+  catch { return { success: false, error: "Configure o Supabase do painel." }; }
+
+  const { data: artigo, error: erroLeitura } = await supabase
+    .from("blog_posts").select("slug, excerpt, content, published_at").eq("id", id).maybeSingle();
+  if (erroLeitura || !artigo) return { success: false, error: "Artigo não encontrado." };
+
+  if (status === "published") {
+    const resumo = t(artigo.excerpt as I18nField, "pt").trim();
+    const conteudo = t(artigo.content as I18nField, "pt").trim();
+    if (resumo.length < 20 || conteudo.length < 150)
+      return { success: false, error: "Abra o artigo e complete o resumo e o texto antes de publicar." };
+  }
+
+  const { error } = await supabase.from("blog_posts").update({
+    status,
+    published_at: status === "published" ? artigo.published_at ?? new Date().toISOString() : null,
+  } as never).eq("id", id);
+  if (error) {
+    console.error("[blog] alterar situação:", error.message);
+    return { success: false, error: "Não foi possível alterar a situação do artigo." };
+  }
+
+  const slug = t(artigo.slug as I18nField, "pt");
+  if (slug) revalidatePath("/blog/" + slug);
+  revalidatePath("/blog");
+  revalidatePath("/admin/blog");
+  return { success: true, id, slug };
+}
+
 export async function excluirArtigoBlog(id: string): Promise<ResultadoBlog> {
   await exigirPapel(["admin"]);
   const supabase = createAdminClient();

@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/server";
+import { usuarioAtual } from "@/lib/actions/auth";
+import { AcoesDoArtigo } from "@/components/admin/AcoesDoArtigo";
 import { t, formatDate } from "@/lib/utils";
 import type { I18nField } from "@/types/models";
 
@@ -16,6 +18,7 @@ export default async function ListaDeArtigos() {
   catch {
     return <p className="rounded-xl border border-red-200 bg-red-50 p-6 text-sm text-red-800">Supabase não configurado. Confira as variáveis no Vercel.</p>;
   }
+  const perfil = await usuarioAtual();
   const { data, error } = await supabase.from("blog_posts")
     .select("id, title, slug, excerpt, status, published_at, updated_at, featured_image")
     .order("updated_at", { ascending: false }).limit(150);
@@ -69,12 +72,12 @@ export default async function ListaDeArtigos() {
                       : `Atualizado em ${formatDate(post.updated_at)}`}
                   </p>
                 </div>
-                <div className="flex items-center gap-4 text-sm">
-                  {post.status === "published" && slug && <Link href={`/blog/${slug}`} target="_blank" className="text-text-muted underline underline-offset-4">Ver no site</Link>}
-                  <Link href={`/admin/blog/${post.id}`} className="rounded-lg bg-primary-700 px-5 py-2.5 font-semibold text-white hover:bg-primary-800">
-                    Editar
-                  </Link>
-                </div>
+                <AcoesDoArtigo
+                  id={post.id}
+                  slug={slug}
+                  situacao={post.status as "draft" | "published" | "archived"}
+                  podeExcluir={perfil?.role === "admin"}
+                />
               </li>
             );
           })}
