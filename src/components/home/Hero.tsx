@@ -34,7 +34,7 @@ const surgir = {
 // Jornadas de Alma: https://unsplash.com/photos/dQm-kS_l1dg
 // Autoconhecimento: https://unsplash.com/photos/VD-Vjc8VmRA
 // Roteiros e Vivências: https://unsplash.com/photos/dvaF23kPc-0
-// Conexão: https://unsplash.com/photos/pc8BUVAVXzo
+// Conexão: foto da NeoSenses (Marrocos), em public/images/home/conexao-marrocos.webp
 const PILARES = [
   {
     titulo: "Jornadas de Alma",
@@ -57,8 +57,8 @@ const PILARES = [
   {
     titulo: "Conexão",
     descricao: "Pessoas, histórias e momentos que criam laços além da viagem.",
-    imagem: "https://images.unsplash.com/photo-1758599668542-53e8c63c8e68?auto=format&fit=crop&w=1000&q=85",
-    alt: "Amigos conversando durante uma trilha na floresta",
+    imagem: "/images/home/conexao-marrocos.webp",
+    alt: "Viajante sorrindo e partilhando um gesto com duas crianças diante de uma parede de barro, no Marrocos",
   },
 ];
 
