@@ -65,7 +65,7 @@ export default async function LeadsPage() {
 
   const supabase = createClient<Database>(url, chave, { auth: { persistSession: false } });
 
-  const [leads, capturas, roteiros] = await Promise.all([
+  const [leads, capturas, roteiros, inscritos] = await Promise.all([
     supabase
       .from("leads")
       .select("id, name, email, phone, message, source, status, created_at, travelers_count, experience_id")
@@ -81,16 +81,23 @@ export default async function LeadsPage() {
       .select("id, access_token, summary, created_at, input")
       .order("created_at", { ascending: false })
       .limit(20),
+    supabase
+      .from("newsletter_subscribers")
+      .select("id, email, name, source, subscribed_at, is_active", { count: "exact" })
+      .order("subscribed_at", { ascending: false })
+      .limit(100),
   ]);
 
   // Erro de consulta não pode virar "nenhum contato": é o mesmo defeito do
   // catálogo vazio com o banco fora do ar, e aqui esconderia leads de verdade.
-  const falhas = [leads.error, capturas.error, roteiros.error].filter(Boolean);
+  const falhas = [leads.error, capturas.error, roteiros.error, inscritos.error].filter(Boolean);
   if (falhas.length) console.error("[admin/leads]", falhas.map((f) => f?.message).join(" | "));
 
   const listaLeads = leads.data ?? [];
   const listaCapturas = capturas.data ?? [];
   const listaRoteiros = roteiros.data ?? [];
+  const listaInscritos = inscritos.data ?? [];
+  const totalInscritos = inscritos.count ?? listaInscritos.length;
 
   // Contato que apareceu no chat e ainda não virou lead no CRM.
   const emailsConhecidos = new Set(listaLeads.map((l) => l.email?.toLowerCase()).filter(Boolean));
@@ -111,7 +118,7 @@ export default async function LeadsPage() {
         <h1 className="font-heading text-2xl text-primary-700">Leads</h1>
         <p className="mt-1 text-sm text-text-muted">
           {listaLeads.length} no CRM · {capturasNovas.length} vindos do Concierge ainda sem cadastro ·{" "}
-          {listaRoteiros.length} roteiros montados
+          {listaRoteiros.length} roteiros montados · {totalInscritos} na lista de e-mails
         </p>
       </header>
 
@@ -241,6 +248,47 @@ export default async function LeadsPage() {
           </ul>
         </section>
       )}
+
+      <section>
+        <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
+          <h2 className="font-heading text-lg text-primary-700">Lista de e-mails (newsletter)</h2>
+          {totalInscritos > 0 && (
+            <a
+              href="/admin/leads/newsletter"
+              className="rounded-lg border border-secondary-300 px-4 py-2 text-xs font-semibold text-primary-700 hover:bg-secondary-50"
+            >
+              Baixar lista (CSV)
+            </a>
+          )}
+        </div>
+        <p className="mb-4 max-w-2xl text-sm text-text-muted">
+          Quem se inscreveu no rodapé do site. Estas pessoas não aparecem em “Contatos”: ainda não
+          pediram conversa, só aceitaram receber novidades.
+        </p>
+        {listaInscritos.length === 0 ? (
+          <p className="rounded-xl border border-dashed border-border p-8 text-center text-sm text-text-muted">
+            Ninguém na lista ainda.
+          </p>
+        ) : (
+          <ul className="divide-y divide-border rounded-xl border border-border bg-surface">
+            {listaInscritos.map((i) => (
+              <li key={i.id} className="flex flex-wrap items-center justify-between gap-3 px-5 py-3 text-sm">
+                <div className="min-w-0">
+                  <a href={`mailto:${i.email}`} className="font-medium text-primary-700 underline-offset-2 hover:underline">
+                    {i.email}
+                  </a>
+                  {i.name && <span className="ml-2 text-text-muted">{i.name}</span>}
+                </div>
+                <div className="flex items-center gap-3 text-xs text-text-muted">
+                  {i.source && <span className="rounded bg-warm-gray px-2 py-0.5">{i.source}</span>}
+                  {!i.is_active && <span className="rounded bg-red-50 px-2 py-0.5 text-red-700">saiu da lista</span>}
+                  <span>{quando(i.subscribed_at)}</span>
+                </div>
+              </li>
+            ))}
+          </ul>
+        )}
+      </section>
     </div>
   );
 }
