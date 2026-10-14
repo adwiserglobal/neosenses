@@ -17,20 +17,14 @@ export function DepoimentosHome({ depoimentos }: { depoimentos: Testimonial[] })
         : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3";
 
   return (
-    <section aria-labelledby="titulo-depoimentos" className="relative isolate overflow-hidden bg-[#f5eddf] py-28 md:py-40">
-      {/* Degradê roxo da marca com brilhos suaves; a máscara dissolve as
-          bordas no areia das seções vizinhas. */}
-      <div
-        aria-hidden="true"
-        className="absolute inset-0 -z-10"
-        style={{
-          maskImage: "linear-gradient(to bottom, transparent 0%, #000 14%, #000 86%, transparent 100%)",
-          WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, #000 14%, #000 86%, transparent 100%)",
-        }}
-      >
-        <div className="absolute inset-0 bg-[linear-gradient(160deg,#250031_0%,#3d0a52_38%,#5a0b73_72%,#46095e_100%)]" />
-        <div className="absolute -right-24 top-10 h-[28rem] w-[28rem] rounded-full bg-primary-400/30 blur-3xl" />
-        <div className="absolute -left-24 bottom-4 h-[26rem] w-[26rem] rounded-full bg-secondary-300/20 blur-3xl" />
+    <section aria-labelledby="titulo-depoimentos" className="relative isolate overflow-hidden bg-primary-800 py-24 md:py-32">
+      {/* Degradê roxo da marca de ponta a ponta. Começa no tom da seção de
+          facilitadores acima e fecha perto do roxo da chamada final, sem
+          faixa clara entre elas. */}
+      <div aria-hidden="true" className="absolute inset-0 -z-10 overflow-hidden">
+        <div className="absolute inset-0 bg-[linear-gradient(180deg,#45204f_0%,#4c1262_35%,#5a0b73_70%,#40104f_100%)]" />
+        <div className="absolute -right-24 top-24 h-[28rem] w-[28rem] rounded-full bg-primary-400/25 blur-3xl" />
+        <div className="absolute -left-24 bottom-16 h-[26rem] w-[26rem] rounded-full bg-secondary-300/15 blur-3xl" />
       </div>
 
       <div className="container-wide relative">
