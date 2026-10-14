@@ -3,7 +3,7 @@
  */
 
 import Link from "next/link";
-import { ExternalLink, LogOut } from "lucide-react";
+import { Eye, LogOut } from "lucide-react";
 import { exigirPapel, sair } from "@/lib/actions/auth";
 import { AdminNav } from "@/components/admin/AdminNav";
 
@@ -41,7 +41,7 @@ export default async function AdminLayout({ children }: { children: React.ReactN
                 className="inline-flex items-center gap-2 rounded-full border border-[#d9cdbd] bg-white/70 px-3.5 py-2 text-xs font-semibold text-[#4a3c35] transition hover:border-[#b99745] hover:bg-white"
               >
                 <span className="hidden sm:inline">Ver o site</span>
-                <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+                <Eye className="h-4 w-4" aria-hidden="true" />
               </Link>
 
               <div className="hidden items-center gap-3 rounded-full border border-[#e0d4c4] bg-white/55 py-1.5 pl-2 pr-3 md:flex">
