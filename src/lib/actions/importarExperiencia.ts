@@ -4,6 +4,7 @@ import { revalidatePath } from "next/cache";
 import { createAdminClient } from "@/lib/supabase/server";
 import { exigirPapel } from "@/lib/actions/auth";
 import { extrairPagina } from "@/lib/importacao/experiencia";
+import { guardarCopia } from "@/lib/importacao/copia";
 
 export interface ResultadoImportacaoExperiencia {
   success: boolean;
@@ -100,6 +101,10 @@ export async function importarExperienciaDeUrl(
     ultimoSegmento(pagina.canonical || pagina.url) || titulo
   );
 
+  // Plano B automático: texto e fotos ficam guardados para o caso de o site de
+  // origem sair do ar. Se falhar, a importação segue sem a cópia.
+  const copia = await guardarCopia(pagina, slug);
+
   const metadata = {
     render_mode: "external_mirror",
     external_mirror: {
@@ -109,6 +114,7 @@ export async function importarExperienciaDeUrl(
       plataforma: pagina.plataforma,
       imported_at: new Date().toISOString(),
       live: true,
+      copia,
     },
   };
 
@@ -117,7 +123,8 @@ export async function importarExperienciaDeUrl(
     slug: { pt: slug },
     short_description: pagina.descricao ? { pt: pagina.descricao.slice(0, 500) } : null,
     description: null,
-    hero_image: pagina.imagemSocial,
+    // A capa passa a vir da cópia: não some junto com o site de origem.
+    hero_image: copia?.fotos[0] ?? pagina.imagemSocial,
     audience: "viajante",
     template: "classico",
     status: "draft",

@@ -16,6 +16,8 @@ import { listarGuias, lerConfiguracoesPublicas } from "@/lib/dal/content";
 import { JsonLd } from "@/components/seo/JsonLd";
 import * as schema from "@/lib/seo/dadosEstruturados";
 import { PaginaDaExperiencia, montarDados, fotosDaExperiencia } from "@/components/templates";
+import { CopiaDaExperiencia } from "@/components/templates/CopiaDaExperiencia";
+import { lerCopia, origemDisponivel } from "@/lib/importacao/copia";
 import { migratedExperiences } from "@/content/migratedExperiences";
 import { t } from "@/lib/utils";
 import type { I18nField } from "@/types/models";
@@ -28,6 +30,7 @@ interface Props {
 
 interface ConfiguracaoEspelho {
   sourceUrl: string;
+  copia: ReturnType<typeof lerCopia>;
   plataforma?: string;
 }
 
@@ -44,6 +47,7 @@ function lerEspelho(metadata: unknown): ConfiguracaoEspelho | null {
   const plataforma = (bloco as Record<string, unknown>).plataforma;
   return {
     sourceUrl,
+    copia: lerCopia(bloco),
     plataforma: typeof plataforma === "string" ? plataforma : undefined,
   };
 }
@@ -101,12 +105,22 @@ export default async function ExperienciaPage({ params }: Props) {
   // do header/footer do layout pai, preservando o site que a cliente montou.
   const espelho = lerEspelho(experiencia.metadata);
   if (espelho) {
-    return (
-      <ExperienciaEspelhada
-        sourceUrl={espelho.sourceUrl}
-        titulo={t(experiencia.title as I18nField, "pt")}
-      />
-    );
+    const titulo = t(experiencia.title as I18nField, "pt");
+
+    // Origem fora do ar (ou que proíbe iframe): a cópia guardada na importação
+    // assume sozinha, com o menu e o rodapé da NeoSenses.
+    if (!(await origemDisponivel(espelho.sourceUrl))) {
+      return (
+        <CopiaDaExperiencia
+          titulo={titulo}
+          resumo={t(experiencia.short_description as I18nField, "pt")}
+          capa={experiencia.hero_image}
+          copia={espelho.copia}
+        />
+      );
+    }
+
+    return <ExperienciaEspelhada sourceUrl={espelho.sourceUrl} titulo={titulo} />;
   }
 
   const [guias, relacionadas, config] = await Promise.all([
