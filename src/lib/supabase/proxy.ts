@@ -11,6 +11,22 @@ export async function updateSession(request: NextRequest) {
     return supabaseResponse;
   }
 
+  // Visitante sem cookie de sessão não tem o que renovar. Chamar o Supabase
+  // Auth mesmo assim acrescentava uma ida à rede (100 a 300 ms) ao início de
+  // TODA página pública. Sem cookie, só o /admin é tratado (vai ao login).
+  const caminho = request.nextUrl.pathname;
+  const temSessao = request.cookies.getAll().some((c) => c.name.startsWith("sb-"));
+
+  if (!temSessao) {
+    if (caminho.startsWith("/admin")) {
+      const url = request.nextUrl.clone();
+      url.pathname = "/login";
+      url.searchParams.set("redirect", caminho);
+      return NextResponse.redirect(url);
+    }
+    return supabaseResponse;
+  }
+
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,

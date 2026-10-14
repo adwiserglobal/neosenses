@@ -50,7 +50,6 @@ export function TematicosHome() {
                 alt=""
                 fill
                 sizes="(min-width: 1640px) 1640px, 96vw"
-                unoptimized
                 className="object-cover transition-transform duration-700 group-hover:scale-[1.035]"
               />
               <div aria-hidden="true" className={`absolute inset-0 ${faixa.gradiente}`} />

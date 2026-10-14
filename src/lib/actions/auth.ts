@@ -14,6 +14,7 @@ import {
   createAdminClient,
   createServerSupabaseClient,
 } from "@/lib/supabase/server";
+import { perfilDaSessao } from "@/lib/auth/usuario";
 import type { Profile, UserRole } from "@/types/models";
 
 export interface ResultadoLogin {
@@ -195,25 +196,7 @@ export async function sair() {
 
 /** Perfil de quem está logado, ou null. Não redireciona. */
 export async function usuarioAtual(): Promise<Profile | null> {
-  let supabase;
-  try {
-    supabase = await createServerSupabaseClient();
-  } catch {
-    return null;
-  }
-
-  const {
-    data: { user },
-  } = await supabase.auth.getUser();
-  if (!user) return null;
-
-  const { data } = await supabase
-    .from("profiles")
-    .select("*")
-    .eq("id", user.id)
-    .maybeSingle();
-
-  return (data as Profile) ?? null;
+  return perfilDaSessao();
 }
 
 /** Exige sessão com um dos papéis. */

@@ -78,12 +78,19 @@ const INTERVALO_DA_CAPA_MS = 3000;
  * Com `prefers-reduced-motion`, a capa fica parada na primeira foto.
  */
 function FundoDaCapa() {
-  const [atual, setAtual] = useState(0);
+  const [{ atual, vistas }, setEstado] = useState({ atual: 0, vistas: [0] });
 
   useEffect(() => {
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
     const id = window.setInterval(
-      () => setAtual((i) => (i + 1) % FUNDOS_DA_CAPA.length),
+      () =>
+        setEstado((e) => {
+          const proximo = (e.atual + 1) % FUNDOS_DA_CAPA.length;
+          return {
+            atual: proximo,
+            vistas: e.vistas.includes(proximo) ? e.vistas : [...e.vistas, proximo],
+          };
+        }),
       INTERVALO_DA_CAPA_MS,
     );
     return () => window.clearInterval(id);
@@ -91,7 +98,12 @@ function FundoDaCapa() {
 
   return (
     <div aria-hidden="true" className="absolute inset-0 bg-primary-700">
-      {FUNDOS_DA_CAPA.map((src, i) => (
+      {FUNDOS_DA_CAPA.map((src, i) => {
+        // As fotos seguintes só começam a baixar quando chegam perto da vez:
+        // as quatro de uma vez disputavam banda com a primeira (a do LCP).
+        const proxima = (atual + 1) % FUNDOS_DA_CAPA.length;
+        if (i !== 0 && i !== atual && i !== proxima && !vistas.includes(i)) return null;
+        return (
         <Image
           key={src}
           src={src}
@@ -104,7 +116,8 @@ function FundoDaCapa() {
             i === atual ? "opacity-100" : "opacity-0"
           }`}
         />
-      ))}
+        );
+      })}
     </div>
   );
 }
