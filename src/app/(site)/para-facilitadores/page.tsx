@@ -14,16 +14,13 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import Image from "next/image";
-import { listarParaFacilitadores } from "@/lib/dal/experiences";
 import { Capa, Chapeu, Faixa, Grade, TituloDeSecao } from "@/components/templates/blocos";
 import { Parceria } from "@/components/templates/funil";
 import { Surge } from "@/components/ui/Surge";
 import { FaixaDeFotos, type FotoDaFaixa } from "@/components/ui/FaixaDeFotos";
 import { JsonLd } from "@/components/seo/JsonLd";
 import * as schema from "@/lib/seo/dadosEstruturados";
-import { linkWhatsApp, t, podeOtimizar } from "@/lib/utils";
-import { imagemDaExperiencia } from "@/lib/imagens-experiencias";
-import type { I18nField } from "@/types/models";
+import { linkWhatsApp } from "@/lib/utils";
 
 export const metadata: Metadata = {
   title: "Para Facilitadores",
@@ -174,9 +171,7 @@ const COMO_FUNCIONA = [
   },
 ];
 
-export default async function ParaFacilitadoresPage() {
-  const jornadas = await listarParaFacilitadores();
-
+export default function ParaFacilitadoresPage() {
   return (
     <>
       <JsonLd
@@ -202,8 +197,8 @@ export default async function ParaFacilitadoresPage() {
             >
               Agendar reunião no WhatsApp
             </a>
-            <a href="#jornadas" className="btn-secundario btn-secundario-claro">
-              Ver os territórios
+            <a href="#beneficios" className="btn-secundario btn-secundario-claro">
+              Ver o que você recebe
             </a>
           </>
         }
@@ -391,81 +386,6 @@ export default async function ParaFacilitadoresPage() {
         <div className="mt-12">
           <Grade itens={COMO_FUNCIONA} fundo="noite" colunas={4} />
         </div>
-      </Faixa>
-
-      <Faixa fundo="areia" id="jornadas">
-        <TituloDeSecao
-          chapeu="Territórios"
-          titulo="Onde a NeoSenses já sustenta jornadas de grupo"
-          texto="Cada página mostra o território, as vivências possíveis e o que pode compor o roteiro do seu grupo. O destino que você procura não está aqui? Fale com a consultora, a lista é o que já está estruturado, não o limite."
-        />
-
-        {jornadas.length === 0 ? (
-          <div className="mt-12 rounded-2xl border border-border bg-surface p-12 text-center">
-            <p className="text-text-muted">
-              As jornadas para grupos ainda não foram publicadas.{" "}
-              <a
-                href={linkWhatsApp(MENSAGEM)}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="text-secondary-500 underline underline-offset-4"
-              >
-                Fale com a consultora
-              </a>{" "}
-              para conhecer os territórios disponíveis.
-            </p>
-          </div>
-        ) : (
-          <ul className="mt-12 grid gap-8 md:grid-cols-2 lg:grid-cols-3">
-            {jornadas.map((j) => {
-              const titulo = t(j.title as I18nField, "pt");
-              const slug = t(j.slug as I18nField, "pt");
-              const resumo = t(j.short_description as I18nField, "pt");
-              const chapeu = t(j.hero_kicker as I18nField, "pt");
-              const capa = imagemDaExperiencia(j.hero_image, titulo, chapeu, resumo);
-
-              return (
-                <li key={j.id}>
-                  <Link
-                    href={`/experiencias/${slug}`}
-                    className="group flex h-full flex-col overflow-hidden rounded-2xl border border-border bg-surface transition-all hover:border-secondary-300 hover:shadow-card"
-                  >
-                    <div className="relative aspect-[3/2] overflow-hidden bg-warm-gray">
-                      {capa && (
-                        <Image
-                          src={capa}
-                          alt=""
-                          aria-hidden="true"
-                          fill
-                          sizes="(min-width: 1024px) 33vw, (min-width: 768px) 50vw, 100vw"
-                          unoptimized={!podeOtimizar(capa)}
-                          className="object-cover transition-transform duration-700 group-hover:scale-105"
-                        />
-                      )}
-                    </div>
-
-                    <div className="flex flex-1 flex-col p-6">
-                      {chapeu && <Chapeu className="mb-3">{chapeu}</Chapeu>}
-                      <h3 className="font-heading text-xl leading-snug text-primary-700 transition-colors group-hover:text-secondary-500">
-                        {titulo}
-                      </h3>
-                      {resumo && (
-                        <p className="mt-3 line-clamp-4 text-sm leading-relaxed text-text-muted">
-                          {resumo}
-                        </p>
-                      )}
-                      <div className="mt-auto flex justify-center pt-6">
-                        <span className="inline-flex min-w-[180px] items-center justify-center rounded-full bg-primary-700 px-6 py-3 text-sm font-semibold text-white shadow-soft transition-all duration-300 group-hover:-translate-y-0.5 group-hover:bg-primary-800 group-hover:shadow-card">
-                          Conhecer mais <span aria-hidden="true" className="ml-2">→</span>
-                        </span>
-                      </div>
-                    </div>
-                  </Link>
-                </li>
-              );
-            })}
-          </ul>
-        )}
       </Faixa>
 
       <Faixa fundo="clara" largura="content">
