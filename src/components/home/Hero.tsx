@@ -10,6 +10,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
 const suave = [0.25, 0.46, 0.45, 0.94] as const;
@@ -61,16 +62,57 @@ const PILARES = [
   },
 ];
 
+const FUNDOS_DA_CAPA = [
+  "/images/hero/homepage.png",
+  "/images/hero/marrocos-deserto.jpg",
+  "/images/hero/amazonia-por-do-sol.jpg",
+  "/images/hero/marrocos-noite.jpg",
+] as const;
+
+const INTERVALO_DA_CAPA_MS = 3000;
+
+/**
+ * Fundo da capa: as fotos se sucedem em fusão suave a cada 3 segundos.
+ *
+ * Só a primeira é prioritária; as demais são carregadas em segundo plano.
+ * Com `prefers-reduced-motion`, a capa fica parada na primeira foto.
+ */
+function FundoDaCapa() {
+  const [atual, setAtual] = useState(0);
+
+  useEffect(() => {
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const id = window.setInterval(
+      () => setAtual((i) => (i + 1) % FUNDOS_DA_CAPA.length),
+      INTERVALO_DA_CAPA_MS,
+    );
+    return () => window.clearInterval(id);
+  }, []);
+
+  return (
+    <div aria-hidden="true" className="absolute inset-0 bg-primary-700">
+      {FUNDOS_DA_CAPA.map((src, i) => (
+        <Image
+          key={src}
+          src={src}
+          alt=""
+          fill
+          sizes="100vw"
+          quality={85}
+          priority={i === 0}
+          className={`object-cover transition-opacity duration-[1600ms] ease-in-out ${
+            i === atual ? "opacity-100" : "opacity-0"
+          }`}
+        />
+      ))}
+    </div>
+  );
+}
+
 export function Hero() {
   return (
     <section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-primary-700">
-      {/* eslint-disable-next-line @next/next/no-img-element */}
-      <img
-        src="/images/hero/homepage.png"
-        alt=""
-        aria-hidden="true"
-        className="absolute inset-0 h-full w-full object-cover"
-      />
+      <FundoDaCapa />
       {/* A capa volta ao tratamento anterior, neutro/azulado. A paleta roxa
           continua no restante da marca, mas não colore a fotografia. */}
       <div className="absolute inset-0 bg-gradient-to-b from-[#16232b]/70 via-[#16232b]/50 to-[#16232b]/80" />
