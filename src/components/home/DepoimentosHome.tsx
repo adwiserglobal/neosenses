@@ -18,8 +18,8 @@ export function DepoimentosHome({ depoimentos }: { depoimentos: Testimonial[] })
 
   return (
     <section aria-labelledby="titulo-depoimentos" className="relative isolate overflow-hidden bg-[#f5eddf] py-28 md:py-40">
-      {/* Pôr do sol com o grupo à mesa: o véu roxo garante o contraste e a
-          máscara dissolve as bordas no areia das seções vizinhas. */}
+      {/* Degradê roxo da marca com brilhos suaves; a máscara dissolve as
+          bordas no areia das seções vizinhas. */}
       <div
         aria-hidden="true"
         className="absolute inset-0 -z-10"
@@ -28,15 +28,9 @@ export function DepoimentosHome({ depoimentos }: { depoimentos: Testimonial[] })
           WebkitMaskImage: "linear-gradient(to bottom, transparent 0%, #000 14%, #000 86%, transparent 100%)",
         }}
       >
-        <Image
-          src="/images/home/depoimentos-por-do-sol.jpg"
-          alt=""
-          fill
-          sizes="100vw"
-          quality={85}
-          className="object-cover object-center"
-        />
-        <div className="absolute inset-0 bg-[linear-gradient(180deg,rgba(38,8,52,0.78)_0%,rgba(52,10,66,0.7)_50%,rgba(38,8,52,0.82)_100%)]" />
+        <div className="absolute inset-0 bg-[linear-gradient(160deg,#250031_0%,#3d0a52_38%,#5a0b73_72%,#46095e_100%)]" />
+        <div className="absolute -right-24 top-10 h-[28rem] w-[28rem] rounded-full bg-primary-400/30 blur-3xl" />
+        <div className="absolute -left-24 bottom-4 h-[26rem] w-[26rem] rounded-full bg-secondary-300/20 blur-3xl" />
       </div>
 
       <div className="container-wide relative">
