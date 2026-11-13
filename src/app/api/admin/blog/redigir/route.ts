@@ -101,7 +101,7 @@ Direção editorial ou informações fornecidas pela equipe: ${orientacoes || "S
   ];
 
 
-  const configuracao = detectAIConfig();
+  const configuracao = detectAIConfig(req.headers.get("x-vercel-oidc-token") || undefined);
   if (!configuracao) {
     return NextResponse.json(
       { error: "O Vercel AI Gateway não está configurado. Verifique o OIDC da Vercel ou AI_GATEWAY_API_KEY." },
