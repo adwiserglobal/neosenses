@@ -100,12 +100,12 @@ function ehPlaceholder(key: string | undefined): key is undefined {
   );
 }
 
-export function detectAIConfig(): AIProviderConfig | null {
+export function detectAIConfig(oidcTokenFromRequest?: string): AIProviderConfig | null {
   // AI Gateway é o único caminho usado pelos fluxos de IA da aplicação.
   // Em produção, a Vercel fornece VERCEL_OIDC_TOKEN quando OIDC está ativo;
   // em desenvolvimento local ou fora da Vercel, use AI_GATEWAY_API_KEY.
   const apiKey = lerEnv("AI_GATEWAY_API_KEY");
-  const oidcToken = lerEnv("VERCEL_OIDC_TOKEN");
+  const oidcToken = oidcTokenFromRequest?.trim() || lerEnv("VERCEL_OIDC_TOKEN");
   const credencial = !ehPlaceholder(apiKey)
     ? apiKey
     : !ehPlaceholder(oidcToken)
@@ -121,13 +121,13 @@ export function detectAIConfig(): AIProviderConfig | null {
   };
 }
 
-export function validateAIConfig(): {
+export function validateAIConfig(oidcTokenFromRequest?: string): {
   valid: boolean;
   provider?: string;
   model?: string;
   error?: string;
 } {
-  const cfg = detectAIConfig();
+  const cfg = detectAIConfig(oidcTokenFromRequest);
   if (!cfg) {
     return {
       valid: false,
@@ -371,6 +371,8 @@ async function chamarVercel(
       max_tokens: opts.maxTokens ?? DEFAULT_MAX_TOKENS,
       temperature: opts.temperature ?? DEFAULT_TEMPERATURE,
       ...(opts.json ? { response_format: { type: "json_object" } } : {}),
+      // Restringe ao Vertex: este endpoint declara Zero Data Retention.
+      providerOptions: { gateway: { only: ["vertex"] } },
     }),
     signal: AbortSignal.timeout(opts.timeoutMs ?? DEFAULT_TIMEOUT_MS),
   });
@@ -699,7 +701,7 @@ async function chamarAnthropic(
   };
 }
 
-export async function testAIConnection(): Promise<{
+export async function testAIConnection(oidcTokenFromRequest?: string): Promise<{
   success: boolean;
   provider?: string;
   model?: string;
@@ -707,7 +709,7 @@ export async function testAIConnection(): Promise<{
   error?: string;
   errorCode?: string;
 }> {
-  const cfg = detectAIConfig();
+  const cfg = detectAIConfig(oidcTokenFromRequest);
   if (!cfg) {
     return {
       success: false,
