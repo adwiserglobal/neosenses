@@ -20,7 +20,7 @@ export interface AIResponse {
 }
 
 export interface AIProviderConfig {
-  provider: "nvidia" | "openrouter" | "gemini" | "openai" | "anthropic";
+  provider: "vercel" | "nvidia" | "openrouter" | "gemini" | "openai" | "anthropic";
   model: string;
   apiKey: string;
 }
@@ -101,31 +101,24 @@ function ehPlaceholder(key: string | undefined): key is undefined {
 }
 
 export function detectAIConfig(): AIProviderConfig | null {
-  const explicito = lerEnv("AI_PROVIDER")?.trim().toLowerCase();
-  const modelo = lerEnv("AI_MODEL")?.trim() || "";
+  // AI Gateway é o único caminho usado pelos fluxos de IA da aplicação.
+  // Em produção, a Vercel fornece VERCEL_OIDC_TOKEN quando OIDC está ativo;
+  // em desenvolvimento local ou fora da Vercel, use AI_GATEWAY_API_KEY.
+  const apiKey = lerEnv("AI_GATEWAY_API_KEY");
+  const oidcToken = lerEnv("VERCEL_OIDC_TOKEN");
+  const credencial = !ehPlaceholder(apiKey)
+    ? apiKey
+    : !ehPlaceholder(oidcToken)
+      ? oidcToken
+      : undefined;
 
-  const chaves = {
-    nvidia: lerEnv("NVIDIA_API_KEY"),
-    openrouter: lerEnv("OPENROUTER_API_KEY"),
-    gemini: lerEnv("GOOGLE_GENERATIVE_AI_API_KEY"),
-    openai: lerEnv("OPENAI_API_KEY") || lerEnv("AI_API_KEY"),
-    anthropic: lerEnv("ANTHROPIC_API_KEY"),
-  } as const;
+  if (!credencial) return null;
 
-  const montar = (p: keyof typeof chaves): AIProviderConfig | null => {
-    const key = chaves[p];
-    if (ehPlaceholder(key)) return null;
-    return { provider: p, model: modelo, apiKey: key.trim() };
+  return {
+    provider: "vercel",
+    model: lerEnv("AI_GATEWAY_MODEL")?.trim() || "",
+    apiKey: credencial.trim(),
   };
-
-  if (explicito === "nvidia" || explicito === "nim") return montar("nvidia");
-  if (explicito === "openrouter" || explicito === "router") return montar("openrouter");
-  if (explicito === "gemini" || explicito === "google") return montar("gemini");
-  if (explicito === "openai") return montar("openai");
-  if (explicito === "anthropic" || explicito === "claude") return montar("anthropic");
-
-  // NVIDIA direto é preferido quando houver chave própria configurada.
-  return montar("nvidia") || montar("openrouter") || montar("gemini") || montar("openai") || montar("anthropic");
 }
 
 export function validateAIConfig(): {
@@ -139,8 +132,7 @@ export function validateAIConfig(): {
     return {
       valid: false,
       error:
-        "Nenhum provedor de IA configurado. Defina NVIDIA_API_KEY, OPENROUTER_API_KEY, " +
-        "GOOGLE_GENERATIVE_AI_API_KEY, OPENAI_API_KEY ou ANTHROPIC_API_KEY.",
+        "AI Gateway não configurado. Defina AI_GATEWAY_API_KEY ou habilite Vercel OIDC (VERCEL_OIDC_TOKEN).",
     };
   }
   return {
@@ -230,6 +222,8 @@ async function resolverModelo(cfg: AIProviderConfig): Promise<string> {
   if (cfg.model) return cfg.model;
 
   switch (cfg.provider) {
+    case "vercel":
+      return cfg.model || "google/gemini-2.5-flash-lite";
     case "nvidia":
       return cfg.model || "meta/muse-glimmer-30b";
     case "openrouter":
@@ -262,6 +256,14 @@ function classificarErro(err: unknown, status?: number, corpo?: string): AIError
     texto.includes("invalid key")
   ) {
     return new AIError("AI_AUTH_FAILURE", corpo || msg);
+  }
+  if (
+    status === 402 ||
+    texto.includes("insufficient_funds") ||
+    texto.includes("insufficient funds") ||
+    texto.includes("quota_for_entity_exceeded")
+  ) {
+    return new AIError("AI_RATE_LIMIT", corpo || msg);
   }
   if (
     status === 429 ||
@@ -301,6 +303,8 @@ export async function generateAIResponse(
 
   try {
     switch (cfg.provider) {
+      case "vercel":
+        return await chamarVercel(messages, { ...cfg, model }, options, inicio);
       case "nvidia":
         return await chamarNvidia(messages, { ...cfg, model }, options, inicio);
       case "openrouter":
@@ -340,6 +344,60 @@ function extrairConteudoChat(content: unknown): string {
     })
     .join("")
     .trim();
+}
+
+/**
+ * Vercel AI Gateway usando a API compatível com OpenAI.
+ * Mantém a camada de provider pequena e evita exigir um SDK adicional.
+ */
+async function chamarVercel(
+  messages: ChatMessage[],
+  cfg: AIProviderConfig,
+  opts: GenerateOptions,
+  inicio: number
+): Promise<AIResponse> {
+  const token = cfg.apiKey || lerEnv("AI_GATEWAY_API_KEY") || lerEnv("VERCEL_OIDC_TOKEN");
+  if (ehPlaceholder(token)) throw new AIError("AI_PROVIDER_NOT_CONFIGURED");
+
+  const res = await fetch("https://ai-gateway.vercel.sh/v1/chat/completions", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: `Bearer ${token}`,
+    },
+    body: JSON.stringify({
+      model: cfg.model,
+      messages,
+      max_tokens: opts.maxTokens ?? DEFAULT_MAX_TOKENS,
+      temperature: opts.temperature ?? DEFAULT_TEMPERATURE,
+      ...(opts.json ? { response_format: { type: "json_object" } } : {}),
+    }),
+    signal: AbortSignal.timeout(opts.timeoutMs ?? DEFAULT_TIMEOUT_MS),
+  });
+
+  if (!res.ok) {
+    throw classificarErro(null, res.status, await lerCorpoErro(res));
+  }
+
+  const data = await res.json();
+  const escolha = data.choices?.[0];
+  const content = extrairConteudoChat(escolha?.message?.content);
+
+  if (!content) {
+    throw new AIError(
+      "AI_EMPTY_RESPONSE",
+      `finish_reason=${escolha?.finish_reason ?? "?"}`
+    );
+  }
+
+  return {
+    content,
+    provider: "vercel-ai-gateway",
+    model: data.model || cfg.model,
+    tokensUsed: data.usage?.total_tokens,
+    responseTimeMs: Date.now() - inicio,
+    finishReason: escolha?.finish_reason,
+  };
 }
 
 async function chamarGemini(
