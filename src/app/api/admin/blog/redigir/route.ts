@@ -102,68 +102,18 @@ Direção editorial ou informações fornecidas pela equipe: ${orientacoes || "S
 
 
   const configuracao = detectAIConfig();
-  const chaveNvidia = process.env.NVIDIA_API_KEY?.trim();
-  const chaveGemini = process.env.GOOGLE_GENERATIVE_AI_API_KEY?.trim();
-  const chaveOpenAI = (process.env.OPENAI_API_KEY || process.env.AI_API_KEY)?.trim();
-  const chaveAnthropic = process.env.ANTHROPIC_API_KEY?.trim();
-  const chaveOpenRouter = process.env.OPENROUTER_API_KEY?.trim();
-
-  // NVIDIA NIM direto é o caminho principal da redatora.
-  // OpenRouter e demais provedores ficam apenas como fallback.
-  const alternativas: Array<{ config: AIProviderConfig; tempo: number }> = [];
-  if (chaveNvidia && chaveNvidia.length > 20) {
-    alternativas.push({
-      config: {
-        provider: "nvidia",
-        model: "meta/muse-glimmer-30b",
-        apiKey: chaveNvidia,
-      },
-      tempo: 30_000,
-    });
-  }
-  if (chaveOpenRouter && chaveOpenRouter.length > 20) {
-    alternativas.push({
-      config: {
-        provider: "openrouter",
-        model: "dots-studio/dots-3-note-preview:free",
-        apiKey: chaveOpenRouter,
-      },
-      tempo: 25_000,
-    });
-  }
-  if (chaveGemini && chaveGemini.length > 20) {
-    alternativas.push({
-      config: { provider: "gemini", model: "", apiKey: chaveGemini },
-      tempo: 11_000,
-    });
-  }
-  if (chaveOpenAI && chaveOpenAI.length > 20) {
-    alternativas.push({
-      config: { provider: "openai", model: "gpt-4o-mini", apiKey: chaveOpenAI },
-      tempo: 12_000,
-    });
-  }
-  if (chaveAnthropic && chaveAnthropic.length > 20) {
-    alternativas.push({
-      config: { provider: "anthropic", model: "claude-sonnet-4-5", apiKey: chaveAnthropic },
-      tempo: 12_000,
-    });
-  }
-
-  // Compatibilidade com uma configuração explícita que use outro segredo.
-  if (
-    configuracao &&
-    !alternativas.some((item) => item.config.provider === configuracao.provider)
-  ) {
-    alternativas.push({ config: configuracao, tempo: 11_000 });
-  }
-
-  if (alternativas.length === 0) {
+  if (!configuracao) {
     return NextResponse.json(
-      { error: "Nenhum provedor de IA com chave válida está configurado no Vercel." },
+      { error: "O Vercel AI Gateway não está configurado. Verifique o OIDC da Vercel ou AI_GATEWAY_API_KEY." },
       { status: 503 }
     );
   }
+
+  // O Gateway centraliza autenticação, modelo e cobrança. Não há fallback
+  // silencioso para chaves de provedores externos, que poderia gerar outra cobrança.
+  const alternativas: Array<{ config: AIProviderConfig; tempo: number }> = [
+    { config: configuracao, tempo: 48_000 },
+  ];
 
   const tentativas: Array<{ provedor: string; modelo: string; erro: string }> = [];
   const inicioGeral = Date.now();
@@ -195,8 +145,6 @@ Direção editorial ou informações fornecidas pela equipe: ${orientacoes || "S
         temperature: 0.45,
         timeoutMs: tempo,
         json: false,
-        openRouterSingleModel: config.provider === "openrouter",
-        thinking: config.provider === "openrouter" ? "low" : undefined,
       });
       const artigo = analisarResposta(resposta.content, tema || tituloAtual);
       return NextResponse.json({
