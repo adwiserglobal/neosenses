@@ -131,7 +131,8 @@ async function main() {
   );
   ok(
     "roteamento restringe a chamada ao Vertex com ZDR",
-    ultimaRequisicao?.body?.providerOptions?.gateway?.only?.[0] === "vertex"
+    ultimaRequisicao?.body?.providerOptions?.gateway?.only?.[0] === "vertex" &&
+      ultimaRequisicao?.body?.providerOptions?.gateway?.zeroDataRetention === true
   );
 
   console.log("\n=== 4. Classificação de erros do Gateway ===");
