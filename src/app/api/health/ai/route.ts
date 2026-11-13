@@ -40,7 +40,8 @@ export async function GET(request: Request) {
 
   const forcar = new URL(request.url).searchParams.get("forcar") === "1";
 
-  const config = validateAIConfig();
+  const oidcToken = request.headers.get("x-vercel-oidc-token") || undefined;
+  const config = validateAIConfig(oidcToken);
   if (!config.valid) {
     return NextResponse.json(
       {
@@ -53,7 +54,7 @@ export async function GET(request: Request) {
   }
 
   const emCache = ultimoTeste && !forcar && Date.now() - ultimoTeste.em < CACHE_MS;
-  const teste = emCache ? ultimoTeste!.resposta : await testAIConnection();
+  const teste = emCache ? ultimoTeste!.resposta : await testAIConnection(oidcToken);
   if (!emCache) ultimoTeste = { em: Date.now(), resposta: teste };
 
   if (!teste.success) {
