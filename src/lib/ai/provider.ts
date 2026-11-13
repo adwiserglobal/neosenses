@@ -372,7 +372,7 @@ async function chamarVercel(
       temperature: opts.temperature ?? DEFAULT_TEMPERATURE,
       ...(opts.json ? { response_format: { type: "json_object" } } : {}),
       // Restringe ao Vertex: este endpoint declara Zero Data Retention.
-      providerOptions: { gateway: { only: ["vertex"] } },
+      providerOptions: { gateway: { only: ["vertex"], zeroDataRetention: true } },
     }),
     signal: AbortSignal.timeout(opts.timeoutMs ?? DEFAULT_TIMEOUT_MS),
   });
