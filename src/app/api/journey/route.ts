@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
       return resposta;
     }
 
-    const configIA = detectAIConfig();
+    const configIA = detectAIConfig(request.headers.get("x-vercel-oidc-token") || undefined);
     if (!configIA) {
       return erro(
         "O montador de roteiros está sendo configurado. Fale com nossa equipe pelo WhatsApp.",
