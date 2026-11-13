@@ -15,7 +15,6 @@ import type { Database } from "@/types/database";
 import {
   detectAIConfig,
   generateAIResponse,
-  validateAIConfig,
   AIError,
   type ChatMessage,
 } from "@/lib/ai/provider";
@@ -32,13 +31,8 @@ import { identificar, verificarLimite, LIMITE_CHAT } from "@/lib/limite";
 
 export const dynamic = "force-dynamic";
 
-const statusIA = validateAIConfig();
-if (statusIA.valid) {
-  console.log(`[concierge] IA pronta: ${statusIA.provider} / ${statusIA.model}`);
-} else {
-  console.warn(`[concierge] IA indisponível: ${statusIA.error}`);
-}
-
+// A autenticação do Gateway é validada por requisição. Em produção, a Vercel
+// injeta o token OIDC no header x-vercel-oidc-token.
 // ── Supabase ───────────────────────────────────────────────────────────────
 function conectarSupabase() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -387,7 +381,7 @@ export async function POST(request: NextRequest) {
     // Respeita AI_PROVIDER/AI_MODEL e o auto-detect central. A rota estava
     // forçando NVIDIA DeepSeek sempre que NVIDIA_API_KEY existia, ignorando
     // a configuração escolhida no ambiente.
-    const configIA = detectAIConfig();
+    const configIA = detectAIConfig(request.headers.get("x-vercel-oidc-token") || undefined);
     if (!configIA) {
       return respostaDeErro(idioma, "AI_PROVIDER_NOT_CONFIGURED", 503);
     }
