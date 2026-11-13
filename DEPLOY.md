@@ -106,7 +106,7 @@ hospedagem:
 NEXT_PUBLIC_SUPABASE_URL          projeto da nuvem
 NEXT_PUBLIC_SUPABASE_ANON_KEY     chave publishable
 SUPABASE_SERVICE_ROLE_KEY         chave secreta — sem ela nada grava
-AI_GATEWAY_API_KEY              chave para uso local/externo; em produção use Vercel OIDC
+AI_GATEWAY_API_KEY              chave local/externa; produção usa header OIDC da Vercel
 AI_GATEWAY_MODEL                google/gemini-2.5-flash-lite (padrão econômico)
 RESEND_API_KEY                    e-mail
 EMAIL_EQUIPE                      quem recebe aviso de lead
@@ -128,12 +128,13 @@ Depois de publicar, `/admin/supabase` mostra o que ficou faltando.
 ### 3. Vercel AI Gateway
 
 As chamadas de IA do Concierge, da redatora do blog e do planejador de roteiros
-passam pelo Vercel AI Gateway. Em produção, use autenticação OIDC da Vercel
-para não manter uma chave de provedor no projeto. Fora da Vercel, configure
-`AI_GATEWAY_API_KEY`.
+passam pelo Vercel AI Gateway. Em produção, a Vercel injeta o token OIDC no header `x-vercel-oidc-token`
+de cada requisição. Localmente, `vercel env pull` pode disponibilizar
+`VERCEL_OIDC_TOKEN`. Fora da Vercel, configure `AI_GATEWAY_API_KEY`.
 
 O modelo padrão é `google/gemini-2.5-flash-lite`, escolhido pelo custo baixo
-e suporte a saída estruturada. Acompanhe custo, tokens, modelo e erros em
+e suporte a saída estruturada. As chamadas ficam restritas ao endpoint Vertex,
+marcado com Zero Data Retention no catálogo atual. Acompanhe custo, tokens, modelo e erros em
 **Vercel → AI Gateway → Logs**. Não configure fallback para chaves externas:
 isso pode gerar cobrança fora dos créditos do Gateway.
 
