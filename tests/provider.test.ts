@@ -93,8 +93,12 @@ async function main() {
 
   console.log("\n=== 2. OIDC e chamada ===");
   limparEnv();
-  process.env.VERCEL_OIDC_TOKEN = OIDC_TOKEN;
   process.env.AI_GATEWAY_MODEL = MODEL;
+  ok(
+    "token OIDC recebido no header pode ser usado por requisição",
+    detectAIConfig(OIDC_TOKEN)?.apiKey === OIDC_TOKEN
+  );
+  process.env.VERCEL_OIDC_TOKEN = OIDC_TOKEN;
   mockFetch([{ status: 200, json: respostaOk }]);
   const r = await generateAIResponse(
     [
@@ -104,7 +108,7 @@ async function main() {
     null,
     { maxTokens: 420, temperature: 0.45 }
   );
-  ok("OIDC é detectado sem API key", detectAIConfig()?.apiKey === OIDC_TOKEN);
+  ok("OIDC de ambiente é detectado sem API key", detectAIConfig()?.apiKey === OIDC_TOKEN);
   ok("endpoint único do Gateway", ultimaRequisicao?.url === "https://ai-gateway.vercel.sh/v1/chat/completions");
   ok("Bearer token é enviado", ultimaRequisicao?.headers?.Authorization === `Bearer ${OIDC_TOKEN}`);
   ok("modelo Gateway vai no payload", ultimaRequisicao?.body?.model === MODEL);
@@ -124,6 +128,10 @@ async function main() {
   ok(
     "modo JSON usa response_format compatível",
     ultimaRequisicao?.body?.response_format?.type === "json_object"
+  );
+  ok(
+    "roteamento restringe a chamada ao Vertex com ZDR",
+    ultimaRequisicao?.body?.providerOptions?.gateway?.only?.[0] === "vertex"
   );
 
   console.log("\n=== 4. Classificação de erros do Gateway ===");
