@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useMemo, useRef, useState, type PointerEvent, type ReactNode } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState, type PointerEvent, type ReactNode } from "react";
 import {
   Check,
   Crop,
@@ -125,6 +125,25 @@ export function EditorImagemUpload({
     [brilho, contraste, saturacao, filtro]
   );
 
+  const fechar = useCallback((forcar = false) => {
+    if (processando && !forcar) return;
+    if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
+    objectUrlRef.current = null;
+    setOrigem("");
+    setArquivoOriginal(null);
+    setDimensoes(null);
+    setZoom(1);
+    setPosicao({ x: 0, y: 0 });
+    setBrilho(100);
+    setContraste(100);
+    setSaturacao(100);
+    setFiltro("original");
+    setErro("");
+    setArrastando(false);
+    dragRef.current = null;
+    if (inputRef.current) inputRef.current.value = "";
+  }, [processando]);
+
   const encaixe = useMemo(() => {
     if (!dimensoes || !stage.width || !stage.height) return null;
     const escala = Math.max(stage.width / dimensoes.width, stage.height / dimensoes.height);
@@ -170,30 +189,11 @@ export function EditorImagemUpload({
       document.body.style.overflow = anterior;
       window.removeEventListener("keydown", teclado);
     };
-  }, [origem, processando]);
+  }, [origem, processando, fechar]);
 
   useEffect(() => () => {
     if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
   }, []);
-
-  function fechar(forcar = false) {
-    if (processando && !forcar) return;
-    if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
-    objectUrlRef.current = null;
-    setOrigem("");
-    setArquivoOriginal(null);
-    setDimensoes(null);
-    setZoom(1);
-    setPosicao({ x: 0, y: 0 });
-    setBrilho(100);
-    setContraste(100);
-    setSaturacao(100);
-    setFiltro("original");
-    setErro("");
-    setArrastando(false);
-    dragRef.current = null;
-    if (inputRef.current) inputRef.current.value = "";
-  }
 
   function selecionar(arquivo?: File) {
     if (!arquivo) return;
