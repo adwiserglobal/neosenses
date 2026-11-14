@@ -84,7 +84,12 @@ function formatarAtualizacao(valor: string | null | undefined): string {
     .replace(".", "");
 }
 
-export default async function ListaExperiencias() {
+interface Props {
+  searchParams?: Promise<{ salvo?: string }>;
+}
+
+export default async function ListaExperiencias({ searchParams }: Props) {
+  const parametros = searchParams ? await searchParams : {};
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const chave = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
@@ -317,6 +322,15 @@ export default async function ListaExperiencias() {
 
   return (
     <div className="space-y-8">
+      {parametros.salvo === "1" && (
+        <div
+          role="status"
+          className="rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm font-medium text-emerald-800"
+        >
+          Alterações salvas com sucesso. A experiência foi atualizada.
+        </div>
+      )}
+
       <header className="overflow-hidden rounded-[28px] bg-[#4b1058] text-white shadow-[0_24px_65px_rgba(64,20,72,0.16)]">
         <div className="relative flex flex-wrap items-end justify-between gap-6 px-7 py-8 md:px-9 md:py-9">
           <div
