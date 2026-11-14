@@ -26,13 +26,6 @@ export function imagemDaExperiencia(
     .normalize("NFD")
     .replace(/[\u0300-\u036f]/g, "");
 
-  // Correções editoriais do DOCX: prevalecem sobre capas antigas cadastradas.
-  if (/monja ani|imersao.*som|som e silencio/.test(texto)) {
-    return "/images/home/entre-som-e-silencio-monja-ani.webp";
-  }
-  if (/no coracao do egito|egito 2027/.test(texto)) {
-    return "/images/home/no-coracao-do-egito-2027.webp";
-  }
 
   if (imagem?.trim()) return imagem.trim();
   return IMAGENS_POR_DESTINO.find(([termo]) => termo.test(texto))?.[1] ?? null;
