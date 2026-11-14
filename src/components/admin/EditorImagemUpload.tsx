@@ -381,7 +381,7 @@ export function EditorImagemUpload({
               </div>
               <button
                 type="button"
-                onClick={fechar}
+                onClick={() => fechar()}
                 disabled={processando}
                 aria-label="Fechar editor de imagem"
                 className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-[#e2d4bf] bg-white text-[#5b4a3a] transition hover:bg-[#f4ecdf] disabled:opacity-40"
