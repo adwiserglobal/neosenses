@@ -371,8 +371,9 @@ async function chamarVercel(
       max_tokens: opts.maxTokens ?? DEFAULT_MAX_TOKENS,
       temperature: opts.temperature ?? DEFAULT_TEMPERATURE,
       ...(opts.json ? { response_format: { type: "json_object" } } : {}),
-      // Restringe ao Vertex: este endpoint declara Zero Data Retention.
-      providerOptions: { gateway: { only: ["vertex"], zeroDataRetention: true } },
+      // Mantém o tráfego no endpoint Vertex. Não ativamos ZDR no Gateway,
+      // pois a Vercel exige plano pago para essa opção.
+      providerOptions: { gateway: { only: ["vertex"] } },
     }),
     signal: AbortSignal.timeout(opts.timeoutMs ?? DEFAULT_TIMEOUT_MS),
   });
