@@ -7,6 +7,8 @@ export type PerfilComAutenticacao = Profile & {
   auth_email: string;
   /** Marcador confiável, definido somente pelo servidor no app_metadata do Auth. */
   must_change_password: boolean;
+  internal_admin: boolean;
+  bootstrap_complete: boolean;
 };
 
 /**
@@ -39,5 +41,7 @@ export const perfilDaSessao = cache(async (): Promise<PerfilComAutenticacao | nu
     ...(data as Profile),
     auth_email: user.email?.trim().toLowerCase() ?? "",
     must_change_password: user.app_metadata?.neosenses_force_password_change === true,
+    internal_admin: user.app_metadata?.neosenses_internal_admin === true,
+    bootstrap_complete: user.app_metadata?.neosenses_admin_bootstrap_complete === true,
   };
 });
