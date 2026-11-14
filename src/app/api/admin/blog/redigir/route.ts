@@ -50,7 +50,7 @@ function analisarResposta(texto: string, tema: string): RespostaRedacao {
 
 export async function POST(req: NextRequest) {
   const perfil = await usuarioAtual();
-  if (!perfil || !perfil.is_active || !["admin", "editor"].includes(perfil.role))
+  if (!perfil || !perfil.is_active || perfil.must_change_password || !["admin", "editor"].includes(perfil.role))
     return NextResponse.json({ error: "Faça login no painel para usar a redatora." }, { status: 401 });
 
   let entrada: Record<string, unknown>;
