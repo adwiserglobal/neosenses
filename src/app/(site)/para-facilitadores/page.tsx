@@ -35,44 +35,45 @@ export const metadata: Metadata = {
 };
 
 export const revalidate = 3600;
+export const dynamic = "force-static";
 
 /** Fotos da NeoSenses, em arquivos próprios (ver public/images/b2b/ORIGEM.md). */
 const FOTOS_DA_FAIXA: FotoDaFaixa[] = [
-  { src: "/images/b2b/peru-montanhas-coloridas.jpg", alt: "Montanha das Sete Cores, no Peru" },
-  { src: "/images/b2b/marrocos-gnaoua.jpg", alt: "Viajantes descansando nas dunas do Marrocos" },
-  { src: "/images/b2b/amazonas-cta.jpg", alt: "Grupo num barco ao entardecer, na Amazônia" },
-  { src: "/images/b2b/marrocos-todra.jpg", alt: "Cidadela de barro no Marrocos ao entardecer" },
-  { src: "/images/b2b/peru-humantay.jpg", alt: "Lagoa turquesa cercada de montanhas, no Peru" },
-  { src: "/images/b2b/amazonas-trilha.jpg", alt: "Grupo reunido na floresta amazônica" },
-  { src: "/images/b2b/marrocos-souk.jpg", alt: "Praça movimentada em Marrakech ao pôr do sol" },
-  { src: "/images/b2b/amazonas-hero-canoas.jpg", alt: "Canoas com viajantes remando num rio da Amazônia" },
+  { src: "/images/b2b/peru-titicaca.jpg", alt: "Paisagem andina do Peru" },
+  { src: "/images/b2b/marrocos-entrega.jpg", alt: "Vivência no Marrocos" },
+  { src: "/images/b2b/amazonas-floresta-aerea.jpg", alt: "Floresta amazônica vista do alto" },
+  { src: "/images/b2b/marrocos-farmacia-berbere.jpg", alt: "Cultura local no Marrocos" },
+  { src: "/images/b2b/peru-lagoa-sagrada.jpg", alt: "Lagoa em meio às montanhas do Peru" },
+  { src: "/images/b2b/amazonas-flutuante.jpg", alt: "Comunidade ribeirinha na Amazônia" },
+  { src: "/images/b2b/marrocos-rabat.jpg", alt: "Arquitetura e paisagem urbana do Marrocos" },
+  { src: "/images/b2b/amazonas-hero-principal.jpg", alt: "Paisagem do rio e da floresta amazônica" },
 ];
 
 const MOMENTOS = [
   {
-    src: "/images/b2b/peru-xama.jpg",
-    alt: "Facilitadora e parceiro local numa vivência no Peru",
-    legenda: "Rituais conduzidos com parceiros locais",
+    src: "/images/b2b/peru-titicaca.jpg",
+    alt: "Paisagem andina do Peru",
+    legenda: "Territórios que fazem parte da jornada",
   },
   {
-    src: "/images/b2b/peru-cerimonia.jpg",
-    alt: "Conversa e cerimônia diante de uma rocha sagrada, no Peru",
-    legenda: "A sabedoria do território, no tempo certo",
+    src: "/images/b2b/peru-lagoa-sagrada.jpg",
+    alt: "Lagoa cercada pelas montanhas dos Andes",
+    legenda: "Natureza e tempo para contemplar",
   },
   {
-    src: "/images/b2b/amazonas-trilha.jpg",
-    alt: "Grupo reunido e sorrindo na floresta amazônica",
-    legenda: "O grupo inteiro, sem pressa",
+    src: "/images/b2b/amazonas-floresta-aerea.jpg",
+    alt: "Vista aérea da floresta amazônica",
+    legenda: "A dimensão da floresta",
   },
   {
-    src: "/images/b2b/amazonas-porsol-flutuante.jpg",
-    alt: "Viajantes assistindo ao pôr do sol à beira do rio",
-    legenda: "Fim de tarde, rio e silêncio",
+    src: "/images/b2b/amazonas-flutuante.jpg",
+    alt: "Paisagem ribeirinha da Amazônia",
+    legenda: "A vida que acompanha o rio",
   },
 ];
 
 const MENSAGEM =
-  "Olá! Sou terapeuta/facilitadora e quero levar meu grupo numa jornada. Podemos agendar uma conversa?";
+  "Olá! Conduzo grupos e gostaria de conversar sobre como levar uma jornada com a NeoSenses.";
 
 /**
  * O que a NeoSenses faz e o que fica com quem conduz.
@@ -146,28 +147,22 @@ const BENEFICIOS: Array<{
 
 const COMO_FUNCIONA = [
   {
-    id: "conversa",
-    titulo: "Uma conversa",
+    id: "intencao",
+    titulo: "Alinhamento da Intenção",
     descricao:
-      "Você conta quem é o seu grupo, o que quer que essa viagem desperte e em que época faria sentido. Não precisa ter o grupo formado.",
+      "Conversamos sobre o perfil do seu grupo, o propósito da vivência e o destino ideal.",
   },
   {
-    id: "proposta",
-    titulo: "Um roteiro desenhado",
+    id: "desenho",
+    titulo: "Desenho e Precificação",
     descricao:
-      "A NeoSenses monta a proposta: territórios, vivências, hospedagem, ritmo e os espaços reservados para o seu trabalho.",
+      "Montamos o roteiro completo, cuidando dos bloqueios aéreos, hospedagens e custos.",
   },
   {
-    id: "ajuste",
-    titulo: "O ajuste fino",
+    id: "embarque",
+    titulo: "Divulgação e Embarque",
     descricao:
-      "Vocês revisam juntos até o roteiro ficar do jeito do seu grupo. Nada é engessado, o desenho existe para servir ao propósito.",
-  },
-  {
-    id: "jornada",
-    titulo: "A jornada",
-    descricao:
-      "Você conduz o seu grupo. A NeoSenses sustenta a operação de ponta a ponta, no destino, durante toda a viagem.",
+      "Apoiamos no material de apresentação para seus participantes e acompanhamos toda a operação do início ao fim.",
   },
 ];
 
@@ -209,8 +204,8 @@ export default function ParaFacilitadoresPage() {
         <Surge className="mt-8 space-y-5">
           <p className="max-w-[68ch] leading-relaxed text-text-primary/85">
             Sabemos que organizar uma imersão ou viagem exige tempo, planejamento impecável
-            e gestão de riscos. A NeoSenses é a parceira estratégica de terapeutas, mentores
-            e facilitadores que desejam realizar seus projetos sem se preocupar com reservas,
+            e gestão de riscos. A NeoSenses caminha ao lado de terapeutas, mentores e
+            facilitadores que desejam realizar seus projetos sem se preocupar com reservas,
             passagens, hospedagens energeticamente alinhadas ou burocracias operacionais.
           </p>
         </Surge>
@@ -283,6 +278,73 @@ export default function ParaFacilitadoresPage() {
         </div>
       </section>
 
+      <section className="bg-[#f5eddf] py-16 md:py-20">
+        <div className="container-wide">
+          <div className="mb-9 max-w-3xl">
+            <p className="chapeu chapeu-com-risco">Roteiros para grupos</p>
+            <h2 className="mt-3 font-heading text-3xl text-primary-700 md:text-4xl">
+              Destinos que podemos desenhar com você
+            </h2>
+            <p className="mt-4 max-w-[68ch] leading-relaxed text-text-muted">
+              Estes são pontos de partida para a conversa. O itinerário, o ritmo e as
+              vivências são ajustados ao propósito e ao perfil de cada grupo.
+            </p>
+          </div>
+          <div className="grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
+            {[
+              {
+                nome: "Marrocos",
+                texto: "Cultura, travessias e encontros pelo território.",
+                imagem: "/images/b2b/marrocos-entrega.jpg",
+                href: "/experiencias/marrocos-com-neosenses",
+              },
+              {
+                nome: "Peru",
+                texto: "Andes, saberes locais e paisagens de contemplação.",
+                imagem: "/images/b2b/peru-titicaca.jpg",
+                href: linkWhatsApp("Olá! Quero conversar sobre um roteiro para meu grupo no Peru com a NeoSenses."),
+              },
+              {
+                nome: "Amazônia",
+                texto: "Floresta, rios e experiências com parceiros locais.",
+                imagem: "/images/b2b/amazonas-floresta-aerea.jpg",
+                href: linkWhatsApp("Olá! Quero conversar sobre um roteiro para meu grupo na Amazônia com a NeoSenses."),
+              },
+              {
+                nome: "Egito",
+                texto: "História, templos e uma jornada pelo patrimônio egípcio.",
+                imagem: "/images/home/no-coracao-do-egito-2027.webp",
+                href: linkWhatsApp("Olá! Quero conversar sobre um roteiro para meu grupo no Egito com a NeoSenses."),
+              },
+            ].map((destino) => (
+              <a
+                key={destino.nome}
+                href={destino.href}
+                target={destino.href.startsWith("http") ? "_blank" : undefined}
+                rel={destino.href.startsWith("http") ? "noopener noreferrer" : undefined}
+                className="group relative isolate flex min-h-[300px] overflow-hidden rounded-2xl bg-primary-800"
+              >
+                <Image
+                  src={destino.imagem}
+                  alt={destino.nome}
+                  fill
+                  sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+                  className="object-cover transition-transform duration-700 group-hover:scale-105"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#1b1020]/90 via-[#1b1020]/20 to-transparent" />
+                <div className="relative z-10 mt-auto p-6 text-white">
+                  <h3 className="font-heading text-2xl">{destino.nome}</h3>
+                  <p className="mt-2 text-sm leading-relaxed text-white/85">{destino.texto}</p>
+                  <span className="mt-4 inline-flex text-sm font-semibold text-secondary-200">
+                    Conhecer roteiro-base →
+                  </span>
+                </div>
+              </a>
+            ))}
+          </div>
+        </div>
+      </section>
+
       {/* Os quatro benefícios do passo 3 do documento. Não é grade de
           cartões curtos: cada um carrega o detalhe que sustenta a promessa,
           e resumir "acompanhamento técnico" numa linha esvaziaria justamente
@@ -315,6 +377,35 @@ export default function ParaFacilitadoresPage() {
             </p>
           </div>
         </Surge>
+
+        <div className="mt-10 grid gap-5 md:grid-cols-2">
+          <article className="rounded-2xl border border-secondary-300/50 bg-secondary-50 p-7 md:p-8">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-secondary-700">
+              Acompanhamento durante a jornada
+            </p>
+            <h3 className="mt-3 font-heading text-2xl text-primary-700">
+              Guia acompanhante credenciado
+            </h3>
+            <p className="mt-4 leading-relaxed text-text-muted">
+              Um profissional acompanha o grupo e apoia a operação no destino, os
+              deslocamentos, os horários e os imprevistos. Assim, você não precisa
+              dividir sua atenção entre a condução da vivência e a logística da viagem.
+            </p>
+          </article>
+          <article className="rounded-2xl border border-border bg-warm-white p-7 md:p-8">
+            <p className="text-xs font-semibold uppercase tracking-[0.16em] text-secondary-700">
+              Conexão com o território
+            </p>
+            <h3 className="mt-3 font-heading text-2xl text-primary-700">
+              Guia local e saberes ancestrais
+            </h3>
+            <p className="mt-4 leading-relaxed text-text-muted">
+              Conforme o destino e a proposta do grupo, parceiros locais aproximam
+              os participantes da história, da cultura e dos conhecimentos do lugar.
+              A presença e o formato dessas vivências são definidos no desenho do roteiro.
+            </p>
+          </article>
+        </div>
 
         <ol className="mt-14 space-y-px">
           {BENEFICIOS.map((b, i) => (
@@ -382,9 +473,9 @@ export default function ParaFacilitadoresPage() {
       />
 
       <Faixa fundo="noite">
-        <TituloDeSecao chapeu="O caminho" titulo="Do primeiro contato à viagem" fundo="noite" />
+        <TituloDeSecao chapeu="O caminho" titulo="Como funciona na prática" fundo="noite" />
         <div className="mt-12">
-          <Grade itens={COMO_FUNCIONA} fundo="noite" colunas={4} />
+          <Grade itens={COMO_FUNCIONA} fundo="noite" colunas={3} />
         </div>
       </Faixa>
 
