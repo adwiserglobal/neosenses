@@ -213,7 +213,6 @@ export function FormularioExperiencia({ experiencia, categorias, destinos }: Pro
         // A edição concluiu no banco: volta ao catálogo e exibe confirmação
         // persistente na próxima página, em vez de apenas atualizar o formulário.
         router.replace("/admin/experiencias?salvo=1");
-        router.refresh();
       } catch (err) {
         console.error("[admin] falha inesperada ao salvar experiência:", err);
         setErro("Não foi possível concluir o salvamento. Verifique sua conexão e tente novamente.");
