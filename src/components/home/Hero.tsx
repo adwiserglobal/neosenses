@@ -260,14 +260,12 @@ export function Pilares() {
               className="relative aspect-[4/4.2] overflow-hidden bg-[#411a35] shadow-[0_22px_60px_rgba(62,11,83,0.15)] sm:aspect-[5/4.3]"
               style={{ borderRadius: "42% 58% 56% 44% / 38% 40% 60% 62%" }}
             >
-              {/* Foto da celebração Holi escolhida para esta seção. */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="https://i.natgeofe.com/n/b16edb14-92d9-4177-b511-a6e791250092/gettyimages-471366604.jpeg"
-                alt="Mulher celebrando o Holi, envolta em cores vibrantes"
-                loading="lazy"
-                referrerPolicy="no-referrer"
-                className="h-full w-full object-cover object-center"
+              <Image
+                src="/images/home/proposito-floresta.webp"
+                alt="Paisagem serena de floresta, evocando contemplação e conexão interior"
+                fill
+                sizes="(min-width: 1024px) 45vw, 100vw"
+                className="object-cover object-center"
               />
             </div>
           </motion.div>
