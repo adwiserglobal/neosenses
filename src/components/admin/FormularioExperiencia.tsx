@@ -7,11 +7,12 @@
  * formulário nunca sobrescreve idioma que não mostra.
  */
 
-import { useState, useTransition } from "react";
+import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
 import { ImageIcon, UploadCloud } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { prepararUploadImagemExperiencia, salvarExperiencia } from "@/lib/actions/admin";
+import { EditorImagemUpload } from "@/components/admin/EditorImagemUpload";
 import { t } from "@/lib/utils";
 import type { Category, DestinationWithCountry, ExperienceWithRelations, I18nField } from "@/types/models";
 
@@ -102,6 +103,12 @@ export function FormularioExperiencia({ experiencia, categorias, destinos }: Pro
   const [salvo, setSalvo] = useState(false);
   const [previewCapa, setPreviewCapa] = useState<string>(experiencia?.hero_image ?? "");
   const [nomeArquivoCapa, setNomeArquivoCapa] = useState<string>("");
+  const [arquivoCapaEditada, setArquivoCapaEditada] = useState<File | null>(null);
+  const previewBlobRef = useRef<string | null>(null);
+
+  useEffect(() => () => {
+    if (previewBlobRef.current) URL.revokeObjectURL(previewBlobRef.current);
+  }, []);
 
   const atual = {
     titulo: t(experiencia?.title as I18nField, "pt"),
@@ -133,15 +140,13 @@ export function FormularioExperiencia({ experiencia, categorias, destinos }: Pro
 
   const intencoesAtuais = new Set(experiencia?.intentions ?? []);
 
-  function escolherCapa(arquivo?: File) {
-    if (!arquivo) return;
+  function escolherCapa(arquivo: File) {
+    if (previewBlobRef.current) URL.revokeObjectURL(previewBlobRef.current);
+    const preview = URL.createObjectURL(arquivo);
+    previewBlobRef.current = preview;
+    setArquivoCapaEditada(arquivo);
     setNomeArquivoCapa(arquivo.name);
-
-    const leitor = new FileReader();
-    leitor.onload = () => {
-      if (typeof leitor.result === "string") setPreviewCapa(leitor.result);
-    };
-    leitor.readAsDataURL(arquivo);
+    setPreviewCapa(preview);
   }
 
   function enviar(dados: FormData) {
@@ -151,7 +156,7 @@ export function FormularioExperiencia({ experiencia, categorias, destinos }: Pro
 
     iniciar(async () => {
       try {
-        const arquivo = dados.get("hero_image_file");
+        const arquivo = arquivoCapaEditada;
         let urlDaCapa = String(dados.get("hero_image_existing") ?? "");
 
         if (arquivo instanceof File && arquivo.size > 0) {
@@ -181,7 +186,10 @@ export function FormularioExperiencia({ experiencia, categorias, destinos }: Pro
           }
 
           urlDaCapa = preparo.url;
+          if (previewBlobRef.current) URL.revokeObjectURL(previewBlobRef.current);
+          previewBlobRef.current = null;
           setPreviewCapa(preparo.url);
+          setArquivoCapaEditada(null);
         }
 
         // Monta um FormData limpo. Assim o File nunca é serializado junto com
@@ -551,57 +559,49 @@ export function FormularioExperiencia({ experiencia, categorias, destinos }: Pro
             value={experiencia?.hero_image ?? ""}
           />
 
-          <label
-            htmlFor="hero_image_file"
-            className={`group relative block cursor-pointer overflow-hidden rounded-2xl border border-dashed transition ${
+          <EditorImagemUpload
+            aspectRatio={16 / 7}
+            onProcessed={escolherCapa}
+            disabled={pendente}
+            triggerClassName="block w-full border-0 bg-transparent p-0 text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-secondary-500 focus-visible:ring-offset-2 rounded-2xl"
+          >
+            <div className={`group relative block overflow-hidden rounded-2xl border border-dashed transition ${
               campoComErro === "hero_image_file"
                 ? "border-red-400 bg-red-50/40"
                 : "border-[#d8c7aa] bg-[#fbf6ec] hover:border-secondary-400"
-            }`}
-          >
-            {previewCapa ? (
-              <div className="relative aspect-[16/7] overflow-hidden bg-warm-gray">
-                {/* Preview local ou URL já cadastrada. O arquivo final é servido pelo Storage. */}
-                <img
-                  src={previewCapa}
-                  alt="Prévia da capa da experiência"
-                  className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.01]"
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
-                <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between gap-3">
-                  <span className="rounded-full bg-black/45 px-3 py-1.5 text-xs font-medium text-white backdrop-blur">
-                    {nomeArquivoCapa || "Capa atual"}
+            }`}>
+              {previewCapa ? (
+                <div className="relative aspect-[16/7] overflow-hidden bg-warm-gray">
+                  <img
+                    src={previewCapa}
+                    alt="Prévia da capa da experiência"
+                    className="h-full w-full object-cover transition duration-500 group-hover:scale-[1.01]"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/45 via-transparent to-transparent" />
+                  <div className="absolute bottom-4 left-4 right-4 flex items-center justify-between gap-3">
+                    <span className="rounded-full bg-black/45 px-3 py-1.5 text-xs font-medium text-white backdrop-blur">
+                      {nomeArquivoCapa || "Capa atual"}
+                    </span>
+                    <span className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-primary-700 shadow">
+                      Trocar ou editar imagem
+                    </span>
+                  </div>
+                </div>
+              ) : (
+                <div className="flex min-h-44 flex-col items-center justify-center px-6 py-8 text-center">
+                  <span className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary-100 text-secondary-700">
+                    <ImageIcon className="h-5 w-5" aria-hidden="true" />
                   </span>
-                  <span className="rounded-full bg-white px-3 py-1.5 text-xs font-semibold text-primary-700 shadow">
-                    Trocar imagem
+                  <span className="mt-4 text-sm font-semibold text-primary-700">
+                    Escolha a foto de capa
+                  </span>
+                  <span className="mt-1 text-xs leading-relaxed text-text-muted">
+                    JPG, PNG, WebP ou AVIF · até 25 MB
                   </span>
                 </div>
-              </div>
-            ) : (
-              <div className="flex min-h-44 flex-col items-center justify-center px-6 py-8 text-center">
-                <span className="flex h-12 w-12 items-center justify-center rounded-full bg-secondary-100 text-secondary-700">
-                  <ImageIcon className="h-5 w-5" aria-hidden="true" />
-                </span>
-                <span className="mt-4 text-sm font-semibold text-primary-700">
-                  Escolha a foto de capa
-                </span>
-                <span className="mt-1 text-xs leading-relaxed text-text-muted">
-                  JPG, PNG, WebP ou AVIF · até 8 MB
-                </span>
-              </div>
-            )}
-
-            <span className="sr-only">Selecionar imagem de capa</span>
-            <input
-              id="hero_image_file"
-              name="hero_image_file"
-              type="file"
-              accept="image/jpeg,image/png,image/webp,image/avif"
-              className="absolute inset-0 cursor-pointer opacity-0"
-              onChange={(e) => escolherCapa(e.target.files?.[0])}
-            />
-          </label>
-
+              )}
+            </div>
+          </EditorImagemUpload>
           <p className="mt-2 flex items-center gap-2 text-xs text-text-muted">
             <UploadCloud className="h-3.5 w-3.5" aria-hidden="true" />
             O arquivo é enviado direto para o armazenamento da NeoSenses ao salvar.
