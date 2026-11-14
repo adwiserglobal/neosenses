@@ -133,10 +133,11 @@ de cada requisição. Localmente, `vercel env pull` pode disponibilizar
 `VERCEL_OIDC_TOKEN`. Fora da Vercel, configure `AI_GATEWAY_API_KEY`.
 
 O modelo padrão é `google/gemini-2.5-flash-lite`, escolhido pelo custo baixo
-e suporte a saída estruturada. As chamadas ficam restritas ao endpoint Vertex,
-marcado com Zero Data Retention no catálogo atual. Acompanhe custo, tokens, modelo e erros em
-**Vercel → AI Gateway → Logs**. Não configure fallback para chaves externas:
-isso pode gerar cobrança fora dos créditos do Gateway.
+e suporte a saída estruturada. As chamadas ficam restritas ao endpoint Vertex.
+Não enviamos a opção `zeroDataRetention`: a Vercel exige plano pago para
+habilitar ZDR no AI Gateway, e este projeto está no plano Hobby. Acompanhe
+custo, tokens, modelo e erros em **Vercel → AI Gateway → Logs**. Não configure
+fallback para chaves externas: isso pode gerar cobrança fora dos créditos do Gateway.
 
 ---
 
