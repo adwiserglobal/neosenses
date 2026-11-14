@@ -393,11 +393,10 @@ export async function definirSenhaInicial(
   const renovada = await supabase.auth.refreshSession();
   if (renovada.error) {
     console.error("[auth] não foi possível renovar a sessão após a troca inicial:", renovada.error.message);
+    // A senha e os metadados já foram salvos; sem sessão renovada, força novo
+    // login para que o próximo JWT já carregue o marcador atualizado.
     await supabase.auth.signOut();
-    return {
-      success: false,
-      error: "Senha salva. Entre novamente com a nova senha para abrir o painel.",
-    };
+    return { success: true };
   }
 
   return { success: true };
