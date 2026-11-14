@@ -397,7 +397,7 @@ export default function ParaFacilitadoresPage() {
               Conexão com o território
             </p>
             <h3 className="mt-3 font-heading text-2xl text-primary-700">
-              Guia local e saberes ancestrais
+              Guia local ancestral
             </h3>
             <p className="mt-4 leading-relaxed text-text-muted">
               Conforme o destino e a proposta do grupo, parceiros locais aproximam
