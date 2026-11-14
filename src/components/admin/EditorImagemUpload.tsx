@@ -537,7 +537,7 @@ export function EditorImagemUpload({
             <footer className="flex flex-wrap items-center justify-end gap-3 border-t border-[#e8ddca] bg-[#f8f2e8] px-5 py-4 sm:px-7">
               <button
                 type="button"
-                onClick={fechar}
+                onClick={() => fechar()}
                 disabled={processando}
                 className="rounded-xl px-5 py-3 text-sm font-semibold text-[#746457] transition hover:bg-white/70 disabled:opacity-40"
               >
