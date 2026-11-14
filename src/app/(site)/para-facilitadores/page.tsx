@@ -313,7 +313,7 @@ export default function ParaFacilitadoresPage() {
               {
                 nome: "Egito",
                 texto: "História, templos e uma jornada pelo patrimônio egípcio.",
-                imagem: "/images/home/no-coracao-do-egito-2027.webp",
+                imagem: "/images/destinations/egito.jpg",
                 href: linkWhatsApp("Olá! Quero conversar sobre um roteiro para meu grupo no Egito com a NeoSenses."),
               },
             ].map((destino) => (
