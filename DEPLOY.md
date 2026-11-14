@@ -125,6 +125,25 @@ Duas que costumam ser esquecidas e quebram em silêncio:
 
 Depois de publicar, `/admin/supabase` mostra o que ficou faltando.
 
+### Acesso ao painel interno
+
+O acesso administrativo é fechado por padrão e aceita somente os endereços definidos
+em `src/lib/auth/access.ts`. A autorização é conferida no login, nas Server Actions,
+nas rotas internas e nas funções RLS do Supabase.
+
+O provisionamento inicial usa a variável secreta `INTERNAL_ADMIN_BOOTSTRAP_USERS`,
+com verificadores PBKDF2 (nunca senhas em texto puro). A credencial provisória só
+pode provisionar a conta uma vez; o marcador fica no `app_metadata` do Supabase Auth,
+que não é editável pelo próprio usuário.
+
+A conta da Tarin recebe `neosenses_force_password_change=true` no primeiro
+provisionamento. O login redireciona para `/primeiro-acesso`, onde ela define e
+confirma uma senha pessoal com pelo menos 12 caracteres. Até essa etapa terminar,
+a interface, as rotas internas e o RLS mantêm o acesso administrativo bloqueado.
+
+Para desenvolvimento local, use `vercel env pull` em vez de copiar credenciais
+para arquivos versionados. Nunca adicione senhas reais ao repositório.
+
 ### 3. Vercel AI Gateway
 
 As chamadas de IA do Concierge, da redatora do blog e do planejador de roteiros
