@@ -324,8 +324,11 @@ export async function entrar(email: string, senha: string): Promise<ResultadoLog
       return { success: false, error: provisionamento.error };
     }
 
-    const atualizado = await supabase.auth.getUser();
-    if (atualizado.data.user) usuario = atualizado.data.user;
+    // O app_metadata alimenta as claims JWT usadas pelo RLS. Atualizar o
+    // perfil no Auth não reescreve um access token já emitido; renove a sessão
+    // para que as permissões reflitam o provisionamento na mesma navegação.
+    const renovada = await supabase.auth.refreshSession();
+    if (renovada.data.user) usuario = renovada.data.user;
   }
 
   return {
@@ -382,7 +385,18 @@ export async function definirSenhaInicial(
     console.error("[auth] não foi possível encerrar a troca obrigatória:", erroMetadata.message);
     return {
       success: false,
-      error: "A senha foi alterada, mas a validação final não concluiu. Envie a nova senha novamente.",
+      error: "A senha foi alterada, mas a validação final não concluiu. Entre novamente com a senha nova.",
+    };
+  }
+
+  // Reemite o JWT sem a flag de troca pendente para liberar RLS e Server Actions.
+  const renovada = await supabase.auth.refreshSession();
+  if (renovada.error) {
+    console.error("[auth] não foi possível renovar a sessão após a troca inicial:", renovada.error.message);
+    await supabase.auth.signOut();
+    return {
+      success: false,
+      error: "Senha salva. Entre novamente com a nova senha para abrir o painel.",
     };
   }
 
