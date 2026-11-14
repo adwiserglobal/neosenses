@@ -15,7 +15,8 @@ import { DepoimentosHome } from "@/components/home/DepoimentosHome";
 import { ConviteAoFacilitador } from "@/components/templates/funil";
 import { JornadasCarousel } from "@/components/home/JornadasCarousel";
 import { TematicosHome } from "@/components/home/TematicosHome";
-import { linkWhatsApp } from "@/lib/utils";
+import { linkWhatsApp, t } from "@/lib/utils";
+import type { I18nField } from "@/types/models";
 
 // A home declara o próprio canonical. Estava no layout raiz, de onde toda
 // rota que não redefinisse o herdava, e quatro páginas acabaram anunciando
@@ -27,7 +28,13 @@ export const metadata = {
 export const revalidate = 3600;
 
 export default async function HomePage() {
-  const [destaques, depoimentos] = await Promise.all([listarDestaques(12), listarDepoimentos(6)]);
+  const [destaques, depoimentos] = await Promise.all([listarDestaques(18), listarDepoimentos(6)]);
+  const jornadasB2C = destaques.filter((experiencia) => {
+    const titulo = t(experiencia.title as I18nField, "pt").toLowerCase();
+    const slug = t(experiencia.slug as I18nField, "pt").toLowerCase();
+    return !slug.includes("marrocos-com-neosenses") &&
+      !(titulo.includes("marrocos") && /terapeutas|facilitadoras|facilitadores/.test(titulo));
+  });
 
   return (
     <>
@@ -38,7 +45,7 @@ export default async function HomePage() {
 
       {/* Jornadas em destaque, some quando não há nada publicado, em vez de
           mostrar uma grade vazia. */}
-      {destaques.length > 0 && (
+      {jornadasB2C.length > 0 && (
         <section className="relative isolate overflow-hidden bg-[linear-gradient(180deg,#f0e5d3_0%,#f0e5d3_5%,#311b22_18%,#311b22_73%,#422152_100%)] pb-20 pt-24 md:pb-24 md:pt-28">
           {/* Deserto do Marrocos com véu escuro e máscara em degradê: as bordas
               dissolvem no fundo areia das seções vizinhas, sem corte seco. */}
@@ -72,7 +79,7 @@ export default async function HomePage() {
               </h2>
             </div>
 
-            <JornadasCarousel experiencias={destaques} />
+            <JornadasCarousel experiencias={jornadasB2C} />
 
             <div className="mt-8 text-center">
               <Link
