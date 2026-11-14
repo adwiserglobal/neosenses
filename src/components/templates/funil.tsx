@@ -239,18 +239,19 @@ export function ConviteAoFacilitador({
               Seu grupo já confia em você. Falta o lugar à altura do trabalho.
             </h2>
             <p className={`mt-5 max-w-[62ch] text-lg leading-relaxed ${sobreClaro ? "text-text-muted" : "text-warm-white/80"}`}>
-              Você conduz há anos, na sala, no círculo, na mesa de reiki. Já viu o
-              que acontece quando alguém se permite. Agora imagine esse mesmo grupo
-              num lugar onde a montanha faz metade do trabalho por você.
+              Você já conduz jornadas de transformação e sabe a profundidade do encontro
+              entre pessoas com a mesma intenção. Quando chega o momento de expandir esse
+              trabalho para um retiro ou viagem internacional, a operação não precisa ser um peso.
             </p>
             <p className={`mt-4 max-w-[62ch] leading-relaxed ${sobreClaro ? "text-text-muted" : "text-warm-white/80"}`}>
-              O que trava não é a vontade: é a logística. Passagem, hospedagem, guia,
-              seguro, o imprevisto às onze da noite num país que não é o seu. Essa
-              parte é nossa, para que a sua parte continue sendo a sua.
+              A NeoSenses cuida de toda a arquitetura logística — curadoria de espaços,
+              reservas, passagens, seguros e guia acompanhante credenciado com sensibilidade
+              terapêutica — para que você esteja 100% presente no que faz de melhor: sustentar
+              o campo e conduzir seus participantes.
             </p>
             <p className={`mt-4 max-w-[62ch] leading-relaxed ${sobreClaro ? "text-text-muted/85" : "text-warm-white/65"}`}>
-              Sem pacote pronto e sem data imposta. O roteiro nasce da intenção que
-              você já tem para essas pessoas.
+              Desenhamos o roteiro sob medida, respeitando o propósito, o ritmo e a identidade
+              do seu grupo.
             </p>
           </div>
 
@@ -260,7 +261,7 @@ export function ConviteAoFacilitador({
             </Link>
             <a
               href={linkWhatsApp(
-                "Olá! Sou terapeuta/facilitadora e quero levar meu grupo numa jornada. Podemos conversar?"
+                "Olá! Conduzo grupos e gostaria de conversar sobre como levar uma jornada com a NeoSenses."
               )}
               target="_blank"
               rel="noopener noreferrer"
