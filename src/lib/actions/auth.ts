@@ -1,12 +1,12 @@
 "use server";
 
 /**
- * Autenticação da equipe.
+ * Autenticação do painel interno NeoSenses.
  *
- * O login normal usa Supabase Auth. Para a primeira instalação, se
- * ADMIN_EMAIL e ADMIN_PASSWORD estiverem definidos no ambiente, uma falha de
- * login com essas credenciais cria/atualiza a conta no Supabase Auth e a
- * promove a admin usando a service_role. A senha nunca fica no repositório.
+ * A lista autorizada é fixa no servidor. O bootstrap usa apenas credenciais
+ * armazenadas como variável secreta na Vercel e grava um marcador em app_metadata,
+ * que não pode ser alterado pelo próprio usuário. Assim, a senha provisória não
+ * volta a redefinir a senha depois da primeira utilização.
  */
 
 import { redirect } from "next/navigation";
@@ -14,44 +14,90 @@ import {
   createAdminClient,
   createServerSupabaseClient,
 } from "@/lib/supabase/server";
-import { perfilDaSessao } from "@/lib/auth/usuario";
-import type { Profile, UserRole } from "@/types/models";
+import { perfilDaSessao, type PerfilComAutenticacao } from "@/lib/auth/usuario";
+import { emailInternoAutorizado } from "@/lib/auth/access";
+import type { UserRole } from "@/types/models";
 
 export interface ResultadoLogin {
   success: boolean;
   error?: string;
+  requiresPasswordChange?: boolean;
+}
+
+interface CredencialBootstrap {
+  email: string;
+  password: string;
+  fullName: string;
+  forcePasswordChange: boolean;
 }
 
 interface ResultadoBootstrap {
   executado: boolean;
   success: boolean;
+  forcePasswordChange?: boolean;
   error?: string;
 }
 
-function credenciaisBootstrapCorrespondem(email: string, senha: string): boolean {
-  const emailAdmin = process.env.ADMIN_EMAIL?.trim().toLowerCase();
-  const senhaAdmin = process.env.ADMIN_PASSWORD;
+function credenciaisBootstrap(): CredencialBootstrap[] {
+  const bruto = process.env.INTERNAL_ADMIN_BOOTSTRAP_USERS;
+  if (!bruto) return [];
 
-  return Boolean(
-    emailAdmin &&
-      senhaAdmin &&
-      email === emailAdmin &&
-      senha === senhaAdmin
-  );
+  try {
+    const dados: unknown = JSON.parse(bruto);
+    if (!Array.isArray(dados)) return [];
+
+    return dados.flatMap((item: unknown) => {
+      if (!item || typeof item !== "object") return [];
+      const registro = item as Record<string, unknown>;
+      if (
+        typeof registro.email !== "string" ||
+        typeof registro.password !== "string" ||
+        !emailInternoAutorizado(registro.email)
+      ) return [];
+
+      return [{
+        email: registro.email.trim().toLowerCase(),
+        password: registro.password,
+        fullName: typeof registro.fullName === "string" ? registro.fullName : "",
+        forcePasswordChange: registro.forcePasswordChange === true,
+      }];
+    });
+  } catch {
+    console.error("[auth] INTERNAL_ADMIN_BOOTSTRAP_USERS contém JSON inválido.");
+    return [];
+  }
+}
+
+function credencialCorrespondente(email: string, senha: string): CredencialBootstrap | null {
+  return credenciaisBootstrap().find(
+    (item) => item.email === email && item.password === senha
+  ) ?? null;
+}
+
+async function promoverAdmin(
+  admin: ReturnType<typeof createAdminClient>,
+  email: string
+): Promise<{ success: boolean; error?: string }> {
+  const rpc = admin.rpc as unknown as (
+    nome: string,
+    args: Record<string, unknown>
+  ) => Promise<{ data: unknown; error: { message: string } | null }>;
+
+  const { error } = await rpc("promover_admin", { email_alvo: email });
+  if (error) {
+    console.error("[auth] promoção do acesso interno:", error.message);
+    return { success: false, error: "A conta existe, mas não foi possível liberar o painel." };
+  }
+  return { success: true };
 }
 
 /**
- * Bootstrap usado somente quando o login normal falha.
- *
- * Depois que o administrador já existe e o profile está correto, não há
- * motivo para listar usuários, redefinir senha e chamar RPC em todo login.
- * Além de ser trabalho desnecessário, isso deixava o formulário preso em
- * "Entrando..." quando uma dessas chamadas administrativas demorava.
+ * Provisiona a conta apenas uma vez. Se o marcador já existir, a credencial
+ * provisória não pode redefinir a senha que a pessoa escolheu posteriormente.
  */
 async function bootstrapAdmin(email: string, senha: string): Promise<ResultadoBootstrap> {
-  if (!credenciaisBootstrapCorrespondem(email, senha)) {
-    return { executado: false, success: false };
-  }
+  const credencial = credencialCorrespondente(email, senha);
+  if (!credencial) return { executado: false, success: false };
 
   let admin;
   try {
@@ -61,8 +107,7 @@ async function bootstrapAdmin(email: string, senha: string): Promise<ResultadoBo
     return {
       executado: true,
       success: false,
-      error:
-        "Supabase incompleto no servidor. Confira NEXT_PUBLIC_SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY no Vercel.",
+      error: "A configuração administrativa do Supabase está incompleta.",
     };
   }
 
@@ -72,76 +117,127 @@ async function bootstrapAdmin(email: string, senha: string): Promise<ResultadoBo
   });
 
   if (erroLista) {
-    console.error("[auth] não foi possível listar usuários:", erroLista.message);
+    console.error("[auth] não foi possível consultar usuários:", erroLista.message);
     return {
       executado: true,
       success: false,
-      error: "A service_role foi encontrada, mas o Supabase Auth recusou a operação.",
+      error: "Não foi possível verificar a conta no Supabase Auth.",
     };
   }
 
-  let usuario = lista.users.find((u) => u.email?.toLowerCase() === email);
+  const usuarioExistente = lista.users.find(
+    (usuario) => usuario.email?.toLowerCase() === email
+  );
 
-  if (!usuario) {
-    const { data, error } = await admin.auth.admin.createUser({
-      email,
+  if (usuarioExistente?.app_metadata?.neosenses_admin_bootstrap_complete === true) {
+    // O primeiro acesso já foi provisionado. Nunca reativar a senha temporária.
+    return { executado: false, success: false };
+  }
+
+  const appMetadata = {
+    ...(usuarioExistente?.app_metadata ?? {}),
+    neosenses_internal_admin: true,
+    neosenses_admin_bootstrap_complete: true,
+    neosenses_force_password_change: credencial.forcePasswordChange,
+  };
+
+  if (usuarioExistente) {
+    const { error } = await admin.auth.admin.updateUserById(usuarioExistente.id, {
       password: senha,
       email_confirm: true,
-      user_metadata: { full_name: "Administrador NeoSenses" },
-    });
-
-    if (error || !data.user) {
-      console.error("[auth] criação do primeiro admin:", error?.message);
-      return {
-        executado: true,
-        success: false,
-        error: "Não foi possível criar a conta administrativa no Supabase Auth.",
-      };
-    }
-
-    usuario = data.user;
-  } else {
-    const { error } = await admin.auth.admin.updateUserById(usuario.id, {
-      password: senha,
-      email_confirm: true,
+      app_metadata: appMetadata,
+      user_metadata: {
+        ...(usuarioExistente.user_metadata ?? {}),
+        full_name: usuarioExistente.user_metadata?.full_name || credencial.fullName,
+      },
     });
 
     if (error) {
-      console.error("[auth] atualização do admin bootstrap:", error.message);
+      console.error("[auth] atualização inicial da conta:", error.message);
       return {
         executado: true,
         success: false,
-        error: "A conta existe, mas não foi possível atualizar a credencial administrativa.",
+        error: "A conta existe, mas não foi possível configurar o acesso.",
+      };
+    }
+  } else {
+    const { error } = await admin.auth.admin.createUser({
+      email,
+      password: senha,
+      email_confirm: true,
+      app_metadata: appMetadata,
+      user_metadata: { full_name: credencial.fullName },
+    });
+
+    if (error) {
+      console.error("[auth] criação da conta interna:", error.message);
+      return {
+        executado: true,
+        success: false,
+        error: "Não foi possível criar a conta no Supabase Auth.",
       };
     }
   }
 
-  const rpc = admin.rpc as unknown as (
-    nome: string,
-    args: Record<string, unknown>
-  ) => Promise<{ data: unknown; error: { message: string } | null }>;
-
-  const { error: erroPromocao } = await rpc("promover_admin", {
-    email_alvo: email,
-  });
-
-  if (erroPromocao) {
-    console.error("[auth] promoção para admin:", erroPromocao.message);
+  const promocao = await promoverAdmin(admin, email);
+  if (!promocao.success) {
     return {
       executado: true,
       success: false,
-      error:
-        "A conta existe, mas o banco ainda não conseguiu conceder acesso de administrador.",
+      error: promocao.error,
     };
   }
 
-  return { executado: true, success: true };
+  return {
+    executado: true,
+    success: true,
+    forcePasswordChange: credencial.forcePasswordChange,
+  };
+}
+
+async function marcarCredencialComoProvisionada(
+  userId: string,
+  email: string,
+  credencial: CredencialBootstrap
+): Promise<{ success: boolean; error?: string }> {
+  const admin = createAdminClient();
+  const { data, error } = await admin.auth.admin.getUserById(userId);
+
+  if (error || !data.user) {
+    console.error("[auth] não foi possível ler os metadados da conta:", error?.message);
+    return { success: false, error: "Não foi possível concluir a configuração da conta." };
+  }
+
+  if (data.user.app_metadata?.neosenses_admin_bootstrap_complete === true) {
+    return { success: true };
+  }
+
+  const { error: erroAtualizacao } = await admin.auth.admin.updateUserById(userId, {
+    app_metadata: {
+      ...(data.user.app_metadata ?? {}),
+      neosenses_internal_admin: true,
+      neosenses_admin_bootstrap_complete: true,
+      neosenses_force_password_change: credencial.forcePasswordChange,
+    },
+  });
+
+  if (erroAtualizacao) {
+    console.error("[auth] não foi possível concluir o provisionamento:", erroAtualizacao.message);
+    return { success: false, error: "Não foi possível concluir a configuração da conta." };
+  }
+
+  const promocao = await promoverAdmin(admin, email);
+  return promocao;
 }
 
 export async function entrar(email: string, senha: string): Promise<ResultadoLogin> {
   const limpo = email.trim().toLowerCase();
   if (!limpo || !senha) {
     return { success: false, error: "Informe e-mail e senha." };
+  }
+
+  if (!emailInternoAutorizado(limpo)) {
+    return { success: false, error: "Este e-mail não tem autorização para acessar o painel." };
   }
 
   let supabase;
@@ -151,20 +247,16 @@ export async function entrar(email: string, senha: string): Promise<ResultadoLog
     console.error("[auth] configuração Supabase inválida:", err);
     return {
       success: false,
-      error:
-        "Supabase não está totalmente configurado. Confira URL e anon key no Vercel.",
+      error: "Supabase não está totalmente configurado. Confira URL e chave pública no Vercel.",
     };
   }
 
-  // Caminho normal e rápido: autentica primeiro. O banco já contém o profile
-  // e o papel; não execute chamadas administrativas a cada acesso.
-  let { error } = await supabase.auth.signInWithPassword({
+  let tentativa = await supabase.auth.signInWithPassword({
     email: limpo,
     password: senha,
   });
 
-  // Bootstrap é somente recuperação/primeira instalação.
-  if (error) {
+  if (tentativa.error) {
     const bootstrap = await bootstrapAdmin(limpo, senha);
 
     if (bootstrap.executado && !bootstrap.success) {
@@ -172,17 +264,97 @@ export async function entrar(email: string, senha: string): Promise<ResultadoLog
     }
 
     if (bootstrap.success) {
-      const novaTentativa = await supabase.auth.signInWithPassword({
+      tentativa = await supabase.auth.signInWithPassword({
         email: limpo,
         password: senha,
       });
-      error = novaTentativa.error;
     }
   }
 
-  if (error) {
-    console.warn(`[auth] login recusado para ${limpo}: ${error.message}`);
+  if (tentativa.error || !tentativa.data.user) {
+    console.warn("[auth] login recusado:", limpo);
     return { success: false, error: "E-mail ou senha incorretos." };
+  }
+
+  let usuario = tentativa.data.user;
+  const credencial = credencialCorrespondente(limpo, senha);
+
+  // Também marca contas que já existiam e aceitaram a senha informada.
+  if (
+    credencial &&
+    usuario.app_metadata?.neosenses_admin_bootstrap_complete !== true
+  ) {
+    const provisionamento = await marcarCredencialComoProvisionada(
+      usuario.id,
+      limpo,
+      credencial
+    );
+
+    if (!provisionamento.success) {
+      await supabase.auth.signOut();
+      return { success: false, error: provisionamento.error };
+    }
+
+    const atualizado = await supabase.auth.getUser();
+    if (atualizado.data.user) usuario = atualizado.data.user;
+  }
+
+  return {
+    success: true,
+    requiresPasswordChange:
+      usuario.app_metadata?.neosenses_force_password_change === true ||
+      (credencial?.forcePasswordChange === true &&
+        usuario.app_metadata?.neosenses_admin_bootstrap_complete === true),
+  };
+}
+
+export async function definirSenhaInicial(
+  novaSenha: string,
+  confirmacao: string
+): Promise<ResultadoLogin> {
+  if (novaSenha !== confirmacao) {
+    return { success: false, error: "As senhas não coincidem." };
+  }
+  if (novaSenha.length < 12) {
+    return { success: false, error: "Use uma senha com pelo menos 12 caracteres." };
+  }
+  if (novaSenha.length > 128) {
+    return { success: false, error: "A senha deve ter no máximo 128 caracteres." };
+  }
+
+  const supabase = await createServerSupabaseClient();
+  const { data: sessao, error: erroSessao } = await supabase.auth.getUser();
+  const usuario = sessao.user;
+
+  if (erroSessao || !usuario || !emailInternoAutorizado(usuario.email)) {
+    return { success: false, error: "Sua sessão expirou. Entre novamente." };
+  }
+  if (usuario.app_metadata?.neosenses_force_password_change !== true) {
+    return { success: false, error: "Esta conta não precisa de uma troca inicial de senha." };
+  }
+
+  const { error: erroSenha } = await supabase.auth.updateUser({ password: novaSenha });
+  if (erroSenha) {
+    console.error("[auth] troca da senha inicial:", erroSenha.message);
+    return { success: false, error: "Não foi possível atualizar a senha. Tente novamente." };
+  }
+
+  const admin = createAdminClient();
+  const { error: erroMetadata } = await admin.auth.admin.updateUserById(usuario.id, {
+    app_metadata: {
+      ...(usuario.app_metadata ?? {}),
+      neosenses_internal_admin: true,
+      neosenses_admin_bootstrap_complete: true,
+      neosenses_force_password_change: false,
+    },
+  });
+
+  if (erroMetadata) {
+    console.error("[auth] não foi possível encerrar a troca obrigatória:", erroMetadata.message);
+    return {
+      success: false,
+      error: "A senha foi alterada, mas a validação final não concluiu. Envie a nova senha novamente.",
+    };
   }
 
   return { success: true };
@@ -194,16 +366,19 @@ export async function sair() {
   redirect("/login");
 }
 
-/** Perfil de quem está logado, ou null. Não redireciona. */
-export async function usuarioAtual(): Promise<Profile | null> {
-  return perfilDaSessao();
+/** Perfil de quem está logado, restrito à lista interna. */
+export async function usuarioAtual(): Promise<PerfilComAutenticacao | null> {
+  const perfil = await perfilDaSessao();
+  if (!perfil || !emailInternoAutorizado(perfil.auth_email)) return null;
+  return perfil;
 }
 
-/** Exige sessão com um dos papéis. */
-export async function exigirPapel(papeis: UserRole[] = ["admin"]): Promise<Profile> {
+/** Exige sessão, autorização por e-mail e o papel solicitado. */
+export async function exigirPapel(papeis: UserRole[] = ["admin"]): Promise<PerfilComAutenticacao> {
   const perfil = await usuarioAtual();
 
   if (!perfil) redirect("/login?redirect=/admin");
+  if (perfil.must_change_password) redirect("/primeiro-acesso");
   if (!perfil.is_active) redirect("/login?erro=conta-inativa");
   if (!papeis.includes(perfil.role)) redirect("/login?erro=sem-permissao");
 
