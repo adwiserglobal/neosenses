@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { CorpoArtigo } from "@/components/blog/CorpoArtigo";
 import { excluirArtigoBlog, prepararUploadImagemBlog, salvarArtigoBlog } from "@/lib/actions/blog";
+import { EditorImagemUpload } from "@/components/admin/EditorImagemUpload";
 import { createClient } from "@/lib/supabase/client";
 import { t } from "@/lib/utils";
 import type { BlogPost, I18nField } from "@/types/models";
@@ -40,8 +41,6 @@ export function EditorBlog({ artigo, categorias, podeExcluir = false }: Props) {
   // Confirmação dentro da página: window.confirm é bloqueado por alguns
   // navegadores ("impedir novas caixas de diálogo") e então nada acontecia.
   const [confirmar, setConfirmar] = useState<null | "publicar" | "substituir">(null);
-  const capaRef = useRef<HTMLInputElement>(null);
-  const corpoRef = useRef<HTMLInputElement>(null);
   const textoRef = useRef<HTMLTextAreaElement>(null);
 
   async function redigir(modo: "criar" | "revisar", jaConfirmado = false) {
@@ -120,8 +119,6 @@ export function EditorBlog({ artigo, categorias, podeExcluir = false }: Props) {
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Não foi possível enviar a imagem.");
     } finally {
-      if (capaRef.current) capaRef.current.value = "";
-      if (corpoRef.current) corpoRef.current.value = "";
       setOcupado("");
     }
   }
@@ -248,15 +245,17 @@ export function EditorBlog({ artigo, categorias, podeExcluir = false }: Props) {
             <div>
               <label className={rotulo}>Imagem de capa</label>
               {capa && <img src={capa} alt="Prévia da capa" className="mb-3 aspect-[16/7] w-full max-w-xl rounded-xl object-cover" />}
-              <input ref={capaRef} type="file" accept="image/jpeg,image/png,image/webp" disabled={trabalhando}
-                onChange={(e) => enviarImagem(e.target.files?.[0] || null, "capa")} className="hidden" />
               <div className="flex flex-wrap items-center gap-3">
-                <button type="button" disabled={trabalhando} onClick={() => capaRef.current?.click()}
-                  className="rounded-lg border border-secondary-300 bg-secondary-50 px-4 py-2.5 text-sm font-semibold text-primary-700 disabled:opacity-50">
-                  {ocupado === "capa" ? "Enviando…" : capa ? "Trocar capa" : "Enviar foto de capa"}
-                </button>
+                <EditorImagemUpload
+                  aspectRatio={16 / 7}
+                  disabled={trabalhando}
+                  onProcessed={(arquivo) => enviarImagem(arquivo, "capa")}
+                  triggerClassName="rounded-lg border border-secondary-300 bg-secondary-50 px-4 py-2.5 text-sm font-semibold text-primary-700 transition hover:border-secondary-500 disabled:opacity-50"
+                >
+                  <span>{ocupado === "capa" ? "Enviando…" : capa ? "Trocar ou editar capa" : "Enviar foto de capa"}</span>
+                </EditorImagemUpload>
                 {capa && <button type="button" onClick={() => setCapa("")} className="text-xs text-text-muted underline">Remover</button>}
-                <span className="text-xs text-text-muted">JPG, PNG ou WebP · até 8 MB</span>
+                <span className="text-xs text-text-muted">JPG, PNG, WebP ou AVIF · até 25 MB</span>
               </div>
               <input className={`mt-3 ${campo}`} value={creditoCapa} onChange={(e) => setCreditoCapa(e.target.value)}
                 placeholder="Crédito da imagem (se necessário)" maxLength={300} aria-label="Crédito da imagem" />
@@ -267,12 +266,14 @@ export function EditorBlog({ artigo, categorias, podeExcluir = false }: Props) {
                 rows={19} value={conteudo} onChange={(e) => setConteudo(e.target.value)} maxLength={60000}
                 placeholder="Escreva aqui ou peça um rascunho à redatora acima. Separe os parágrafos com uma linha em branco." />
               <div className="mt-3 flex flex-wrap items-center justify-between gap-3">
-                <input ref={corpoRef} type="file" accept="image/jpeg,image/png,image/webp" disabled={trabalhando}
-                  onChange={(e) => enviarImagem(e.target.files?.[0] || null, "corpo")} className="hidden" />
-                <button type="button" onClick={() => corpoRef.current?.click()} disabled={trabalhando}
-                  className="rounded-lg border border-secondary-300 px-4 py-2 text-xs font-semibold text-primary-700 disabled:opacity-50">
-                  {ocupado === "corpo" ? "Enviando…" : "+ Inserir imagem no texto"}
-                </button>
+                <EditorImagemUpload
+                  aspectRatio={16 / 9}
+                  disabled={trabalhando}
+                  onProcessed={(arquivo) => enviarImagem(arquivo, "corpo")}
+                  triggerClassName="rounded-lg border border-secondary-300 px-4 py-2 text-xs font-semibold text-primary-700 transition hover:border-secondary-500 disabled:opacity-50"
+                >
+                  <span>{ocupado === "corpo" ? "Enviando…" : "+ Inserir imagem no texto"}</span>
+                </EditorImagemUpload>
                 <span className="text-xs text-text-muted">Subtítulo: ## · Lista: - · Citação: &gt;</span>
               </div>
             </div>
