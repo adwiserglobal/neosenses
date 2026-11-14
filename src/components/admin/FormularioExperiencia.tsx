@@ -150,61 +150,75 @@ export function FormularioExperiencia({ experiencia, categorias, destinos }: Pro
     setSalvo(false);
 
     iniciar(async () => {
-      const arquivo = dados.get("hero_image_file");
-      let urlDaCapa = String(dados.get("hero_image_existing") ?? "");
+      try {
+        const arquivo = dados.get("hero_image_file");
+        let urlDaCapa = String(dados.get("hero_image_existing") ?? "");
 
-      if (arquivo instanceof File && arquivo.size > 0) {
-        const preparo = await prepararUploadImagemExperiencia(arquivo.name, arquivo.type, arquivo.size);
+        if (arquivo instanceof File && arquivo.size > 0) {
+          const preparo = await prepararUploadImagemExperiencia(arquivo.name, arquivo.type, arquivo.size);
 
-        if (!preparo.success || !preparo.bucket || !preparo.path || !preparo.token || !preparo.url) {
-          setErro(preparo.error ?? "Não foi possível enviar a imagem de capa.");
-          setCampoComErro("hero_image_file");
+          if (!preparo.success || !preparo.bucket || !preparo.path || !preparo.token || !preparo.url) {
+            setErro(preparo.error ?? "Não foi possível enviar a imagem de capa.");
+            setCampoComErro("hero_image_file");
+            window.scrollTo({ top: 0, behavior: "smooth" });
+            return;
+          }
+
+          const supabase = createClient();
+          const upload = await supabase.storage
+            .from(preparo.bucket)
+            .uploadToSignedUrl(preparo.path, preparo.token, arquivo, {
+              contentType: arquivo.type,
+              cacheControl: "31536000",
+            });
+
+          if (upload.error) {
+            console.error("[admin] upload da capa:", upload.error.message);
+            setErro("Não foi possível enviar a imagem de capa. Tente novamente.");
+            setCampoComErro("hero_image_file");
+            window.scrollTo({ top: 0, behavior: "smooth" });
+            return;
+          }
+
+          urlDaCapa = preparo.url;
+          setPreviewCapa(preparo.url);
+        }
+
+        // Monta um FormData limpo. Assim o File nunca é serializado junto com
+        // os campos e a URL pública que acabou de ser criada é enviada de forma
+        // explícita para a ação de salvamento.
+        const dadosParaSalvar = new FormData();
+        for (const [chave, valor] of dados.entries()) {
+          if (chave === "hero_image_file" || chave === "hero_image_existing") continue;
+          if (typeof valor === "string") dadosParaSalvar.append(chave, valor);
+        }
+        dadosParaSalvar.set("hero_image", urlDaCapa);
+
+        const resultado = await salvarExperiencia(dadosParaSalvar);
+
+        if (!resultado.success) {
+          setErro(resultado.error ?? "Não foi possível salvar.");
+          setCampoComErro(resultado.campo ?? null);
           window.scrollTo({ top: 0, behavior: "smooth" });
           return;
         }
 
-        const supabase = createClient();
-        const upload = await supabase.storage
-          .from(preparo.bucket)
-          .uploadToSignedUrl(preparo.path, preparo.token, arquivo, {
-            contentType: arquivo.type,
-            cacheControl: "31536000",
-          });
+        setSalvo(true);
 
-        if (upload.error) {
-          console.error("[admin] upload da capa:", upload.error.message);
-          setErro("Não foi possível enviar a imagem de capa. Tente novamente.");
-          setCampoComErro("hero_image_file");
-          window.scrollTo({ top: 0, behavior: "smooth" });
+        if (!experiencia && resultado.id) {
+          router.push(`/admin/experiencias/${resultado.id}`);
           return;
         }
 
-        urlDaCapa = preparo.url;
-        setPreviewCapa(preparo.url);
-      }
-
-      // Monta um FormData limpo. Assim o File nunca é serializado junto com
-      // os campos e a URL pública que acabou de ser criada é enviada de forma
-      // explícita para a ação de salvamento.
-      const dadosParaSalvar = new FormData();
-      for (const [chave, valor] of dados.entries()) {
-        if (chave === "hero_image_file" || chave === "hero_image_existing") continue;
-        if (typeof valor === "string") dadosParaSalvar.append(chave, valor);
-      }
-      dadosParaSalvar.set("hero_image", urlDaCapa);
-
-      const r = await salvarExperiencia(dadosParaSalvar);
-
-      if (!r.success) {
-        setErro(r.error ?? "Não foi possível salvar.");
-        setCampoComErro(r.campo ?? null);
+        // A edição concluiu no banco: volta ao catálogo e exibe confirmação
+        // persistente na próxima página, em vez de apenas atualizar o formulário.
+        router.replace("/admin/experiencias?salvo=1");
+        router.refresh();
+      } catch (err) {
+        console.error("[admin] falha inesperada ao salvar experiência:", err);
+        setErro("Não foi possível concluir o salvamento. Verifique sua conexão e tente novamente.");
         window.scrollTo({ top: 0, behavior: "smooth" });
-        return;
       }
-
-      setSalvo(true);
-      if (!experiencia && r.id) router.push(`/admin/experiencias/${r.id}`);
-      else router.refresh();
     });
   }
 
