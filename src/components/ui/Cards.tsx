@@ -16,7 +16,7 @@ interface ExperienceCardProps {
 }
 
 export function ExperienceCard({ experience, locale = "pt", index = 0 }: ExperienceCardProps) {
-  const title = t(experience.title as I18nField, locale);
+  const title = t(experience.title as I18nField, locale).replace(/\\s*[·—-]\\s*NeoSenses$/i, "");
   const description = t(experience.short_description as I18nField, locale);
   const slug = t(experience.slug as I18nField, locale);
   const categoryName = experience.category ? t(experience.category.name as I18nField, locale).replaceAll(" & ", " e ") : "";
