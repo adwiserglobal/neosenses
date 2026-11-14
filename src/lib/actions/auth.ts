@@ -411,7 +411,12 @@ export async function sair() {
 /** Perfil de quem está logado, restrito à lista interna. */
 export async function usuarioAtual(): Promise<PerfilComAutenticacao | null> {
   const perfil = await perfilDaSessao();
-  if (!perfil || !emailInternoAutorizado(perfil.auth_email)) return null;
+  if (
+    !perfil ||
+    !emailInternoAutorizado(perfil.auth_email) ||
+    !perfil.internal_admin ||
+    !perfil.bootstrap_complete
+  ) return null;
   return perfil;
 }
 
