@@ -66,6 +66,12 @@ function FormularioLogin() {
     // do formulário engoliria, deixando a tela travada em "Entrando...".
     // Só caminhos internos: "//site.com" e "/\\site.com" começam com "/" mas o
     // navegador os trata como outro domínio (redirecionamento aberto).
+    if (resultado.requiresPasswordChange) {
+      router.replace("/primeiro-acesso");
+      router.refresh();
+      return;
+    }
+
     const pedido = params.get("redirect") ?? "/admin";
     const destino = /^\/(?![/\\])/.test(pedido) ? pedido : "/admin";
     router.replace(destino);
