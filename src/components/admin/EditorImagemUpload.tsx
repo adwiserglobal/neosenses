@@ -176,8 +176,8 @@ export function EditorImagemUpload({
     if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
   }, []);
 
-  function fechar() {
-    if (processando) return;
+  function fechar(forcar = false) {
+    if (processando && !forcar) return;
     if (objectUrlRef.current) URL.revokeObjectURL(objectUrlRef.current);
     objectUrlRef.current = null;
     setOrigem("");
@@ -333,7 +333,7 @@ export function EditorImagemUpload({
       });
 
       await onProcessed(final);
-      fechar();
+      fechar(true);
     } catch (e) {
       setErro(e instanceof Error ? e.message : "Não foi possível aplicar os ajustes.");
     } finally {
@@ -359,6 +359,9 @@ export function EditorImagemUpload({
       >
         {children}
       </button>
+      {erro && !origem && (
+        <p role="alert" className="mt-2 text-xs text-red-700">{erro}</p>
+      )}
 
       {origem && (
         <div className="fixed inset-0 z-[120] flex items-center justify-center overflow-y-auto bg-[#1d1420]/75 p-3 backdrop-blur-sm sm:p-6">
