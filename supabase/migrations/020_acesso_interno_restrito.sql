@@ -52,3 +52,10 @@ AS $function$
   AND coalesce(auth.jwt() -> 'app_metadata' ->> 'neosenses_admin_bootstrap_complete', 'false') = 'true'
   AND coalesce(auth.jwt() -> 'app_metadata' ->> 'neosenses_force_password_change', 'false') = 'false';
 $function$;
+
+-- Helpers de autorização são usados por políticas RLS para usuários autenticados.
+-- Não precisam ser invocáveis anonimamente pela Data API.
+REVOKE ALL ON FUNCTION public.is_admin() FROM PUBLIC, anon;
+REVOKE ALL ON FUNCTION public.is_staff() FROM PUBLIC, anon;
+GRANT EXECUTE ON FUNCTION public.is_admin() TO authenticated, service_role;
+GRANT EXECUTE ON FUNCTION public.is_staff() TO authenticated, service_role;
