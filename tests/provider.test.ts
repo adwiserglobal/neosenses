@@ -130,9 +130,9 @@ async function main() {
     ultimaRequisicao?.body?.response_format?.type === "json_object"
   );
   ok(
-    "roteamento restringe a chamada ao Vertex com ZDR",
+    "roteamento restringe a chamada ao Vertex sem exigir ZDR pago",
     ultimaRequisicao?.body?.providerOptions?.gateway?.only?.[0] === "vertex" &&
-      ultimaRequisicao?.body?.providerOptions?.gateway?.zeroDataRetention === true
+      ultimaRequisicao?.body?.providerOptions?.gateway?.zeroDataRetention === undefined
   );
 
   console.log("\n=== 4. Classificação de erros do Gateway ===");
