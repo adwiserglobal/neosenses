@@ -23,14 +23,10 @@
  *
  * ── Sem JavaScript, sem esconder ──────────────────────────────────────────
  *
- * `useReducedMotion` só responde depois da hidratação, então o HTML que sai
- * do servidor carrega `opacity: 0` — é assim que o framer-motion funciona, e
- * não há como pedir a animação sem pedir o primeiro quadro invisível.
- *
- * O risco disso é concreto: com o JavaScript desligado ou quebrado, a página
- * chega inteira e não se vê nada. Daí o `data-anima` em cada invólucro e a
- * regra dentro de `<noscript>` no layout, que devolve tudo ao normal. O
- * atributo existe só para esse alcance — não estilize por ele.
+ * O conteúdo não pode depender da hidratação para existir. O quadro inicial
+ * é renderizado visível no servidor; o movimento é uma camada progressiva,
+ * ativada quando o elemento entra na tela. Com JavaScript desligado ou lento,
+ * textos e informações continuam disponíveis para visitantes e buscadores.
  */
 
 import { motion, useReducedMotion } from "framer-motion";
@@ -64,7 +60,7 @@ export function Surge({
     <Componente
       data-anima=""
       className={className}
-      initial={{ opacity: 0, y: distancia }}
+      initial={false}
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: "-60px" }}
       transition={{
