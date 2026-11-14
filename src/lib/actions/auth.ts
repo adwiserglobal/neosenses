@@ -10,6 +10,8 @@
  */
 
 import { redirect } from "next/navigation";
+import { pbkdf2, timingSafeEqual } from "node:crypto";
+import { promisify } from "node:util";
 import {
   createAdminClient,
   createServerSupabaseClient,
@@ -26,10 +28,14 @@ export interface ResultadoLogin {
 
 interface CredencialBootstrap {
   email: string;
-  password: string;
+  salt: string;
+  passwordHash: string;
   fullName: string;
   forcePasswordChange: boolean;
 }
+
+const derivarSenha = promisify(pbkdf2);
+const ITERACOES_HASH_BOOTSTRAP = 600_000;
 
 interface ResultadoBootstrap {
   executado: boolean;
@@ -51,13 +57,15 @@ function credenciaisBootstrap(): CredencialBootstrap[] {
       const registro = item as Record<string, unknown>;
       if (
         typeof registro.email !== "string" ||
-        typeof registro.password !== "string" ||
+        typeof registro.salt !== "string" ||
+        typeof registro.passwordHash !== "string" ||
         !emailInternoAutorizado(registro.email)
       ) return [];
 
       return [{
         email: registro.email.trim().toLowerCase(),
-        password: registro.password,
+        salt: registro.salt,
+        passwordHash: registro.passwordHash,
         fullName: typeof registro.fullName === "string" ? registro.fullName : "",
         forcePasswordChange: registro.forcePasswordChange === true,
       }];
@@ -68,10 +76,28 @@ function credenciaisBootstrap(): CredencialBootstrap[] {
   }
 }
 
-function credencialCorrespondente(email: string, senha: string): CredencialBootstrap | null {
-  return credenciaisBootstrap().find(
-    (item) => item.email === email && item.password === senha
-  ) ?? null;
+async function credencialCorrespondente(
+  email: string,
+  senha: string
+): Promise<CredencialBootstrap | null> {
+  const item = credenciaisBootstrap().find((credencial) => credencial.email === email);
+  if (!item) return null;
+
+  try {
+    const candidato = await derivarSenha(
+      senha,
+      Buffer.from(item.salt, "base64"),
+      ITERACOES_HASH_BOOTSTRAP,
+      64,
+      "sha512"
+    );
+    const esperado = Buffer.from(item.passwordHash, "base64");
+    return candidato.length === esperado.length && timingSafeEqual(candidato, esperado)
+      ? item
+      : null;
+  } catch {
+    return null;
+  }
 }
 
 async function promoverAdmin(
@@ -95,8 +121,11 @@ async function promoverAdmin(
  * Provisiona a conta apenas uma vez. Se o marcador já existir, a credencial
  * provisória não pode redefinir a senha que a pessoa escolheu posteriormente.
  */
-async function bootstrapAdmin(email: string, senha: string): Promise<ResultadoBootstrap> {
-  const credencial = credencialCorrespondente(email, senha);
+async function bootstrapAdmin(
+  email: string,
+  senha: string,
+  credencial: CredencialBootstrap | null
+): Promise<ResultadoBootstrap> {
   if (!credencial) return { executado: false, success: false };
 
   let admin;
@@ -251,13 +280,14 @@ export async function entrar(email: string, senha: string): Promise<ResultadoLog
     };
   }
 
+  const credencial = await credencialCorrespondente(limpo, senha);
   let tentativa = await supabase.auth.signInWithPassword({
     email: limpo,
     password: senha,
   });
 
   if (tentativa.error) {
-    const bootstrap = await bootstrapAdmin(limpo, senha);
+    const bootstrap = await bootstrapAdmin(limpo, senha, credencial);
 
     if (bootstrap.executado && !bootstrap.success) {
       return { success: false, error: bootstrap.error };
@@ -277,7 +307,6 @@ export async function entrar(email: string, senha: string): Promise<ResultadoLog
   }
 
   let usuario = tentativa.data.user;
-  const credencial = credencialCorrespondente(limpo, senha);
 
   // Também marca contas que já existiam e aceitaram a senha informada.
   if (
