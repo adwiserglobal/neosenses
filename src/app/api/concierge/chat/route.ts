@@ -183,8 +183,8 @@ function respostaLocalRapida(mensagem: string, idioma: "pt" | "en" | "es") {
 
   if (exp && /\b(quero|conhecer|sobre|como e|me fala|conte|interesse|peru|tailandia|india|franca|chapada)\b/.test(p)) {
     const content =
-      `${exp.title} é uma jornada da NeoSenses em ${exp.destination}. ${exp.summary} ` +
-      `As próximas saídas estão sob consulta. Você pode conhecer a proposta completa em /experiencias/${exp.slug}.`;
+      `Que bom que ${exp.destination} chamou sua atenção. ✨ ${exp.title} é uma jornada da NeoSenses nesse destino. ${exp.summary} ` +
+      `As próximas saídas estão sob consulta. Você pode conhecer a proposta completa em /experiencias/${exp.slug}. O que mais desperta seu interesse nessa jornada?`;
 
     return {
       content,
@@ -205,13 +205,10 @@ function respostaLocalRapida(mensagem: string, idioma: "pt" | "en" | "es") {
   }
 
   if (ehPedidoDeCatalogoLocal(mensagem)) {
-    const lista = migratedExperiences
-      .slice(0, 6)
-      .map((e) => `${e.title} (${e.destination})`)
-      .join(", ");
+    const selecionadas = migratedExperiences.slice(0, 3);
     return {
-      content: `Hoje você pode explorar estas jornadas publicadas: ${lista}. Se me disser que tipo de experiência procura, eu te ajudo a escolher.`,
-      cards: migratedExperiences.slice(0, 6).map((exp, i) => ({
+      content: `Claro. Separei algumas jornadas publicadas para você começar a explorar. ✨ Se me contar o que deseja viver nesta viagem, consigo refinar a curadoria. Você já tem um destino em mente ou prefere começar pelo tipo de experiência?`,
+      cards: selecionadas.map((exp, i) => ({
         type: "experience" as const,
         id: `site:${exp.slug}`,
         title: exp.title,
@@ -234,8 +231,8 @@ function respostaLocalRapida(mensagem: string, idioma: "pt" | "en" | "es") {
     if (!expReconexao) return null;
     return {
       content:
-        `Para uma busca de pausa e reconexão, ${expReconexao.title} pode fazer bastante sentido. ` +
-        `${expReconexao.summary} As próximas saídas estão sob consulta. Quer que eu te conte como é a proposta dessa jornada?`,
+        `Entendo. Quando a vontade é desacelerar e se reconectar, vale escolher uma viagem que respeite esse momento. 🌿 ${expReconexao.title}, na ${expReconexao.destination}, pode ser um caminho interessante. ` +
+        `${expReconexao.summary} As próximas saídas estão sob consulta. Você imagina algo mais contemplativo, em contato com a natureza, ou uma vivência com práticas e espiritualidade?`,
       cards: [{
         type: "experience" as const,
         id: `site:${expReconexao.slug}`,
