@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64">
+  <title>NeoSenses</title>
+  <rect width="64" height="64" rx="15" fill="#5A0572"/>
+  <path d="M17 46V18L47 46V18" fill="none" stroke="#E5C257" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+  <circle cx="47" cy="17" r="4.2" fill="#FFF7E6" stroke="#5A0572" stroke-width="2"/>
+</svg>
