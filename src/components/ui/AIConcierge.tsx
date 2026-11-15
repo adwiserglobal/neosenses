@@ -58,10 +58,10 @@ interface Recommendation {
 const T = {
   pt: {
     title: "Concierge NeoSenses",
-    subtitle: "Assistente de viagem com IA",
-    placeholder: "Digite sua mensagem...",
+    subtitle: "Curadoria de jornadas com propósito",
+    placeholder: "Conte o que você gostaria de viver...",
     welcome:
-      "Olá! ✨ Sou o Concierge NeoSenses. Posso ajudar você a encontrar uma experiência, conhecer nossos destinos ou planejar uma jornada. O que você está buscando neste momento?",
+      "Olá, é um prazer receber você por aqui. Sou o Concierge NeoSenses. Vou ajudar você a encontrar uma jornada que faça sentido para o que deseja viver, com cuidado em cada escolha. O que gostaria de encontrar nesta próxima viagem? ✨",
     error:
       "Não consegui responder agora. Você pode tentar novamente ou falar diretamente com nossa equipe.",
     whatsapp: "Falar com a equipe",
@@ -72,19 +72,19 @@ const T = {
     menuAberto: "Fechar menu",
     menuTitulo: "Por onde começar",
     quickActions: [
-      "Quero conhecer o Peru",
-      "Quero viajar para a Índia",
-      "Preciso descansar e me reconectar",
-      "Quais são as próximas experiências?",
-      "Quero falar com a equipe",
+      "Quero encontrar uma jornada para o meu momento",
+      "Tenho um destino em mente",
+      "Busco descanso e reconexão",
+      "Quero conhecer as próximas saídas",
+      "Sou facilitador(a) e quero levar um grupo",
     ],
   },
   en: {
     title: "NeoSenses Concierge",
-    subtitle: "AI travel assistant",
-    placeholder: "Type your message...",
+    subtitle: "Purposeful journey curation",
+    placeholder: "Tell me what you would like to experience...",
     welcome:
-      "Hello! ✨ I'm the NeoSenses Concierge. I can help you discover an experience, explore our destinations or plan a journey. What are you looking for?",
+      "Hello, it is a pleasure to welcome you. I'm the NeoSenses Concierge. I can help you find a journey that feels right for what you would like to experience, with care in every detail. What would you love this next trip to hold for you? ✨",
     error:
       "I couldn't respond right now. You can try again or speak directly with our team.",
     whatsapp: "Talk to the team",
@@ -95,19 +95,19 @@ const T = {
     menuAberto: "Close menu",
     menuTitulo: "Where to start",
     quickActions: [
-      "I want to visit Peru",
-      "Tell me about India experiences",
-      "I need rest and reconnection",
-      "What are the upcoming experiences?",
-      "I want to talk to the team",
+      "Help me find a journey for this moment",
+      "I have a destination in mind",
+      "I am looking for rest and reconnection",
+      "Show me upcoming departures",
+      "I lead groups and want to partner",
     ],
   },
   es: {
     title: "Concierge NeoSenses",
-    subtitle: "Asistente de viaje con IA",
-    placeholder: "Escribe tu mensaje...",
+    subtitle: "Curaduría de viajes con propósito",
+    placeholder: "Cuéntame qué te gustaría vivir...",
     welcome:
-      "¡Hola! ✨ Soy el Concierge de NeoSenses. Puedo ayudarte a descubrir una experiencia, conocer nuestros destinos o planear un viaje. ¿Qué estás buscando?",
+      "Hola, es un placer recibirte. Soy el Concierge de NeoSenses. Te ayudaré a encontrar un viaje que tenga sentido para lo que deseas vivir, cuidando cada detalle. ¿Qué te gustaría encontrar en este próximo viaje? ✨",
     error:
       "No pude responder ahora. Puedes intentar de nuevo o hablar directamente con nuestro equipo.",
     whatsapp: "Hablar con el equipo",
@@ -118,11 +118,11 @@ const T = {
     menuAberto: "Cerrar menú",
     menuTitulo: "Por dónde empezar",
     quickActions: [
-      "Quiero conocer Perú",
-      "Cuéntame sobre India",
-      "Necesito descansar y reconectarme",
-      "¿Cuáles son las próximas experiencias?",
-      "Quiero hablar con el equipo",
+      "Quiero encontrar un viaje para este momento",
+      "Tengo un destino en mente",
+      "Busco descanso y reconexión",
+      "Quiero conocer las próximas salidas",
+      "Llevo grupos y quiero colaborar",
     ],
   },
 } as const;
@@ -356,7 +356,7 @@ export function AIConcierge() {
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ delay: 2, type: "spring", stiffness: 260, damping: 20 }}
-        aria-label={isOpen ? "Fechar concierge" : "Abrir concierge AI"}
+        aria-label={isOpen ? "Fechar concierge" : "Abrir Concierge NeoSenses"}
         aria-expanded={isOpen}
         aria-haspopup="dialog"
       >
@@ -410,7 +410,7 @@ export function AIConcierge() {
           >
             <div className="flex shrink-0 items-center gap-3 border-b border-border bg-gradient-to-r from-primary-700 to-primary-600 px-4 py-3">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/15">
-                <Sparkles className="h-4 w-4 text-secondary-300" />
+                <img src="/favicon.svg" alt="" aria-hidden="true" className="h-7 w-7 rounded-md object-cover" />
               </div>
               <div className="min-w-0 flex-1">
                 <h3 className="truncate text-sm font-semibold text-white">{t.title}</h3>
