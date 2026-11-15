@@ -111,7 +111,8 @@ export const metadata: Metadata = {
   // recuperável; errar apontando para outra página não aparece até alguém
   // conferir o Search Console.
   icons: {
-    icon: "/favicon.ico",
+    icon: [{ url: "/favicon.svg", type: "image/svg+xml" }],
+    shortcut: ["/favicon.svg"],
     apple: "/apple-touch-icon.png",
   },
   manifest: "/site.webmanifest",
