@@ -410,7 +410,7 @@ export function AIConcierge() {
           >
             <div className="flex shrink-0 items-center gap-3 border-b border-border bg-gradient-to-r from-primary-700 to-primary-600 px-4 py-3">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/15">
-                <img src="/favicon.svg" alt="" aria-hidden="true" className="h-7 w-7 rounded-md object-cover" />
+                <Sparkles className="h-4 w-4 text-secondary-300" />
               </div>
               <div className="min-w-0 flex-1">
                 <h3 className="truncate text-sm font-semibold text-white">{t.title}</h3>
