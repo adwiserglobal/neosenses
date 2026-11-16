@@ -261,9 +261,10 @@ export function Pilares() {
               style={{ borderRadius: "42% 58% 56% 44% / 38% 40% 60% 62%" }}
             >
               {/* Fotografia de Dylan Leonard, disponível sob a licença Unsplash. */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
               {/* Fotografia enviada para a NeoSenses e otimizada em WebP. */}
-                src="/images/home/proposito-contemplacao.webp"
+              {/* Fotografia original enviada, otimizada em WebP para a Home. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
                 alt="Mulher sentada sobre uma rocha contemplando um vale de montanhas coberto por névoa dourada ao amanhecer"
                 loading="lazy"
                 decoding="async"
