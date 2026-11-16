@@ -261,8 +261,8 @@ export function Pilares() {
               style={{ borderRadius: "42% 58% 56% 44% / 38% 40% 60% 62%" }}
             >
               <Image
-                src="/images/home/proposito-floresta.webp"
-                alt="Paisagem serena de floresta, evocando contemplação e conexão interior"
+                src="/images/home/proposito-amanhecer.svg"
+                alt="Paisagem serena de montanhas e lago ao amanhecer, com luz dourada refletida na água"
                 fill
                 sizes="(min-width: 1024px) 45vw, 100vw"
                 className="object-cover object-center"
