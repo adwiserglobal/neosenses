@@ -260,12 +260,14 @@ export function Pilares() {
               className="relative aspect-[4/4.2] overflow-hidden bg-[#411a35] shadow-[0_22px_60px_rgba(62,11,83,0.15)] sm:aspect-[5/4.3]"
               style={{ borderRadius: "42% 58% 56% 44% / 38% 40% 60% 62%" }}
             >
-              <Image
-                src="/images/home/proposito-amanhecer.svg"
-                alt="Paisagem serena de montanhas e lago ao amanhecer, com luz dourada refletida na água"
-                fill
-                sizes="(min-width: 1024px) 45vw, 100vw"
-                className="object-cover object-center"
+              {/* Fotografia de Dylan Leonard, disponível sob a licença Unsplash. */}
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img
+                src="https://images.unsplash.com/photo-1773757807866-7f5b471f634f?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=85&w=1800"
+                alt="Mulher sentada em uma pedra diante de montanhas cobertas por névoa, sob a luz suave do amanhecer"
+                loading="lazy"
+                decoding="async"
+                className="h-full w-full object-cover object-center"
               />
             </div>
           </motion.div>
