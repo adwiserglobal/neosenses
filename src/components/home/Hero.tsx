@@ -262,9 +262,9 @@ export function Pilares() {
             >
               {/* Fotografia de Dylan Leonard, disponível sob a licença Unsplash. */}
               {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="https://images.unsplash.com/photo-1773757807866-7f5b471f634f?auto=format&fit=crop&fm=jpg&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D&ixlib=rb-4.1.0&q=85&w=1800"
-                alt="Mulher sentada em uma pedra diante de montanhas cobertas por névoa, sob a luz suave do amanhecer"
+              {/* Fotografia enviada para a NeoSenses e otimizada em WebP. */}
+                src="/images/home/proposito-contemplacao.webp"
+                alt="Mulher sentada sobre uma rocha contemplando um vale de montanhas coberto por névoa dourada ao amanhecer"
                 loading="lazy"
                 decoding="async"
                 className="h-full w-full object-cover object-center"
