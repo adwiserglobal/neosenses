@@ -30,14 +30,19 @@ const regra = { nome: "teste", maximo: 3, janelaMs: 60_000 };
 console.log("\n=== Identificação vem do cabeçalho, não do corpo ===");
 
 ok(
-  "usa o primeiro salto do x-forwarded-for",
-  identificar(new Headers({ "x-forwarded-for": "203.0.113.7, 10.0.0.1, 10.0.0.2" })) === "203.0.113.7"
+  "usa x-real-ip normalizado pelo proxy",
+  identificar(new Headers({ "x-real-ip": "203.0.113.7", "x-forwarded-for": "198.51.100.8" })) === "203.0.113.7"
+);
+ok(
+  "usa o primeiro IP válido do x-forwarded-for como fallback",
+  identificar(new Headers({ "x-forwarded-for": "203.0.113.7, 10.0.0.1" })) === "203.0.113.7"
 );
 ok(
   "ignora saltos seguintes, que o cliente pode forjar",
   identificar(new Headers({ "x-forwarded-for": "203.0.113.7, 1.2.3.4" })) !== "1.2.3.4"
 );
 ok("cai no x-real-ip", identificar(new Headers({ "x-real-ip": "198.51.100.9" })) === "198.51.100.9");
+ok("ignora IP inválido em x-real-ip", identificar(new Headers({ "x-real-ip": "spoofed" })) === "sem-ip");
 ok("sem cabeçalho vira balde único", identificar(new Headers()) === "sem-ip");
 ok(
   "valor gigante é truncado",
