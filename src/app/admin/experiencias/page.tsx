@@ -16,6 +16,7 @@ import {
 import type { Database } from "@/types/database";
 import { t } from "@/lib/utils";
 import { imagemDaExperiencia } from "@/lib/imagens-experiencias";
+import { escopoDaExperiencia } from "@/lib/escopo-experiencia";
 import type { I18nField } from "@/types/models";
 import { BotaoSituacao } from "./BotaoSituacao";
 import { BotaoExcluirExperiencia } from "./BotaoExcluirExperiencia";
@@ -186,6 +187,14 @@ export default async function ListaExperiencias({ searchParams }: Props) {
                   Espelho 1:1
                 </span>
               )}
+              {(() => {
+                const escopo = escopoDaExperiencia(exp as never);
+                return escopo !== "outros" ? (
+                  <span className="rounded-full border border-white/70 bg-[#fffaf0]/95 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-[#68451b] shadow-sm backdrop-blur">
+                    {escopo}
+                  </span>
+                ) : null;
+              })()}
             </div>
 
             {exp.is_featured && (
