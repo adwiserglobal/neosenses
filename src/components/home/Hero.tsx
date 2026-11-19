@@ -260,14 +260,13 @@ export function Pilares() {
               className="relative aspect-[4/4.2] overflow-hidden bg-[#411a35] shadow-[0_22px_60px_rgba(62,11,83,0.15)] sm:aspect-[5/4.3]"
               style={{ borderRadius: "42% 58% 56% 44% / 38% 40% 60% 62%" }}
             >
-              {/* Fotografia fornecida para a seção Nosso Propósito. */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/images/home/proposito-contemplacao.webp"
+              <Image
+                src="/images/home/proposito-contemplacao-final.webp"
                 alt="Mulher sentada sobre uma rocha contemplando um vale de montanhas coberto por névoa dourada ao amanhecer"
-                loading="lazy"
-                decoding="async"
-                className="h-full w-full object-cover object-center"
+                fill
+                sizes="(min-width: 1024px) 45vw, (min-width: 640px) 80vw, 100vw"
+                quality={85}
+                className="object-cover object-center"
               />
             </div>
           </motion.div>
