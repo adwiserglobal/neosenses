@@ -45,14 +45,14 @@ const PILARES = [
   {
     titulo: "Autoconhecimento",
     descricao: "Um convite para olhar para dentro e se reconectar com sua essência.",
-    imagem: "https://images.unsplash.com/photo-1559595500-e15296bdbb48?auto=format&fit=crop&w=1000&q=85",
-    alt: "Mulher meditando diante da paisagem do Grand Canyon",
+    imagem: "/images/b2b/peru-xama.jpg",
+    alt: "Vivência espiritual conduzida por um facilitador no Peru",
   },
   {
     titulo: "Roteiros e Vivências",
     descricao: "Culturas, destinos e encontros que transformam cada jornada em uma história.",
-    imagem: "https://images.unsplash.com/photo-1526052056866-810289073817?auto=format&fit=crop&w=1000&q=85",
-    alt: "Viajante conhecendo as ruínas de Machu Picchu, no Peru",
+    imagem: "/images/b2b/peru-machu-picchu.jpg",
+    alt: "Ruínas de Machu Picchu, cercadas pelas montanhas dos Andes no Peru",
   },
   {
     titulo: "Conexão",
