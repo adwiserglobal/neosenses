@@ -12,12 +12,12 @@
  * Aqui a chave é o IP, e só o IP. Sessão serve para gravar a conversa, não
  * para decidir quem pode gastar cota de IA.
  *
- * ── O que este módulo NÃO resolve ─────────────────────────────────────────
+ * ── Estratégia de contagem ────────────────────────────────────────────────
  *
- * O contador vive na memória do processo. Em serverless, cada instância tem
- * o seu, e o teto real vira (limite × instâncias). Serve para conter abuso
- * casual e engano; não substitui limitador compartilhado. Antes de abrir o
- * site para tráfego real, mover para Postgres ou Redis.
+ * As rotas de IA usam um contador atômico compartilhado no Postgres via RPC.
+ * A chave é HMAC, sem armazenar IP em texto puro. O contador em memória fica
+ * como fallback apenas para desenvolvimento local e para os formulários
+ * legados que ainda usam verificarLimite().
  */
 
 import { createHmac } from "node:crypto";
@@ -102,7 +102,7 @@ export async function verificarLimiteCompartilhado(
   identidade: string,
   regra: Regra
 ): Promise<Veredito> {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\\/+$/, "");
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.replace(/\/+$/, "");
   const serviceRole = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!url || !serviceRole) {
