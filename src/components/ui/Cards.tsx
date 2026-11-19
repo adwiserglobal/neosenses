@@ -6,6 +6,7 @@ import Image from "next/image";
 import { MapPin, Clock } from "lucide-react";
 import { t, formatCurrency, podeOtimizar } from "@/lib/utils";
 import { imagemDaExperiencia } from "@/lib/imagens-experiencias";
+import { escopoDaExperiencia } from "@/lib/escopo-experiencia";
 import type { ExperienceWithRelations } from "@/types/models";
 import type { I18nField } from "@/types/models";
 
@@ -22,6 +23,7 @@ export function ExperienceCard({ experience, locale = "pt", index = 0 }: Experie
   const categoryName = experience.category ? t(experience.category.name as I18nField, locale).replaceAll(" & ", " e ") : "";
   const destinationName = experience.destination ? t(experience.destination.name as I18nField, locale) : "";
   const capa = imagemDaExperiencia(experience.hero_image, title, destinationName, description);
+  const escopo = escopoDaExperiencia(experience);
 
   return (
     <motion.div
@@ -71,12 +73,19 @@ export function ExperienceCard({ experience, locale = "pt", index = 0 }: Experie
             </div>
           )}
 
-          {/* Category badge */}
-          {categoryName && (
-            <span className="absolute left-3 top-3 rounded-full bg-warm-white/90 px-3 py-1 text-[11px] font-semibold uppercase tracking-wider text-primary-700 backdrop-blur-sm">
-              {categoryName}
-            </span>
-          )}
+          {/* Category and route scope badges */}
+          <div className="absolute inset-x-3 top-3 flex items-start justify-between gap-2">
+            {categoryName ? (
+              <span className="max-w-[65%] rounded-full bg-warm-white/95 px-3 py-1 text-[10px] font-semibold uppercase tracking-wider text-primary-700 shadow-sm backdrop-blur-sm">
+                {categoryName}
+              </span>
+            ) : <span />}
+            {escopo !== "outros" && (
+              <span className="shrink-0 rounded-full border border-white/70 bg-[#fffaf0]/95 px-3 py-1 text-[10px] font-bold uppercase tracking-[0.1em] text-[#68451b] shadow-sm backdrop-blur-sm">
+                {escopo === "nacional" ? "Nacional" : "Internacional"}
+              </span>
+            )}
+          </div>
         </div>
 
         {/* Content */}
