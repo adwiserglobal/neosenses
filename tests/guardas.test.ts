@@ -40,6 +40,10 @@ function libera(nome: string, texto: string) {
 
 console.log("\n=== Deve BARRAR ===");
 
+barra("script executável", "<script>alert('x')</script>", "conteudo_html_perigoso");
+barra("javascript em link", "Clique aqui: javascript:alert(1)", "conteudo_html_perigoso");
+barra("resposta acima do limite", "a".repeat(6001), "resposta_excessiva");
+
 barra(
   "e-mail de terceiro",
   "Claro! A Ana Paula que viajou conosco pode te contar mais: anapaula87@gmail.com",
