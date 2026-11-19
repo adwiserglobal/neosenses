@@ -238,8 +238,8 @@ export default async function ParaFacilitadoresPage() {
                 className="object-cover transition-transform duration-700 group-hover:scale-[1.025]"
               />
               <div className="absolute inset-0 bg-gradient-to-t from-primary-900/70 via-transparent to-transparent" />
-              <figcaption className="absolute bottom-0 left-0 right-0 p-7 text-warm-white md:p-9">
-                <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-secondary-300">
+              <figcaption className="absolute bottom-0 left-0 right-0 p-7 text-white md:p-9 [text-shadow:0_2px_12px_rgba(0,0,0,0.65)]">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.18em] !text-[#f5d78b] [text-shadow:0_2px_10px_rgba(0,0,0,0.8)]">
                   Territórios com intenção
                 </span>
                 <p className="mt-2 max-w-xl font-heading text-2xl md:text-3xl">
@@ -260,9 +260,9 @@ export default async function ParaFacilitadoresPage() {
                   className="object-cover transition-transform duration-700 group-hover:scale-[1.035]"
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-primary-900/65 via-transparent to-transparent" />
-                <figcaption className="absolute bottom-0 left-0 right-0 p-6 text-warm-white">
-                  <p className="font-heading text-xl">Marrocos</p>
-                  <p className="mt-1 text-sm text-warm-white/80">Travessias, silêncio e presença.</p>
+                <figcaption className="absolute bottom-0 left-0 right-0 p-6 text-white [text-shadow:0_2px_12px_rgba(0,0,0,0.7)]">
+                  <p className="font-heading text-xl !text-white">Marrocos</p>
+                  <p className="mt-1 text-sm !text-white/90">Travessias, silêncio e presença.</p>
                 </figcaption>
               </figure>
               </Surge>
@@ -278,8 +278,8 @@ export default async function ParaFacilitadoresPage() {
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-primary-900/65 via-transparent to-transparent" />
                 <figcaption className="absolute bottom-0 left-0 right-0 p-6 text-warm-white">
-                  <p className="font-heading text-xl">Amazônia</p>
-                  <p className="mt-1 text-sm text-warm-white/80">Natureza, ancestralidade e reconexão.</p>
+                  <p className="font-heading text-xl !text-white">Amazônia</p>
+                  <p className="mt-1 text-sm !text-white/90">Natureza, ancestralidade e reconexão.</p>
                 </figcaption>
               </figure>
               </Surge>
