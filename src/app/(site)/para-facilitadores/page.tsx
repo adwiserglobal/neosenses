@@ -344,8 +344,8 @@ export default async function ParaFacilitadoresPage() {
                 <div className="absolute inset-0 bg-gradient-to-t from-[#1b1020]/90 via-[#1b1020]/20 to-transparent" />
                 <div className="relative z-10 mt-auto p-6 text-white">
                   <h3 className="font-heading text-2xl">{destino.nome}</h3>
-                  <p className="mt-2 text-sm leading-relaxed text-white/85">{destino.texto}</p>
-                  <span className="mt-4 inline-flex text-sm font-semibold text-secondary-200">
+                  <p className="mt-2 text-sm leading-relaxed !text-white/90 [text-shadow:0_1px_8px_rgba(0,0,0,0.7)]">{destino.texto}</p>
+                  <span className="mt-4 inline-flex text-sm font-semibold !text-[#f5d78b] [text-shadow:0_1px_8px_rgba(0,0,0,0.8)]">
                     Conhecer roteiro-base →
                   </span>
                 </div>
