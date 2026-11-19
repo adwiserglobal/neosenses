@@ -324,7 +324,20 @@ export default async function ListaExperiencias({ searchParams }: Props) {
           </div>
         </div>
 
-        <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">{lista.map(card)}</div>
+        {(["nacional", "internacional", "outros"] as const).map((escopo) => {
+          const grupo = lista.filter((item) => escopoDaExperiencia(item as never) === escopo);
+          if (grupo.length === 0) return null;
+          const rotulo = escopo === "nacional" ? "Roteiros nacionais" : escopo === "internacional" ? "Roteiros internacionais" : "Sem classificação";
+          return (
+            <div key={escopo} className="mt-6 first:mt-0">
+              <div className="mb-3 flex items-center gap-2">
+                <h3 className="text-xs font-bold uppercase tracking-[0.14em] text-[#806b56]">{rotulo}</h3>
+                <span className="rounded-full bg-[#f0e8da] px-2 py-0.5 text-[10px] font-semibold text-[#806b56]">{grupo.length}</span>
+              </div>
+              <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">{grupo.map(card)}</div>
+            </div>
+          );
+        })}
       </section>
     );
   }
