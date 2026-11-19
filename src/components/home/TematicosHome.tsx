@@ -4,6 +4,7 @@ import { ArrowRight } from "lucide-react";
 
 const faixas = [
   {
+    chaveImagem: "home.thematic.maria",
     titulo: "Caminho de Maria Madalena",
     texto: "Embarque em uma jornada transcendental pelas trilhas sagradas do Caminho de Maria Madalena, onde cada passo é uma dança entre o divino e o terreno. Descubra os segredos ancestrais que sussurram nas brisas das paisagens místicas. Neste roteiro de transformação espiritual, o Caminho de Maria Madalena torna-se a entrada para uma imersão interior profunda. Desperte seu espírito, abrace a jornada, e permita que os sentimentos despertos guiem seu caminho para a autodescoberta.",
     imagem: "/images/tematicos/maria-madalena-rosas-faixa.webp",
@@ -13,6 +14,7 @@ const faixas = [
     cta: "text-[#f2f794]",
   },
   {
+    chaveImagem: "home.thematic.tailandia",
     titulo: "Jornada Espiritual Tailândia",
     texto: "Viajar para a Tailândia significa vivenciar os sentimentos de felicidade e tranquilidade em seus estados mais puros. A Terra dos Sorrisos, como o país é conhecido, é guiada de acordo com o lema budista: sanuk sabai e saduak (seja feliz, fique tranquilo e contente-se com aquilo que a vida te oferece).",
     imagem: "/images/tematicos/tailandia-buda-faixa.webp",
@@ -23,6 +25,7 @@ const faixas = [
     cta: "text-[#f2f794]",
   },
   {
+    chaveImagem: "home.thematic.egito",
     titulo: "Jornada Egito Espiritual",
     texto: "Um passeio para acessar os seis sentidos. Assim é o pacote que nós desenhamos especialmente para aqueles que, além de realizar o sonho de conhecer o Egito, querem desfrutar das sensações que a energia egípcia emana de sua espiritualidade latente e misteriosa.",
     imagem: "/images/tematicos/egito-piramides-cairo.jpg",
@@ -34,7 +37,7 @@ const faixas = [
   },
 ] as const;
 
-export function TematicosHome() {
+export function TematicosHome({ imagens = {} }: { imagens?: Record<string, string> }) {
   return (
     <section aria-label="Jornadas temáticas" className="bg-[#f2e8d7] py-8 md:py-12">
       <div className="mx-auto w-[min(96%,1640px)]">
@@ -46,7 +49,7 @@ export function TematicosHome() {
               className={`group relative isolate flex min-h-[400px] overflow-hidden ${faixa.fundo} md:min-h-[400px]`}
             >
               <Image
-                src={faixa.imagem}
+                src={imagens[faixa.chaveImagem] || faixa.imagem}
                 alt=""
                 fill
                 sizes="(min-width: 1640px) 1640px, 96vw"
