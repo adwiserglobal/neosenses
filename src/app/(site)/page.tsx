@@ -109,7 +109,7 @@ export default async function HomePage() {
           className="absolute inset-0 -z-20 bg-cover bg-center"
           style={{
             backgroundImage:
-              'url("https://static.jigsawpuzzles.io/images/3803-1024x682.jpg")',
+              'url("/images/hero/amazonia-por-do-sol.jpg")',
           }}
         />
         <div

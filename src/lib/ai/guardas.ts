@@ -23,7 +23,9 @@ export type MotivoBloqueio =
   | "identificador_interno"
   | "estrutura_do_banco"
   | "credencial"
-  | "instrucoes_do_sistema";
+  | "instrucoes_do_sistema"
+  | "conteudo_html_perigoso"
+  | "resposta_excessiva";
 
 export interface ResultadoGuarda {
   liberado: boolean;
@@ -84,6 +86,17 @@ export function verificarResposta(texto: string): ResultadoGuarda {
   const bruto = texto ?? "";
   const normalizado = semAcento(bruto.toLowerCase());
   const { emails, telefones } = contatosDaEmpresa();
+
+  // Resposta do modelo é texto de conversa, nunca HTML executável.
+  if (bruto.length > 6_000) {
+    return { liberado: false, motivo: "resposta_excessiva", evidencia: "saída acima de 6000 caracteres" };
+  }
+  const htmlPerigoso = bruto.match(
+    /<(?:script|iframe|object|embed|style|form|input|svg)\b|javascript\s*:|data\s*:\s*text\/html|\son[a-z]+\s*=/i
+  );
+  if (htmlPerigoso) {
+    return { liberado: false, motivo: "conteudo_html_perigoso", evidencia: htmlPerigoso[0].slice(0, 40) };
+  }
 
   // ── Credencial ─────────────────────────────────────────────────────────
   const credencial = bruto.match(RE_CREDENCIAL);

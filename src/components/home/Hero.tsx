@@ -45,14 +45,14 @@ const PILARES = [
   {
     titulo: "Autoconhecimento",
     descricao: "Um convite para olhar para dentro e se reconectar com sua essência.",
-    imagem: "https://images.unsplash.com/photo-1559595500-e15296bdbb48?auto=format&fit=crop&w=1000&q=85",
-    alt: "Mulher meditando diante da paisagem do Grand Canyon",
+    imagem: "/images/b2b/peru-xama.jpg",
+    alt: "Vivência espiritual conduzida por um facilitador no Peru",
   },
   {
     titulo: "Roteiros e Vivências",
     descricao: "Culturas, destinos e encontros que transformam cada jornada em uma história.",
-    imagem: "https://images.unsplash.com/photo-1526052056866-810289073817?auto=format&fit=crop&w=1000&q=85",
-    alt: "Viajante conhecendo as ruínas de Machu Picchu, no Peru",
+    imagem: "/images/b2b/peru-machu-picchu.jpg",
+    alt: "Ruínas de Machu Picchu, cercadas pelas montanhas dos Andes no Peru",
   },
   {
     titulo: "Conexão",
@@ -260,14 +260,13 @@ export function Pilares() {
               className="relative aspect-[4/4.2] overflow-hidden bg-[#411a35] shadow-[0_22px_60px_rgba(62,11,83,0.15)] sm:aspect-[5/4.3]"
               style={{ borderRadius: "42% 58% 56% 44% / 38% 40% 60% 62%" }}
             >
-              {/* Fotografia fornecida para a seção Nosso Propósito. */}
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="/images/home/proposito-contemplacao.webp"
+              <Image
+                src="/images/home/proposito-contemplacao-final.webp"
                 alt="Mulher sentada sobre uma rocha contemplando um vale de montanhas coberto por névoa dourada ao amanhecer"
-                loading="lazy"
-                decoding="async"
-                className="h-full w-full object-cover object-center"
+                fill
+                sizes="(min-width: 1024px) 45vw, (min-width: 640px) 80vw, 100vw"
+                quality={85}
+                className="object-cover object-center"
               />
             </div>
           </motion.div>

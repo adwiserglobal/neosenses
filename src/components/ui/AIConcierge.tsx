@@ -27,6 +27,7 @@ import {
   Clock,
   ExternalLink,
   LayoutGrid,
+  MessageCircle,
 } from "lucide-react";
 import { TextoComLinks } from "./TextoComLinks";
 
@@ -157,7 +158,6 @@ function clearStoredConversationId() {
 
 // ── WhatsApp ───────────────────────────────────────────────────────────────
 const WA_NUMBER = process.env.NEXT_PUBLIC_WHATSAPP_NUMBER || "5511947188319";
-const WHATSAPP_LOGO = "https://cdn.openart.ai/openart-uploads/production/attachment-transfers/71002963de651937ea88f0d55262ace69cc14e88cdb8087ad5417178b9f75d65.webp";
 
 function buildWhatsAppUrl(context?: string): string {
   const base = `https://wa.me/${WA_NUMBER}`;
@@ -352,7 +352,7 @@ export function AIConcierge() {
       <motion.button
         id="ai-concierge-toggle"
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-24 right-6 z-40 flex h-14 w-14 items-center justify-center rounded-full bg-secondary-600 hover:bg-secondary-700 text-white shadow-lg shadow-secondary-500/30 transition-transform hover:scale-110 active:scale-95"
+        className="fixed bottom-[calc(6rem+env(safe-area-inset-bottom,0px))] right-[calc(1.5rem+env(safe-area-inset-right,0px))] z-40 flex h-14 w-14 items-center justify-center rounded-full bg-secondary-600 hover:bg-secondary-700 text-white shadow-lg shadow-secondary-500/30 transition-transform hover:scale-110 active:scale-95"
         initial={{ scale: 0, opacity: 0 }}
         animate={{ scale: 1, opacity: 1 }}
         transition={{ delay: 2, type: "spring", stiffness: 260, damping: 20 }}
@@ -406,7 +406,7 @@ export function AIConcierge() {
             // botões flutuantes (176 px do rodapé). Antes era `100dvh - 120px`
             // com o painel a 176 px do rodapé: em janela baixa o topo passava
             // da borda da tela e o título do chat ficava escondido.
-            className="fixed z-50 flex flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-overlay max-sm:inset-x-3 max-sm:bottom-24 max-sm:top-24 sm:bottom-44 sm:right-6 sm:h-[min(600px,calc(100dvh-16.5rem))] sm:w-[min(400px,calc(100vw-24px))]"
+            className="fixed z-50 flex flex-col overflow-hidden rounded-2xl border border-border bg-surface shadow-overlay max-sm:inset-x-3 max-sm:bottom-[calc(6rem+env(safe-area-inset-bottom,0px))] max-sm:top-[calc(6rem+env(safe-area-inset-top,0px))] sm:bottom-44 sm:right-6 sm:h-[min(600px,calc(100dvh-16.5rem))] sm:w-[min(400px,calc(100vw-24px))]"
           >
             <div className="flex shrink-0 items-center gap-3 border-b border-border bg-gradient-to-r from-primary-700 to-primary-600 px-4 py-3">
               <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-white/15">
@@ -515,7 +515,7 @@ export function AIConcierge() {
                           className="flex items-center gap-1 rounded-lg bg-[var(--color-whatsapp)] px-3 py-1.5 text-xs font-medium text-[#0b2e18] transition hover:bg-[var(--color-whatsapp-hover)]"
                         >
                           <span className="flex h-4 w-4 items-center justify-center rounded-full bg-white/95">
-                            <img src={WHATSAPP_LOGO} alt="" aria-hidden="true" className="h-3 w-3 object-contain" />
+                            <MessageCircle className="h-3 w-3" aria-hidden="true" />
                           </span>
                           {t.whatsapp}
                         </a>
@@ -650,7 +650,7 @@ export function AIConcierge() {
                   id="concierge-whatsapp-link"
                 >
                   <span className="flex h-5 w-5 items-center justify-center rounded-full bg-white/95 shadow-sm">
-                    <img src={WHATSAPP_LOGO} alt="" aria-hidden="true" className="h-4 w-4 object-contain" />
+                    <MessageCircle className="h-4 w-4" aria-hidden="true" />
                   </span>
                   {t.whatsapp}
                   <ExternalLink className="h-3 w-3 opacity-70" />

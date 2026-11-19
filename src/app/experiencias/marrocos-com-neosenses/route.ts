@@ -16,7 +16,9 @@ export async function GET() {
         "User-Agent": "NeoSenses-Maroccos-Experience/1.0",
         Accept: "text/html,application/xhtml+xml",
       },
-      next: { revalidate: 3600 },
+      // O HTML da landing tem mais de 2 MB: o Next Data Cache não o aceita.
+      // A resposta já recebe s-maxage abaixo, para cache no CDN de borda.
+      cache: "no-store",
     });
 
     if (!resposta.ok) {

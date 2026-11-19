@@ -13,11 +13,19 @@ import type { Database } from "@/types/database";
 import { detectAIConfig, AIError } from "@/lib/ai/provider";
 import { validarRespostas, type Respostas } from "@/lib/journey/perguntas";
 import { gerarRoteiro, type ExperienciaDisponivel } from "@/lib/journey/gerador";
-import { identificar, verificarLimite, LIMITE_ROTEIRO } from "@/lib/limite";
+import {
+  identificar,
+  verificarLimiteCompartilhado,
+  LimiteCompartilhadoIndisponivel,
+  LIMITE_ROTEIRO,
+  LIMITE_ROTEIRO_DIA,
+} from "@/lib/limite";
 import { migratedExperiences } from "@/content/migratedExperiences";
 
 export const dynamic = "force-dynamic";
 export const maxDuration = 60;
+
+const MAX_BODY_BYTES = 20_000;
 
 function conectarLeitura() {
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
@@ -70,8 +78,21 @@ export async function POST(request: NextRequest) {
   const inicio = Date.now();
 
   try {
-    const corpo = await request.json().catch(() => null);
-    if (!corpo || typeof corpo !== "object") {
+    const declarado = Number(request.headers.get("content-length") || 0);
+    if (declarado > MAX_BODY_BYTES) {
+      return erro("Os dados enviados são grandes demais.", "BODY_TOO_LARGE", 413);
+    }
+    const bruto = await request.text();
+    if (new TextEncoder().encode(bruto).byteLength > MAX_BODY_BYTES) {
+      return erro("Os dados enviados são grandes demais.", "BODY_TOO_LARGE", 413);
+    }
+    let corpo: unknown;
+    try {
+      corpo = JSON.parse(bruto);
+    } catch {
+      return erro("Não entendi os dados enviados.", "INVALID_BODY", 400);
+    }
+    if (!corpo || typeof corpo !== "object" || Array.isArray(corpo)) {
       return erro("Não entendi os dados enviados.", "INVALID_BODY", 400);
     }
 
@@ -92,15 +113,28 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    const limite = verificarLimite(identificar(request.headers), LIMITE_ROTEIRO);
-    if (!limite.permitido) {
-      const resposta = erro(
-        "Você já montou alguns roteiros na última hora. Aguarde um pouco ou fale com a equipe.",
-        "LIMITE",
-        429
-      );
-      resposta.headers.set("Retry-After", String(limite.esperarSegundos));
-      return resposta;
+    try {
+      const identidade = identificar(request.headers);
+      const [porHora, porDia] = await Promise.all([
+        verificarLimiteCompartilhado(identidade, LIMITE_ROTEIRO),
+        verificarLimiteCompartilhado(identidade, LIMITE_ROTEIRO_DIA),
+      ]);
+      const bloqueio = [porHora, porDia].find((limite) => !limite.permitido);
+      if (bloqueio) {
+        const resposta = erro(
+          "Você já montou alguns roteiros recentemente. Aguarde um pouco ou fale com a equipe.",
+          "LIMITE",
+          429
+        );
+        resposta.headers.set("Retry-After", String(bloqueio.esperarSegundos));
+        return resposta;
+      }
+    } catch (err) {
+      if (err instanceof LimiteCompartilhadoIndisponivel) {
+        console.error("[journey] limitador compartilhado indisponível");
+        return erro("O controle de uso está temporariamente indisponível. Tente novamente em instantes.", "RATE_LIMIT_UNAVAILABLE", 503);
+      }
+      throw err;
     }
 
     const configIA = detectAIConfig(request.headers.get("x-vercel-oidc-token") || undefined);

@@ -48,9 +48,16 @@ const nextConfig: NextConfig = {
       },
     ],
     formats: ["image/avif", "image/webp"],
+    qualities: [75, 85, 90],
+    minimumCacheTTL: 14_400,
   },
   async redirects() {
     return [
+      // A página de Marrocos da Netlify é a única landing oficial. Consolida
+      // qualquer slug antigo nela para evitar duas páginas indexáveis.
+      { source: "/experiencias/marrocos", destination: "/experiencias/marrocos-com-neosenses", permanent: true },
+      { source: "/experiencias/marrocos/", destination: "/experiencias/marrocos-com-neosenses", permanent: true },
+
       // Legacy WordPress redirects
       { source: "/sobre-nos", destination: "/sobre", permanent: true },
       { source: "/sobre-nos/", destination: "/sobre", permanent: true },

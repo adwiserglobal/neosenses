@@ -27,7 +27,13 @@ import {
 import { buildConciergeSystemPrompt } from "@/lib/ai/prompt";
 import { migratedExperiences } from "@/content/migratedExperiences";
 import { verificarResposta, respostaSegura } from "@/lib/ai/guardas";
-import { identificar, verificarLimite, LIMITE_CHAT } from "@/lib/limite";
+import {
+  identificar,
+  verificarLimiteCompartilhado,
+  LimiteCompartilhadoIndisponivel,
+  LIMITE_CHAT,
+  LIMITE_CHAT_HORA,
+} from "@/lib/limite";
 
 export const dynamic = "force-dynamic";
 
@@ -54,6 +60,7 @@ function conectarSupabase() {
 
 const RE_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 const MAX_CARACTERES = 1500;
+const MAX_BODY_BYTES = 16_000;
 const MAX_HISTORICO = 6;
 const MAX_CARDS = 8;
 
@@ -259,7 +266,25 @@ export async function POST(request: NextRequest) {
   try {
     let corpo: Record<string, unknown>;
     try {
-      corpo = await request.json();
+      const declarado = Number(request.headers.get("content-length") || 0);
+      if (declarado > MAX_BODY_BYTES) {
+        return NextResponse.json(
+          { success: false, error: "Mensagem muito grande.", errorCode: "BODY_TOO_LARGE" },
+          { status: 413 }
+        );
+      }
+      const bruto = await request.text();
+      if (new TextEncoder().encode(bruto).byteLength > MAX_BODY_BYTES) {
+        return NextResponse.json(
+          { success: false, error: "Mensagem muito grande.", errorCode: "BODY_TOO_LARGE" },
+          { status: 413 }
+        );
+      }
+      const parseado: unknown = JSON.parse(bruto);
+      if (!parseado || typeof parseado !== "object" || Array.isArray(parseado)) {
+        throw new Error("Corpo inválido");
+      }
+      corpo = parseado as Record<string, unknown>;
     } catch {
       return NextResponse.json(
         { success: false, error: "Corpo inválido", errorCode: "INVALID_BODY" },
@@ -270,7 +295,13 @@ export async function POST(request: NextRequest) {
     idioma = normalizarIdioma(corpo.language);
 
     const mensagemBruta = typeof corpo.message === "string" ? corpo.message : "";
-    const mensagem = limpar(mensagemBruta).slice(0, MAX_CARACTERES);
+    if (mensagemBruta.length > MAX_CARACTERES) {
+      return NextResponse.json(
+        { success: false, error: "A mensagem deve ter até 1.500 caracteres.", errorCode: "MESSAGE_TOO_LONG" },
+        { status: 413 }
+      );
+    }
+    const mensagem = limpar(mensagemBruta);
     if (!mensagem) {
       return NextResponse.json(
         { success: false, error: "Mensagem obrigatória", errorCode: "EMPTY_MESSAGE" },
@@ -292,6 +323,28 @@ export async function POST(request: NextRequest) {
         : undefined;
 
     const paginaOrigem = limpar(String(corpo.sourcePage ?? "/")).slice(0, 200);
+
+    // Limites compartilhados no banco. O mesmo IP é contado mesmo que troque
+    // sessionId, abra outra aba ou acesse outra instância serverless.
+    try {
+      const identidade = identificar(request.headers);
+      const [porMinuto, porHora] = await Promise.all([
+        verificarLimiteCompartilhado(identidade, LIMITE_CHAT),
+        verificarLimiteCompartilhado(identidade, LIMITE_CHAT_HORA),
+      ]);
+      const bloqueio = [porMinuto, porHora].find((limite) => !limite.permitido);
+      if (bloqueio) {
+        const resposta = respostaDeErro(idioma, "LIMITE_LOCAL", 429);
+        resposta.headers.set("Retry-After", String(bloqueio.esperarSegundos));
+        return resposta;
+      }
+    } catch (err) {
+      if (err instanceof LimiteCompartilhadoIndisponivel) {
+        console.error("[concierge] limitador compartilhado indisponível");
+        return respostaDeErro(idioma, "PADRAO", 503);
+      }
+      throw err;
+    }
 
     // Persistimos a conversa ANTES do atalho local. Antes, respostas rápidas
     // saíam daqui sem conversationId nem histórico; a mensagem seguinte
@@ -366,13 +419,6 @@ export async function POST(request: NextRequest) {
         handoffAvailable: true,
         source: "site",
       });
-    }
-
-    const limite = verificarLimite(identificar(request.headers), LIMITE_CHAT);
-    if (!limite.permitido) {
-      const resposta = respostaDeErro(idioma, "LIMITE_LOCAL", 429);
-      resposta.headers.set("Retry-After", String(limite.esperarSegundos));
-      return resposta;
     }
 
     // Respeita AI_PROVIDER/AI_MODEL e o auto-detect central. A rota estava

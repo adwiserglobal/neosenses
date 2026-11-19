@@ -114,14 +114,30 @@ export async function guardarCopia(
  */
 export async function origemDisponivel(url: string): Promise<boolean> {
   try {
-    const res = await fetch(url, {
+    let res = await fetch(url, {
+      method: "HEAD",
       redirect: "follow",
       signal: AbortSignal.timeout(5_000),
       headers: { "User-Agent": "NeoSensesCheck/1.0 (+https://neosenses.com.br)" },
-      // Cache de 10 min: `no-store` tornaria a rota dinâmica e o `revalidate`
-      // da página deixaria de valer.
+      // HEAD evita baixar e armazenar o HTML pesado dos sites espelhados.
       next: { revalidate: 600 },
     });
+
+    // Alguns hosts não implementam HEAD. Nesses casos, testa com GET sem
+    // cache e Range, cancelando o corpo imediatamente após ler os headers.
+    if (res.status === 405 || res.status === 501) {
+      res = await fetch(url, {
+        method: "GET",
+        redirect: "follow",
+        signal: AbortSignal.timeout(5_000),
+        headers: {
+          "User-Agent": "NeoSensesCheck/1.0 (+https://neosenses.com.br)",
+          Range: "bytes=0-0",
+        },
+        cache: "no-store",
+      });
+    }
+
     // Só os cabeçalhos importam; descarta o corpo.
     void res.body?.cancel();
 
