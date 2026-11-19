@@ -37,24 +37,28 @@ const surgir = {
 // Conexão: foto da NeoSenses (Marrocos), em public/images/home/conexao-marrocos.webp
 const PILARES = [
   {
+    chaveImagem: "home.pillar.jornadas",
     titulo: "Jornadas de Alma",
     descricao: "Experiências que despertam sentidos, emoções e novos significados.",
     imagem: "/images/home/circulo-de-vivencia.webp",
     alt: "Grupo sentado em círculo numa vivência com música, sob um telhado de palha",
   },
   {
+    chaveImagem: "home.pillar.autoconhecimento",
     titulo: "Autoconhecimento",
     descricao: "Um convite para olhar para dentro e se reconectar com sua essência.",
     imagem: "/images/b2b/peru-xama.jpg",
     alt: "Vivência espiritual conduzida por um facilitador no Peru",
   },
   {
+    chaveImagem: "home.pillar.roteiros",
     titulo: "Roteiros e Vivências",
     descricao: "Culturas, destinos e encontros que transformam cada jornada em uma história.",
     imagem: "/images/b2b/peru-machu-picchu.jpg",
     alt: "Ruínas de Machu Picchu, cercadas pelas montanhas dos Andes no Peru",
   },
   {
+    chaveImagem: "home.pillar.conexao",
     titulo: "Conexão",
     descricao: "Pessoas, histórias e momentos que criam laços além da viagem.",
     imagem: "/images/home/conexao-marrocos.webp",
@@ -63,12 +67,12 @@ const PILARES = [
 ];
 
 const FUNDOS_DA_CAPA = [
-  "/images/hero/homepage.png",
-  "/images/hero/marrocos-deserto.jpg",
-  "/images/hero/amazonia-por-do-sol.jpg",
-  "/images/hero/camelo-por-do-sol.jpg",
-  "/images/hero/marrocos-noite.jpg",
-  "/images/hero/aurora-boreal.jpg",
+  { chave: "home.hero.1", fallback: "/images/hero/homepage.png" },
+  { chave: "home.hero.2", fallback: "/images/hero/marrocos-deserto.jpg" },
+  { chave: "home.hero.3", fallback: "/images/hero/amazonia-por-do-sol.jpg" },
+  { chave: "home.hero.4", fallback: "/images/hero/camelo-por-do-sol.jpg" },
+  { chave: "home.hero.5", fallback: "/images/hero/marrocos-noite.jpg" },
+  { chave: "home.hero.6", fallback: "/images/hero/aurora-boreal.jpg" },
 ] as const;
 
 const INTERVALO_DA_CAPA_MS = 3000;
@@ -79,7 +83,7 @@ const INTERVALO_DA_CAPA_MS = 3000;
  * Só a primeira é prioritária; as demais são carregadas em segundo plano.
  * Com `prefers-reduced-motion`, a capa fica parada na primeira foto.
  */
-function FundoDaCapa() {
+function FundoDaCapa({ imagens = {} }: { imagens?: Record<string, string> }) {
   const [{ atual, vistas }, setEstado] = useState({ atual: 0, vistas: [0] });
 
   useEffect(() => {
@@ -100,14 +104,15 @@ function FundoDaCapa() {
 
   return (
     <div aria-hidden="true" className="absolute inset-0 bg-primary-700">
-      {FUNDOS_DA_CAPA.map((src, i) => {
+      {FUNDOS_DA_CAPA.map((fundo, i) => {
+        const src = imagens[fundo.chave] || fundo.fallback;
         // As fotos seguintes só começam a baixar quando chegam perto da vez:
         // as quatro de uma vez disputavam banda com a primeira (a do LCP).
         const proxima = (atual + 1) % FUNDOS_DA_CAPA.length;
         if (i !== 0 && i !== atual && i !== proxima && !vistas.includes(i)) return null;
         return (
         <Image
-          key={src}
+          key={fundo.chave}
           src={src}
           alt=""
           fill
@@ -126,10 +131,10 @@ function FundoDaCapa() {
   );
 }
 
-export function Hero() {
+export function Hero({ imagens = {} }: { imagens?: Record<string, string> }) {
   return (
     <section className="relative flex min-h-screen items-center justify-center overflow-hidden bg-primary-700">
-      <FundoDaCapa />
+      <FundoDaCapa imagens={imagens} />
       {/* A capa volta ao tratamento anterior, neutro/azulado. A paleta roxa
           continua no restante da marca, mas não colore a fotografia. */}
       <div className="absolute inset-0 bg-gradient-to-b from-[#16232b]/70 via-[#16232b]/50 to-[#16232b]/80" />
@@ -204,7 +209,7 @@ export function Hero() {
 }
 
 /** A proposta da marca: uma história à esquerda, fotografia orgânica à direita. */
-export function Pilares() {
+export function Pilares({ imagens = {} }: { imagens?: Record<string, string> }) {
   return (
     <section id="nosso-proposito" className="relative overflow-hidden bg-[#f5eddf] py-16 md:py-20">
       <div aria-hidden="true" className="pointer-events-none absolute -right-36 top-20 h-96 w-96 rounded-full bg-secondary-200/15 blur-[90px]" />
@@ -261,7 +266,7 @@ export function Pilares() {
               style={{ borderRadius: "42% 58% 56% 44% / 38% 40% 60% 62%" }}
             >
               <Image
-                src="https://images.squarespace-cdn.com/content/v1/5ec07f18ab653106f98ea674/1589679989698-84YPF8B5T8FV90TSH01M/william-farlow-IevaZPwq0mw-unsplash.jpg?format=2500w"
+                src={imagens["home.purpose"] || "https://images.squarespace-cdn.com/content/v1/5ec07f18ab653106f98ea674/1589679989698-84YPF8B5T8FV90TSH01M/william-farlow-IevaZPwq0mw-unsplash.jpg?format=2500w"}
                 alt="Silhueta de uma mulher com os braços erguidos diante do mar ao pôr do sol, em um momento de contemplação"
                 fill
                 sizes="(min-width: 1024px) 45vw, (min-width: 640px) 80vw, calc(100vw - 3rem)"
@@ -277,7 +282,7 @@ export function Pilares() {
   );
 }
 
-export function OQueNosMove() {
+export function OQueNosMove({ imagens = {} }: { imagens?: Record<string, string> }) {
   return (
     <section
       id="o-que-nos-move"
@@ -318,7 +323,7 @@ export function OQueNosMove() {
             >
               <div className="relative aspect-[6/5] overflow-hidden bg-primary-100">
                 <Image
-                  src={pilar.imagem}
+                  src={imagens[pilar.chaveImagem] || pilar.imagem}
                   alt={pilar.alt}
                   fill
                   sizes="(min-width: 1280px) 23vw, (min-width: 640px) 47vw, 100vw"
