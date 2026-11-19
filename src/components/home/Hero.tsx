@@ -261,7 +261,7 @@ export function Pilares() {
               style={{ borderRadius: "42% 58% 56% 44% / 38% 40% 60% 62%" }}
             >
               <Image
-                src="https://images.unsplash.com/photo-1773757807866-7f5b471f634f?auto=format&fit=crop&fm=jpg&ixlib=rb-4.1.0&q=95&w=2400"
+                src="https://images.squarespace-cdn.com/content/v1/5ec07f18ab653106f98ea674/1589679989698-84YPF8B5T8FV90TSH01M/william-farlow-IevaZPwq0mw-unsplash.jpg?format=2500w"
                 alt="Mulher sentada sobre uma rocha contemplando um vale de montanhas coberto por névoa dourada ao amanhecer"
                 fill
                 sizes="(min-width: 1024px) 45vw, (min-width: 640px) 80vw, calc(100vw - 3rem)"
