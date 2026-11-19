@@ -10,7 +10,7 @@ import Image from "next/image";
 import Link from "next/link";
 import { Capa, Faixa, TituloDeSecao } from "@/components/templates/blocos";
 import { ConviteAoFacilitador } from "@/components/templates/funil";
-import { lerConfiguracoesPublicas } from "@/lib/dal/content";
+import { lerConfiguracoesPublicas, lerImagensDoSite } from "@/lib/dal/content";
 import { linkWhatsApp } from "@/lib/utils";
 
 export const metadata: Metadata = {
@@ -54,7 +54,7 @@ const VALORES = [
 ];
 
 export default async function SobrePage() {
-  const config = await lerConfiguracoesPublicas();
+  const [config, imagens] = await Promise.all([lerConfiguracoesPublicas(), lerImagensDoSite()]);
   const cnpj = typeof config["empresa.cnpj"] === "string" ? (config["empresa.cnpj"] as string) : "";
 
   return (
@@ -63,7 +63,7 @@ export default async function SobrePage() {
         chapeu="Quem somos"
         titulo="A Essência do Amor em Cada Jornada"
         resumo="Conectando pessoas, propósitos e lugares através de experiências que transformam."
-        imagem="https://cdn.openart.ai/openart-uploads/production/attachment-transfers/1bf305dfd09276a3f8b502d7546301a49e4f4d8f51d701ab14acbf2da4c23260.png"
+        imagem={imagens["about.hero"] || "https://cdn.openart.ai/openart-uploads/production/attachment-transfers/1bf305dfd09276a3f8b502d7546301a49e4f4d8f51d701ab14acbf2da4c23260.png"}
         altura="cheia"
         alinhamento="centro"
       />
@@ -117,7 +117,7 @@ export default async function SobrePage() {
             />
             <div className="relative overflow-hidden rounded-[38px] bg-primary-100 shadow-[0_28px_70px_rgba(57,0,75,0.13)]">
               <Image
-                src="https://cdn.openart.ai/openart-uploads/production/attachment-transfers/2ac7788ab8babc735a2a31ff8a954ff0b9d12a170490f4c825856126e1d0e813.png"
+                src={imagens["about.story"] || "https://cdn.openart.ai/openart-uploads/production/attachment-transfers/2ac7788ab8babc735a2a31ff8a954ff0b9d12a170490f4c825856126e1d0e813.png"}
                 alt="Pessoas em meditação diante de uma imagem de Buda"
                 width={1200}
                 height={1200}
@@ -160,7 +160,7 @@ export default async function SobrePage() {
 
       <section className="relative overflow-hidden py-20 md:py-24">
         <Image
-          src="https://cdn.openart.ai/openart-uploads/production/attachment-transfers/6543fe3a334967c84fc11915fc0322e192623354f71776841959cd7d293c3745.png"
+          src={imagens["about.closing"] || "https://cdn.openart.ai/openart-uploads/production/attachment-transfers/6543fe3a334967c84fc11915fc0322e192623354f71776841959cd7d293c3745.png"}
           alt=""
           aria-hidden="true"
           fill
