@@ -120,10 +120,10 @@ async function promoverAdmin(
   const { data: perfil, error: erroPerfil } = await admin
     .from("profiles")
     .select("role, is_active")
-    .eq("email", email)
+    .ilike("email", email)
     .maybeSingle();
 
-  if (erroPerfil || perfil?.role !== "admin" || perfil.is_active !== true) {
+  if (erroPerfil || !perfil || perfil.role !== "admin" || perfil.is_active !== true) {
     console.error("[auth] perfil não foi promovido após RPC:", erroPerfil?.message ?? "perfil ainda não é admin");
     return { success: false, error: "A autenticação foi criada, mas o perfil administrativo não foi confirmado." };
   }
