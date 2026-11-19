@@ -35,6 +35,15 @@ interface Props {
   searchParams: Promise<{ categoria?: string; destino?: string; pagina?: string }>;
 }
 
+function normalizar(texto: string): string {
+  return texto
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, " ")
+    .trim();
+}
+
 function TituloDeSecao({
   kicker,
   titulo,
