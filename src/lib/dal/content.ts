@@ -106,6 +106,30 @@ export async function lerConfiguracoesPublicas(): Promise<Record<string, unknown
   return Object.fromEntries(data.map((s) => [s.key, s.value]));
 }
 
+/**
+ * Sobrescritas públicas das imagens estruturais do site.
+ * Sem sobrescrita, cada componente mantém a imagem original do repositório.
+ */
+export async function lerImagensDoSite(): Promise<Record<string, string>> {
+  const supabase = criarClientePublico();
+  const { data, error } = await supabase
+    .from("settings")
+    .select("value")
+    .eq("key", "site_images")
+    .eq("is_public", true)
+    .maybeSingle();
+
+  if (error || !data?.value || typeof data.value !== "object" || Array.isArray(data.value)) {
+    if (error) console.error("[dal] imagens do site:", error.message);
+    return {};
+  }
+
+  return Object.fromEntries(
+    Object.entries(data.value as Record<string, unknown>)
+      .filter(([, value]) => typeof value === "string" && value.length > 0)
+  ) as Record<string, string>;
+}
+
 export async function funcionalidadeAtiva(chave: string): Promise<boolean> {
   const supabase = criarClientePublico();
 
