@@ -13,6 +13,7 @@ import { ImageIcon, UploadCloud } from "lucide-react";
 import { createClient } from "@/lib/supabase/client";
 import { prepararUploadImagemExperiencia, salvarExperiencia } from "@/lib/actions/admin";
 import { EditorImagemUpload } from "@/components/admin/EditorImagemUpload";
+import { escopoDaExperiencia } from "@/lib/escopo-experiencia";
 import { t } from "@/lib/utils";
 import type { Category, DestinationWithCountry, ExperienceWithRelations, I18nField } from "@/types/models";
 
@@ -134,10 +135,15 @@ export function FormularioExperiencia({ experiencia, categorias, destinos }: Pro
   const metadataAtual = (experiencia?.metadata && typeof experiencia.metadata === "object"
     ? experiencia.metadata
     : {}) as Record<string, unknown>;
-  const [escopoRoteiro, setEscopoRoteiro] = useState<"nacional" | "internacional">(
+  const [escopoRoteiro, setEscopoRoteiro] = useState<"nacional" | "internacional" | "">(
     metadataAtual.route_scope === "nacional" || metadataAtual.route_scope === "internacional"
       ? metadataAtual.route_scope
-      : "internacional"
+      : experiencia
+        ? (() => {
+            const inferido = escopoDaExperiencia(experiencia);
+            return inferido === "outros" ? "" : inferido;
+          })()
+        : ""
   );
 
   function trocarPublico(novo: string) {
@@ -368,9 +374,10 @@ export function FormularioExperiencia({ experiencia, categorias, destinos }: Pro
               id="route_scope"
               name="route_scope"
               value={escopoRoteiro}
-              onChange={(e) => setEscopoRoteiro(e.target.value as "nacional" | "internacional")}
+              onChange={(e) => setEscopoRoteiro(e.target.value as "nacional" | "internacional" | "")}
               className={classe("route_scope")}
             >
+              <option value="">Selecione a abrangência</option>
               <option value="nacional">Nacional · dentro do Brasil</option>
               <option value="internacional">Internacional · fora do Brasil</option>
             </select>
