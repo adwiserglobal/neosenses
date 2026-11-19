@@ -68,7 +68,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     const doCatalogo: MetadataRoute.Sitemap = (experiencias.data ?? [])
       .map((e) => ({ slug: pt(e.slug), atualizado: e.updated_at }))
-      .filter((e): e is { slug: string; atualizado: string | null } => !!e.slug && !slugsFixos.has(e.slug))
+      .filter((e): e is { slug: string; atualizado: string } => !!e.slug && !slugsFixos.has(e.slug))
       .map((e) => ({
         url: `${BASE}/experiencias/${e.slug}`,
         ...(e.atualizado ? { lastModified: new Date(e.atualizado) } : {}),
@@ -78,7 +78,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     const paginasDeDestino: MetadataRoute.Sitemap = (destinos.data ?? [])
       .map((d) => ({ slug: pt(d.slug), atualizado: d.updated_at }))
-      .filter((d): d is { slug: string; atualizado: string | null } => !!d.slug)
+      .filter((d): d is { slug: string; atualizado: string } => !!d.slug)
       .map((d) => ({
         url: `${BASE}/destinos/${d.slug}`,
         ...(d.atualizado ? { lastModified: new Date(d.atualizado) } : {}),
@@ -88,7 +88,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
 
     const doBlog: MetadataRoute.Sitemap = (posts.data ?? [])
       .map((p) => ({ slug: pt(p.slug), atualizado: p.updated_at }))
-      .filter((p): p is { slug: string; atualizado: string | null } => !!p.slug)
+      .filter((p): p is { slug: string; atualizado: string } => !!p.slug)
       .map((p) => ({
         url: `${BASE}/blog/${p.slug}`,
         ...(p.atualizado ? { lastModified: new Date(p.atualizado) } : {}),
