@@ -22,7 +22,7 @@ const FOLGA_MINIMA_MS = 4_000;
 type RespostaRedacao = { titulo: string; resumo: string; texto: string };
 
 function validarSaidaEditorial(...partes: string[]) {
-  const perigoso = /<(?:script|iframe|object|embed|style|form|input)\\b|javascript\\s*:|data\\s*:\\s*text\\/html|\\son[a-z]+\\s*=/i;
+  const perigoso = /<(?:script|iframe|object|embed|style|form|input)\b|javascript\s*:|data\s*:\s*text\/html|\son[a-z]+\s*=/i;
   if (partes.some((parte) => perigoso.test(parte))) {
     throw new Error("A resposta da redatora continha marcação executável.");
   }
