@@ -131,6 +131,14 @@ export function FormularioExperiencia({ experiencia, categorias, destinos }: Pro
   // para quem não vai reservar nada.
   const [publico, setPublico] = useState<string>(experiencia?.audience ?? "viajante");
   const [layout, setLayout] = useState<string>(experiencia?.template ?? "classico");
+  const metadataAtual = (experiencia?.metadata && typeof experiencia.metadata === "object"
+    ? experiencia.metadata
+    : {}) as Record<string, unknown>;
+  const [escopoRoteiro, setEscopoRoteiro] = useState<"nacional" | "internacional">(
+    metadataAtual.route_scope === "nacional" || metadataAtual.route_scope === "internacional"
+      ? metadataAtual.route_scope
+      : "internacional"
+  );
 
   function trocarPublico(novo: string) {
     setPublico(novo);
@@ -351,6 +359,25 @@ export function FormularioExperiencia({ experiencia, categorias, destinos }: Pro
             Seção sem texto não é desenhada — nada aqui é obrigatório para salvar, mas o que
             ficar vazio some da página.
           </p>
+
+          <div className="mb-5 rounded-xl border border-secondary-200 bg-white/80 p-4">
+            <label htmlFor="route_scope" className="mb-1.5 block text-sm font-semibold text-primary-700">
+              Abrangência do roteiro
+            </label>
+            <select
+              id="route_scope"
+              name="route_scope"
+              value={escopoRoteiro}
+              onChange={(e) => setEscopoRoteiro(e.target.value as "nacional" | "internacional")}
+              className={classe("route_scope")}
+            >
+              <option value="nacional">Nacional · dentro do Brasil</option>
+              <option value="internacional">Internacional · fora do Brasil</option>
+            </select>
+            <p className="mt-1 text-xs text-text-muted">
+              Essa classificação organiza o catálogo interno e identifica o roteiro no site.
+            </p>
+          </div>
 
           <div className="grid gap-5 sm:grid-cols-2">
             <div>
