@@ -241,13 +241,14 @@ export async function salvarExperiencia(dados: FormData): Promise<Resultado> {
   };
 
   let publicadaEm: string | null = null;
+  let metadataAtual: Record<string, unknown> = {};
 
   // Ao editar, lê os valores atuais para não perder as traduções.
   if (id) {
     const { data } = await supabase
       .from("experiences")
       .select(
-        "title, slug, short_description, description, who_is_this_for, hero_kicker, closing_title, closing_text, subtitle, period_label, why_created, value_proposition, relax_text, published_at"
+        "title, slug, short_description, description, who_is_this_for, hero_kicker, closing_title, closing_text, subtitle, period_label, why_created, value_proposition, relax_text, published_at, metadata"
       )
       .eq("id", id)
       .maybeSingle();
@@ -266,6 +267,9 @@ export async function salvarExperiencia(dados: FormData): Promise<Resultado> {
       campos.value_proposition = data.value_proposition;
       campos.relax_text = data.relax_text;
       publicadaEm = (data as { published_at?: string | null }).published_at ?? null;
+      metadataAtual = data.metadata && typeof data.metadata === "object" && !Array.isArray(data.metadata)
+        ? data.metadata as Record<string, unknown>
+        : {};
     }
   }
 
@@ -279,6 +283,10 @@ export async function salvarExperiencia(dados: FormData): Promise<Resultado> {
   const template = LAYOUTS.includes(layoutEnviado) ? layoutEnviado : "classico";
 
   const heroImage = limpar(dados.get("hero_image"), 500) || null;
+  const escopoRoteiro = limpar(dados.get("route_scope"), 20);
+  if (!["nacional", "internacional"].includes(escopoRoteiro)) {
+    return { success: false, campo: "route_scope", error: "Selecione se o roteiro é nacional ou internacional." };
+  }
 
   const registro = {
     title: mesclarI18n(campos.title, titulo),
@@ -300,6 +308,7 @@ export async function salvarExperiencia(dados: FormData): Promise<Resultado> {
     relax_text: mesclarI18n(campos.relax_text, limpar(dados.get("relax_text_pt"), 4000)),
     audience: audience as never,
     template: template as never,
+    metadata: { ...metadataAtual, route_scope: escopoRoteiro } as never,
     category_id: limpar(dados.get("category_id"), 40) || null,
     destination_id: limpar(dados.get("destination_id"), 40) || null,
     duration_days: duracao,
