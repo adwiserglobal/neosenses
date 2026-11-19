@@ -122,7 +122,7 @@ function FundoDaCapa({ imagens = {} }: { imagens?: Record<string, string> }) {
           // O céu do camelo é quase branco no centro, onde fica o título: o
           // brilho reduzido garante o contraste do texto branco por cima.
           className={`object-cover transition-opacity duration-[1600ms] ease-in-out ${
-            src.includes("camelo") ? "brightness-[0.68]" : ""
+            fundo.fallback.includes("camelo") ? "brightness-[0.68]" : ""
           } ${i === atual ? "opacity-100" : "opacity-0"}`}
         />
         );
