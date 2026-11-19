@@ -71,7 +71,7 @@ export function ConciergeMonkLauncher() {
         ref={launcherRef}
         type="button"
         onClick={() => nativeButtonRef.current?.click()}
-        className="group fixed bottom-24 right-5 z-40 grid h-[76px] w-[76px] place-items-center rounded-full border border-white/45 bg-white/15 p-0 shadow-[0_16px_42px_rgba(8,37,31,0.28),inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-2xl transition-[transform,border-color,box-shadow] duration-300 hover:scale-[1.055] hover:border-white/70 hover:shadow-[0_20px_52px_rgba(8,37,31,0.34),0_0_28px_rgba(196,151,58,0.22),inset_0_1px_0_rgba(255,255,255,0.82)] active:scale-[0.97] sm:right-6"
+        className="group fixed bottom-[calc(6rem+env(safe-area-inset-bottom,0px))] right-[calc(1.25rem+env(safe-area-inset-right,0px))] z-40 grid h-[76px] w-[76px] place-items-center rounded-full border border-white/45 bg-white/15 p-0 shadow-[0_16px_42px_rgba(8,37,31,0.28),inset_0_1px_0_rgba(255,255,255,0.72)] backdrop-blur-2xl transition-[transform,border-color,box-shadow] duration-300 hover:scale-[1.055] hover:border-white/70 hover:shadow-[0_20px_52px_rgba(8,37,31,0.34),0_0_28px_rgba(196,151,58,0.22),inset_0_1px_0_rgba(255,255,255,0.82)] active:scale-[0.97] sm:right-6"
         initial={{ scale: 0.72, opacity: 0, y: 8 }}
         animate={{ scale: 1, opacity: 1, y: 0 }}
         transition={{ delay: 1.25, type: "spring", stiffness: 260, damping: 20 }}
