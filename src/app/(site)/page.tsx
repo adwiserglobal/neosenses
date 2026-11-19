@@ -9,6 +9,7 @@
 import Link from "next/link";
 import Image from "next/image";
 import { listarDestaques } from "@/lib/dal/experiences";
+import { lerImagensDoSite } from "@/lib/dal/content";
 import { listarDepoimentos } from "@/lib/dal/content";
 import { Hero, Pilares, OQueNosMove } from "@/components/home/Hero";
 import { DepoimentosHome } from "@/components/home/DepoimentosHome";
@@ -28,7 +29,11 @@ export const metadata = {
 export const revalidate = 3600;
 
 export default async function HomePage() {
-  const [destaques, depoimentos] = await Promise.all([listarDestaques(18), listarDepoimentos(6)]);
+  const [destaques, depoimentos, imagens] = await Promise.all([
+    listarDestaques(18),
+    listarDepoimentos(6),
+    lerImagensDoSite(),
+  ]);
   const jornadasB2C = destaques.filter((experiencia) => {
     const titulo = t(experiencia.title as I18nField, "pt").toLowerCase();
     const slug = t(experiencia.slug as I18nField, "pt").toLowerCase();
@@ -38,10 +43,10 @@ export default async function HomePage() {
 
   return (
     <>
-      <Hero />
-      <Pilares />
-      <TematicosHome />
-      <OQueNosMove />
+      <Hero imagens={imagens} />
+      <Pilares imagens={imagens} />
+      <TematicosHome imagens={imagens} />
+      <OQueNosMove imagens={imagens} />
 
       {/* Jornadas em destaque, some quando não há nada publicado, em vez de
           mostrar uma grade vazia. */}
@@ -60,7 +65,7 @@ export default async function HomePage() {
             }}
           >
             <Image
-              src="/images/home/jornadas-deserto.jpg"
+              src={imagens["home.jornadas.background"] || "/images/home/jornadas-deserto.jpg"}
               alt=""
               fill
               sizes="100vw"
@@ -108,8 +113,7 @@ export default async function HomePage() {
           aria-hidden="true"
           className="absolute inset-0 -z-20 bg-cover bg-center"
           style={{
-            backgroundImage:
-              'url("/images/hero/amazonia-por-do-sol.jpg")',
+            backgroundImage: `url("${imagens["home.cta.background"] || "/images/hero/amazonia-por-do-sol.jpg"}")`,
           }}
         />
         <div
