@@ -21,6 +21,7 @@ import { FaixaDeFotos, type FotoDaFaixa } from "@/components/ui/FaixaDeFotos";
 import { JsonLd } from "@/components/seo/JsonLd";
 import * as schema from "@/lib/seo/dadosEstruturados";
 import { linkWhatsApp } from "@/lib/utils";
+import { lerImagensDoSite } from "@/lib/dal/content";
 
 export const metadata: Metadata = {
   title: "Para Facilitadores",
@@ -51,21 +52,25 @@ const FOTOS_DA_FAIXA: FotoDaFaixa[] = [
 
 const MOMENTOS = [
   {
+    chaveImagem: "facilitators.gallery.1",
     src: "/images/b2b/peru-titicaca.jpg",
     alt: "Paisagem andina do Peru",
     legenda: "Territórios que fazem parte da jornada",
   },
   {
+    chaveImagem: "facilitators.gallery.5",
     src: "/images/b2b/peru-lagoa-sagrada.jpg",
     alt: "Lagoa cercada pelas montanhas dos Andes",
     legenda: "Natureza e tempo para contemplar",
   },
   {
+    chaveImagem: "facilitators.gallery.3",
     src: "/images/b2b/amazonas-floresta-aerea.jpg",
     alt: "Vista aérea da floresta amazônica",
     legenda: "A dimensão da floresta",
   },
   {
+    chaveImagem: "facilitators.gallery.6",
     src: "/images/b2b/amazonas-flutuante.jpg",
     alt: "Paisagem ribeirinha da Amazônia",
     legenda: "A vida que acompanha o rio",
@@ -166,7 +171,9 @@ const COMO_FUNCIONA = [
   },
 ];
 
-export default function ParaFacilitadoresPage() {
+export default async function ParaFacilitadoresPage() {
+  const imagens = await lerImagensDoSite();
+
   return (
     <>
       <JsonLd
@@ -180,7 +187,7 @@ export default function ParaFacilitadoresPage() {
         chapeu="Para terapeutas, mentores e facilitadores"
         titulo="Traga seu Retiro ou Grupo para o Mundo com a NeoSenses"
         resumo="Você cuida da facilitação e do cuidado com as pessoas. Nós cuidamos de toda a logística, operação turística e segurança do seu projeto."
-        imagem="https://cdn.openart.ai/openart-uploads/production/attachment-transfers/24a92239a3b08a656a404aa6816c8597ba6288bd83620f3bc145c38d34c5aee6.png"
+        imagem={imagens["facilitators.hero"] || "https://cdn.openart.ai/openart-uploads/production/attachment-transfers/24a92239a3b08a656a404aa6816c8597ba6288bd83620f3bc145c38d34c5aee6.png"}
         altura="cheia"
         acoes={
           <>
@@ -212,7 +219,10 @@ export default function ParaFacilitadoresPage() {
       </Faixa>
 
       <section aria-label="Território em imagens" className="overflow-hidden bg-warm-white py-8 md:py-12">
-        <FaixaDeFotos fotos={FOTOS_DA_FAIXA} />
+        <FaixaDeFotos fotos={FOTOS_DA_FAIXA.map((foto, i) => ({
+          ...foto,
+          src: imagens[`facilitators.gallery.${i + 1}`] || foto.src,
+        }))} />
       </section>
 
       <section className="bg-warm-white py-6 md:py-10">
@@ -221,7 +231,7 @@ export default function ParaFacilitadoresPage() {
             <Surge className="relative min-h-[360px] overflow-hidden rounded-[26px] md:min-h-[560px]">
             <figure className="group absolute inset-0">
               <Image
-                src="/images/b2b/peru-machu-picchu.jpg"
+                src={imagens["facilitators.feature.peru"] || "/images/b2b/peru-machu-picchu.jpg"}
                 alt="Machu Picchu, um dos territórios onde a NeoSenses desenvolve jornadas para grupos"
                 fill
                 sizes="(min-width: 768px) 65vw, 100vw"
@@ -243,7 +253,7 @@ export default function ParaFacilitadoresPage() {
               <Surge atraso={0.12} className="relative min-h-[260px] overflow-hidden rounded-[26px]">
               <figure className="group absolute inset-0">
                 <Image
-                  src="/images/b2b/marrocos-deserto.jpg"
+                  src={imagens["facilitators.feature.marrocos"] || "/images/b2b/marrocos-deserto.jpg"}
                   alt="Deserto do Marrocos"
                   fill
                   sizes="(min-width: 768px) 35vw, 100vw"
@@ -260,7 +270,7 @@ export default function ParaFacilitadoresPage() {
               <Surge atraso={0.24} className="relative min-h-[260px] overflow-hidden rounded-[26px]">
               <figure className="group absolute inset-0">
                 <Image
-                  src="/images/b2b/amazonas-hero-lago.jpg"
+                  src={imagens["facilitators.feature.amazonas"] || "/images/b2b/amazonas-hero-lago.jpg"}
                   alt="Paisagem amazônica"
                   fill
                   sizes="(min-width: 768px) 35vw, 100vw"
@@ -295,25 +305,25 @@ export default function ParaFacilitadoresPage() {
               {
                 nome: "Marrocos",
                 texto: "Cultura, travessias e encontros pelo território.",
-                imagem: "/images/b2b/marrocos-entrega.jpg",
+                imagem: imagens["facilitators.destination.marrocos"] || "/images/b2b/marrocos-entrega.jpg",
                 href: "/experiencias/marrocos-com-neosenses",
               },
               {
                 nome: "Peru",
                 texto: "Andes, saberes locais e paisagens de contemplação.",
-                imagem: "/images/b2b/peru-titicaca.jpg",
+                imagem: imagens["facilitators.destination.peru"] || "/images/b2b/peru-titicaca.jpg",
                 href: linkWhatsApp("Olá! Quero conversar sobre um roteiro para meu grupo no Peru com a NeoSenses."),
               },
               {
                 nome: "Amazônia",
                 texto: "Floresta, rios e experiências com parceiros locais.",
-                imagem: "/images/b2b/amazonas-floresta-aerea.jpg",
+                imagem: imagens["facilitators.destination.amazonas"] || "/images/b2b/amazonas-floresta-aerea.jpg",
                 href: linkWhatsApp("Olá! Quero conversar sobre um roteiro para meu grupo na Amazônia com a NeoSenses."),
               },
               {
                 nome: "Egito",
                 texto: "História, templos e uma jornada pelo patrimônio egípcio.",
-                imagem: "/images/destinations/egito.jpg",
+                imagem: imagens["facilitators.destination.egito"] || "/images/destinations/egito.jpg",
                 href: linkWhatsApp("Olá! Quero conversar sobre um roteiro para meu grupo no Egito com a NeoSenses."),
               },
             ].map((destino) => (
@@ -447,9 +457,9 @@ export default function ParaFacilitadoresPage() {
 
         <ul className="mt-14 grid grid-cols-2 gap-3 md:grid-cols-4 md:gap-4">
           {MOMENTOS.map((m, i) => (
-            <Surge as="li" key={m.src} atraso={i * 0.08} className="group relative aspect-[3/4] overflow-hidden rounded-2xl">
+            <Surge as="li" key={m.chaveImagem} atraso={i * 0.08} className="group relative aspect-[3/4] overflow-hidden rounded-2xl">
               <Image
-                src={m.src}
+                src={imagens[m.chaveImagem] || m.src}
                 alt={m.alt}
                 fill
                 sizes="(min-width: 768px) 25vw, 50vw"
@@ -525,7 +535,7 @@ export default function ParaFacilitadoresPage() {
       <section className="relative isolate overflow-hidden bg-forest-700 py-24 md:py-32">
         <div aria-hidden="true" className="absolute inset-0 -z-10 overflow-hidden">
           <Image
-            src="/images/b2b/marrocos-final.jpg"
+            src={imagens["facilitators.closing"] || "/images/b2b/marrocos-final.jpg"}
             alt=""
             fill
             sizes="100vw"
