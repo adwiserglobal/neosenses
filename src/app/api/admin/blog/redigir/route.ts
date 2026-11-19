@@ -21,6 +21,16 @@ const FOLGA_MINIMA_MS = 4_000;
 
 type RespostaRedacao = { titulo: string; resumo: string; texto: string };
 
+function validarSaidaEditorial(...partes: string[]) {
+  const perigoso = /<(?:script|iframe|object|embed|style|form|input)\\b|javascript\\s*:|data\\s*:\\s*text\\/html|\\son[a-z]+\\s*=/i;
+  if (partes.some((parte) => perigoso.test(parte))) {
+    throw new Error("A resposta da redatora continha marcação executável.");
+  }
+  if (partes.some((parte) => parte.length > 45_000)) {
+    throw new Error("A resposta da redatora excedeu o limite de tamanho.");
+  }
+}
+
 function analisarResposta(texto: string, tema: string): RespostaRedacao {
   const limpo = texto.trim()
     .replace(/^\x60\x60\x60(?:json)?\s*/i, "")
@@ -36,6 +46,7 @@ function analisarResposta(texto: string, tema: string): RespostaRedacao {
     const resumo = typeof json.resumo === "string" ? json.resumo.trim().slice(0, 500) : "";
     const corpo = typeof json.texto === "string" ? json.texto.trim().slice(0, 45000) : "";
     if (!titulo || !resumo || corpo.length < 100) throw new Error("Resposta incompleta");
+    validarSaidaEditorial(titulo, resumo, corpo);
     return { titulo, resumo, texto: corpo };
   }
 
@@ -52,6 +63,7 @@ function analisarResposta(texto: string, tema: string): RespostaRedacao {
   const resumo = primeiroParagrafo.replace(/\*\*/g, "").replace(/^>\s*/, "").slice(0, 240).trim();
   if (titulo.length < 5 || resumo.length < 35 || corpo.length < 180)
     throw new Error("Resposta incompleta");
+  validarSaidaEditorial(titulo, resumo, corpo);
   return { titulo, resumo, texto: corpo };
 }
 
