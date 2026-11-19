@@ -60,7 +60,7 @@ function revisarTextoEgito<T extends ExperienceWithRelations>(experiencia: T): T
 const CAMPOS_LISTA = `
   id, title, slug, short_description, hero_image, duration_days,
   price_from, price_currency, difficulty, intentions, is_featured, sort_order,
-  audience, template,
+  audience, template, metadata,
   category:categories(id, name, slug, icon),
   destination:destinations(id, name, slug, country:countries(id, name, slug))
 `;
