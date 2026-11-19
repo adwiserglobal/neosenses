@@ -262,7 +262,7 @@ export function Pilares() {
             >
               <Image
                 src="https://images.squarespace-cdn.com/content/v1/5ec07f18ab653106f98ea674/1589679989698-84YPF8B5T8FV90TSH01M/william-farlow-IevaZPwq0mw-unsplash.jpg?format=2500w"
-                alt="Mulher sentada sobre uma rocha contemplando um vale de montanhas coberto por névoa dourada ao amanhecer"
+                alt="Silhueta de uma mulher com os braços erguidos diante do mar ao pôr do sol, em um momento de contemplação"
                 fill
                 sizes="(min-width: 1024px) 45vw, (min-width: 640px) 80vw, calc(100vw - 3rem)"
                 quality={90}
