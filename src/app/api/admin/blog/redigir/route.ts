@@ -2,6 +2,13 @@ import { NextRequest, NextResponse } from "next/server";
 import { usuarioAtual } from "@/lib/actions/auth";
 import { AIError, detectAIConfig, generateAIResponse } from "@/lib/ai/provider";
 import type { AIProviderConfig, AIResponse, ChatMessage } from "@/lib/ai/provider";
+import {
+  identificar,
+  verificarLimiteCompartilhado,
+  LimiteCompartilhadoIndisponivel,
+  LIMITE_BLOG_USUARIO,
+  LIMITE_BLOG_IP,
+} from "@/lib/limite";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -53,11 +60,40 @@ export async function POST(req: NextRequest) {
   if (!perfil || !perfil.is_active || perfil.must_change_password || !["admin", "editor"].includes(perfil.role))
     return NextResponse.json({ error: "Faça login no painel para usar a redatora." }, { status: 401 });
 
+  try {
+    const ip = identificar(req.headers);
+    const [porUsuario, porIp] = await Promise.all([
+      verificarLimiteCompartilhado(`admin:${perfil.id}`, LIMITE_BLOG_USUARIO),
+      verificarLimiteCompartilhado(`ip:${ip}`, LIMITE_BLOG_IP),
+    ]);
+    const bloqueio = [porUsuario, porIp].find((limite) => !limite.permitido);
+    if (bloqueio) {
+      const resposta = NextResponse.json(
+        { error: "A redatora atingiu o limite de uso por enquanto. Tente novamente mais tarde." },
+        { status: 429 }
+      );
+      resposta.headers.set("Retry-After", String(bloqueio.esperarSegundos));
+      return resposta;
+    }
+  } catch (err) {
+    if (err instanceof LimiteCompartilhadoIndisponivel) {
+      console.error("[blog/redigir] limitador compartilhado indisponível");
+      return NextResponse.json({ error: "O controle de uso está temporariamente indisponível." }, { status: 503 });
+    }
+    throw err;
+  }
+
   let entrada: Record<string, unknown>;
   try {
-    if (Number(req.headers.get("content-length") || 0) > 130000)
+    const declarado = Number(req.headers.get("content-length") || 0);
+    if (declarado > 130000)
       return NextResponse.json({ error: "O texto enviado é grande demais." }, { status: 413 });
-    entrada = await req.json() as Record<string, unknown>;
+    const bruto = await req.text();
+    if (new TextEncoder().encode(bruto).byteLength > 130000)
+      return NextResponse.json({ error: "O texto enviado é grande demais." }, { status: 413 });
+    const parseado: unknown = JSON.parse(bruto);
+    if (!parseado || typeof parseado !== "object" || Array.isArray(parseado)) throw new Error("Corpo inválido");
+    entrada = parseado as Record<string, unknown>;
   } catch {
     return NextResponse.json({ error: "Envie as informações do artigo." }, { status: 400 });
   }
