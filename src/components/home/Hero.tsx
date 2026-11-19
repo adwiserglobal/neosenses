@@ -256,16 +256,13 @@ export function Pilares() {
             transition={{ duration: 0.75, delay: 0.12 }}
             className="relative mx-auto w-full max-w-[570px]"
           >
-            <div
-              className="relative aspect-[4/4.2] overflow-hidden bg-[#411a35] shadow-[0_22px_60px_rgba(62,11,83,0.15)] sm:aspect-[5/4.3]"
-              style={{ borderRadius: "42% 58% 56% 44% / 38% 40% 60% 62%" }}
-            >
+            <div className="relative aspect-[4/4.2] overflow-hidden rounded-[28px] bg-[#e8dcc8] shadow-[0_22px_60px_rgba(62,11,83,0.15)] sm:aspect-[5/4.3]">
               <Image
-                src="/images/home/proposito-contemplacao-final.webp"
-                alt="Mulher sentada sobre uma rocha contemplando um vale de montanhas coberto por névoa dourada ao amanhecer"
+                src="/images/home/proposito-contemplacao.webp"
+                alt="Mulher sentada sobre uma rocha contemplando o nascer do sol sobre montanhas cobertas por névoa"
                 fill
                 sizes="(min-width: 1024px) 45vw, (min-width: 640px) 80vw, 100vw"
-                quality={85}
+                quality={90}
                 className="object-cover object-center"
               />
             </div>
