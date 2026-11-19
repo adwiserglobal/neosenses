@@ -114,7 +114,43 @@ async function promoverAdmin(
     console.error("[auth] promoção do acesso interno:", error.message);
     return { success: false, error: "A conta existe, mas não foi possível liberar o painel." };
   }
+
+  // RPC sem erro não basta: confirma que o perfil realmente recebeu o papel
+  // administrativo. Auth e public.profiles precisam terminar consistentes.
+  const { data: perfil, error: erroPerfil } = await admin
+    .from("profiles")
+    .select("role, is_active")
+    .eq("email", email)
+    .maybeSingle();
+
+  if (erroPerfil || perfil?.role !== "admin" || perfil.is_active !== true) {
+    console.error("[auth] perfil não foi promovido após RPC:", erroPerfil?.message ?? "perfil ainda não é admin");
+    return { success: false, error: "A autenticação foi criada, mas o perfil administrativo não foi confirmado." };
+  }
+
   return { success: true };
+}
+
+async function garantirPerfilAdmin(
+  admin: ReturnType<typeof createAdminClient>,
+  email: string
+): Promise<{ success: boolean; error?: string }> {
+  const { data: perfil, error } = await admin
+    .from("profiles")
+    .select("role, is_active")
+    .eq("email", email)
+    .maybeSingle();
+
+  if (error) {
+    console.error("[auth] não foi possível verificar o perfil:", error.message);
+    return { success: false, error: "Não foi possível verificar as permissões da conta." };
+  }
+
+  if (perfil?.role === "admin" && perfil.is_active === true) {
+    return { success: true };
+  }
+
+  return promoverAdmin(admin, email);
 }
 
 /**
@@ -159,16 +195,21 @@ async function bootstrapAdmin(
   );
 
   if (usuarioExistente?.app_metadata?.neosenses_admin_bootstrap_complete === true) {
-    // O primeiro acesso já foi provisionado. Nunca reativar a senha temporária.
-    return { executado: false, success: false };
+    // Nunca sobrescrever a senha pessoal. Ainda assim, reparar divergência
+    // entre app_metadata e public.profiles sem tocar na senha atual.
+    const promocao = await garantirPerfilAdmin(admin, email);
+    return { executado: false, success: promocao.success, error: promocao.error };
   }
 
   const appMetadata = {
     ...(usuarioExistente?.app_metadata ?? {}),
     neosenses_internal_admin: true,
-    neosenses_admin_bootstrap_complete: true,
+    // Só marca como completo DEPOIS de confirmar o perfil administrativo.
+    neosenses_admin_bootstrap_complete: false,
     neosenses_force_password_change: credencial.forcePasswordChange,
   };
+
+  let userId = usuarioExistente?.id;
 
   if (usuarioExistente) {
     const { error } = await admin.auth.admin.updateUserById(usuarioExistente.id, {
@@ -190,7 +231,7 @@ async function bootstrapAdmin(
       };
     }
   } else {
-    const { error } = await admin.auth.admin.createUser({
+    const { data: criacao, error } = await admin.auth.admin.createUser({
       email,
       password: senha,
       email_confirm: true,
@@ -198,14 +239,15 @@ async function bootstrapAdmin(
       user_metadata: { full_name: credencial.fullName },
     });
 
-    if (error) {
-      console.error("[auth] criação da conta interna:", error.message);
+    if (error || !criacao.user) {
+      console.error("[auth] criação da conta interna:", error?.message ?? "Auth não retornou usuário");
       return {
         executado: true,
         success: false,
         error: "Não foi possível criar a conta no Supabase Auth.",
       };
     }
+    userId = criacao.user.id;
   }
 
   const promocao = await promoverAdmin(admin, email);
@@ -215,6 +257,30 @@ async function bootstrapAdmin(
       success: false,
       error: promocao.error,
     };
+  }
+
+  if (!userId) {
+    return { executado: true, success: false, error: "Não foi possível identificar a conta provisionada." };
+  }
+
+  const { data: usuarioFinal, error: erroLeituraFinal } = await admin.auth.admin.getUserById(userId);
+  if (erroLeituraFinal || !usuarioFinal.user) {
+    console.error("[auth] leitura após promoção:", erroLeituraFinal?.message);
+    return { executado: true, success: false, error: "Não foi possível concluir o provisionamento da conta." };
+  }
+
+  const { error: erroConcluir } = await admin.auth.admin.updateUserById(userId, {
+    app_metadata: {
+      ...(usuarioFinal.user.app_metadata ?? {}),
+      neosenses_internal_admin: true,
+      neosenses_admin_bootstrap_complete: true,
+      neosenses_force_password_change: credencial.forcePasswordChange,
+    },
+  });
+
+  if (erroConcluir) {
+    console.error("[auth] conclusão do bootstrap:", erroConcluir.message);
+    return { executado: true, success: false, error: "O perfil foi promovido, mas não foi possível concluir o provisionamento." };
   }
 
   return {
@@ -238,25 +304,49 @@ async function marcarCredencialComoProvisionada(
   }
 
   if (data.user.app_metadata?.neosenses_admin_bootstrap_complete === true) {
-    return { success: true };
+    // Versões anteriores podiam marcar o Auth como concluído sem promover
+    // public.profiles. Confirma/repara essa divergência sem alterar a senha.
+    return garantirPerfilAdmin(admin, email);
   }
 
   const { error: erroAtualizacao } = await admin.auth.admin.updateUserById(userId, {
     app_metadata: {
       ...(data.user.app_metadata ?? {}),
       neosenses_internal_admin: true,
-      neosenses_admin_bootstrap_complete: true,
+      neosenses_admin_bootstrap_complete: false,
       neosenses_force_password_change: credencial.forcePasswordChange,
     },
   });
 
   if (erroAtualizacao) {
-    console.error("[auth] não foi possível concluir o provisionamento:", erroAtualizacao.message);
-    return { success: false, error: "Não foi possível concluir a configuração da conta." };
+    console.error("[auth] não foi possível preparar o provisionamento:", erroAtualizacao.message);
+    return { success: false, error: "Não foi possível preparar a configuração da conta." };
   }
 
   const promocao = await promoverAdmin(admin, email);
-  return promocao;
+  if (!promocao.success) return promocao;
+
+  const { data: usuarioFinal, error: erroLeituraFinal } = await admin.auth.admin.getUserById(userId);
+  if (erroLeituraFinal || !usuarioFinal.user) {
+    console.error("[auth] leitura ao finalizar provisionamento:", erroLeituraFinal?.message);
+    return { success: false, error: "Não foi possível concluir a configuração da conta." };
+  }
+
+  const { error: erroConcluir } = await admin.auth.admin.updateUserById(userId, {
+    app_metadata: {
+      ...(usuarioFinal.user.app_metadata ?? {}),
+      neosenses_internal_admin: true,
+      neosenses_admin_bootstrap_complete: true,
+      neosenses_force_password_change: credencial.forcePasswordChange,
+    },
+  });
+
+  if (erroConcluir) {
+    console.error("[auth] conclusão do provisionamento:", erroConcluir.message);
+    return { success: false, error: "O perfil foi promovido, mas não foi possível concluir a configuração da conta." };
+  }
+
+  return { success: true };
 }
 
 export async function entrar(email: string, senha: string): Promise<ResultadoLogin> {
@@ -280,13 +370,16 @@ export async function entrar(email: string, senha: string): Promise<ResultadoLog
     };
   }
 
-  const credencial = await credencialCorrespondente(limpo, senha);
+  // Primeiro tenta a autenticação normal. O PBKDF2 de 600 mil iterações só
+  // roda quando o login falha, não em todo acesso normal ao painel.
+  let credencial: CredencialBootstrap | null = null;
   let tentativa = await supabase.auth.signInWithPassword({
     email: limpo,
     password: senha,
   });
 
   if (tentativa.error) {
+    credencial = await credencialCorrespondente(limpo, senha);
     const bootstrap = await bootstrapAdmin(limpo, senha, credencial);
 
     if (bootstrap.executado && !bootstrap.success) {
@@ -308,11 +401,16 @@ export async function entrar(email: string, senha: string): Promise<ResultadoLog
 
   let usuario = tentativa.data.user;
 
-  // Também marca contas que já existiam e aceitaram a senha informada.
-  if (
-    credencial &&
-    usuario.app_metadata?.neosenses_admin_bootstrap_complete !== true
-  ) {
+  // Contas antigas podem autenticar antes de terminar o primeiro bootstrap.
+  // Só nesses casos calculamos o verificador da senha provisória.
+  if (usuario.app_metadata?.neosenses_admin_bootstrap_complete !== true) {
+    credencial ??= await credencialCorrespondente(limpo, senha);
+
+    if (!credencial) {
+      await supabase.auth.signOut();
+      return { success: false, error: "Esta conta ainda não concluiu a configuração do acesso interno. Entre em contato com o administrador." };
+    }
+
     const provisionamento = await marcarCredencialComoProvisionada(
       usuario.id,
       limpo,
@@ -324,19 +422,39 @@ export async function entrar(email: string, senha: string): Promise<ResultadoLog
       return { success: false, error: provisionamento.error };
     }
 
-    // O app_metadata alimenta as claims JWT usadas pelo RLS. Atualizar o
-    // perfil no Auth não reescreve um access token já emitido; renove a sessão
-    // para que as permissões reflitam o provisionamento na mesma navegação.
+    // As claims JWT só refletem os metadados depois da renovação.
     const renovada = await supabase.auth.refreshSession();
-    if (renovada.data.user) usuario = renovada.data.user;
+    if (renovada.error || !renovada.data.user) {
+      console.error("[auth] renovação após provisionamento:", renovada.error?.message);
+      await supabase.auth.signOut();
+      return { success: false, error: "A configuração foi salva. Entre novamente para continuar." };
+    }
+    usuario = renovada.data.user;
+  }
+
+  if (
+    usuario.app_metadata?.neosenses_internal_admin !== true ||
+    usuario.app_metadata?.neosenses_admin_bootstrap_complete !== true
+  ) {
+    await supabase.auth.signOut();
+    return { success: false, error: "Esta conta ainda não está habilitada para o painel interno." };
+  }
+
+  const exigeTroca = usuario.app_metadata?.neosenses_force_password_change === true;
+
+  // Repara divergência entre o Auth e profiles que tenha sobrado de uma
+  // execução antiga do bootstrap. A verificação só lê o perfil quando loga.
+  if (!exigeTroca) {
+    const perfilAdmin = await garantirPerfilAdmin(createAdminClient(), limpo);
+    if (!perfilAdmin.success) {
+      await supabase.auth.signOut();
+      return { success: false, error: perfilAdmin.error ?? "Não foi possível liberar o perfil administrativo." };
+    }
   }
 
   return {
     success: true,
-    requiresPasswordChange:
-      usuario.app_metadata?.neosenses_force_password_change === true ||
-      (credencial?.forcePasswordChange === true &&
-        usuario.app_metadata?.neosenses_admin_bootstrap_complete === true),
+    requiresPasswordChange: exigeTroca,
   };
 }
 
@@ -386,6 +504,18 @@ export async function definirSenhaInicial(
     return {
       success: false,
       error: "A senha foi alterada, mas a validação final não concluiu. Entre novamente com a senha nova.",
+    };
+  }
+
+  // A senha inicial só é considerada concluída quando profiles também está
+  // no papel administrativo. Corrige a janela que deixava o Auth completo,
+  // mas o perfil ainda como viewer.
+  const promocao = await garantirPerfilAdmin(admin, usuario.email!.trim().toLowerCase());
+  if (!promocao.success) {
+    console.error("[auth] perfil admin após troca inicial:", promocao.error);
+    return {
+      success: false,
+      error: "Sua nova senha foi salva, mas o perfil do painel ainda não foi liberado. Tente entrar novamente ou contate o administrador.",
     };
   }
 
