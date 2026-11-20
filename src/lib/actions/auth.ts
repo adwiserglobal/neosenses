@@ -45,35 +45,44 @@ interface ResultadoBootstrap {
 }
 
 function credenciaisBootstrap(): CredencialBootstrap[] {
-  const bruto = process.env.INTERNAL_ADMIN_BOOTSTRAP_USERS;
-  if (!bruto) return [];
+  // Mantém o bootstrap original e aceita um segundo conjunto isolado de
+  // credenciais, sem precisar sobrescrever os verificadores já cadastrados.
+  const fontes = [
+    process.env.INTERNAL_ADMIN_BOOTSTRAP_USERS,
+    process.env.INTERNAL_ADMIN_BOOTSTRAP_USERS_ADDITIONAL,
+  ].filter((valor): valor is string => Boolean(valor?.trim()));
 
-  try {
-    const dados: unknown = JSON.parse(bruto);
-    if (!Array.isArray(dados)) return [];
+  return fontes.flatMap((bruto) => {
+    try {
+      const dados: unknown = JSON.parse(bruto);
+      if (!Array.isArray(dados)) {
+        console.error("[auth] uma variável de bootstrap contém JSON que não é uma lista.");
+        return [];
+      }
 
-    return dados.flatMap((item: unknown) => {
-      if (!item || typeof item !== "object") return [];
-      const registro = item as Record<string, unknown>;
-      if (
-        typeof registro.email !== "string" ||
-        typeof registro.salt !== "string" ||
-        typeof registro.passwordHash !== "string" ||
-        !emailInternoAutorizado(registro.email)
-      ) return [];
+      return dados.flatMap((item: unknown) => {
+        if (!item || typeof item !== "object") return [];
+        const registro = item as Record<string, unknown>;
+        if (
+          typeof registro.email !== "string" ||
+          typeof registro.salt !== "string" ||
+          typeof registro.passwordHash !== "string" ||
+          !emailInternoAutorizado(registro.email)
+        ) return [];
 
-      return [{
-        email: registro.email.trim().toLowerCase(),
-        salt: registro.salt,
-        passwordHash: registro.passwordHash,
-        fullName: typeof registro.fullName === "string" ? registro.fullName : "",
-        forcePasswordChange: registro.forcePasswordChange === true,
-      }];
-    });
-  } catch {
-    console.error("[auth] INTERNAL_ADMIN_BOOTSTRAP_USERS contém JSON inválido.");
-    return [];
-  }
+        return [{
+          email: registro.email.trim().toLowerCase(),
+          salt: registro.salt,
+          passwordHash: registro.passwordHash,
+          fullName: typeof registro.fullName === "string" ? registro.fullName : "",
+          forcePasswordChange: registro.forcePasswordChange === true,
+        }];
+      });
+    } catch {
+      console.error("[auth] uma variável de bootstrap contém JSON inválido.");
+      return [];
+    }
+  });
 }
 
 async function credencialCorrespondente(
