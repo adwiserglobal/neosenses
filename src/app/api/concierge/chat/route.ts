@@ -19,13 +19,7 @@ import {
   type ChatMessage,
 } from "@/lib/ai/provider";
 import { retrieveNeoSensesContext, formatContextForPrompt } from "@/lib/ai/retrieval";
-import {
-  buildSiteKnowledgeContext,
-  siteRecommendationsForResponse,
-  type SiteRecommendation,
-} from "@/lib/ai/siteKnowledge";
 import { buildConciergeSystemPrompt } from "@/lib/ai/prompt";
-import { migratedExperiences } from "@/content/migratedExperiences";
 import { verificarResposta, respostaSegura } from "@/lib/ai/guardas";
 import {
   identificar,
@@ -161,104 +155,6 @@ function experienciaFoiMencionada(
   return false;
 }
 
-function experienciaLocalPorMensagem(mensagem: string) {
-  const normalizada = normalizarComparacao(mensagem);
-  return migratedExperiences.find((exp) => {
-    const alvos = [
-      exp.title,
-      exp.slug.replace(/-/g, " "),
-      exp.destination,
-      exp.country,
-    ]
-      .map(normalizarComparacao)
-      .filter(Boolean);
-    return alvos.some((alvo) => alvo.length >= 4 && normalizada.includes(alvo));
-  });
-}
-
-function ehPedidoDeCatalogoLocal(mensagem: string) {
-  const p = normalizarComparacao(mensagem);
-  return /\b(quais|lista|opcoes|catalogo|viagens|experiencias|roteiros|destinos)\b/.test(p) &&
-    /\b(quais|lista|opcoes|catalogo|tem|oferecem)\b/.test(p);
-}
-
-function respostaLocalRapida(mensagem: string, idioma: "pt" | "en" | "es") {
-  if (idioma !== "pt") return null;
-
-  const exp = experienciaLocalPorMensagem(mensagem);
-  const p = normalizarComparacao(mensagem);
-
-  if (exp && /\b(quero|conhecer|sobre|como e|me fala|conte|interesse|peru|tailandia|india|franca|chapada)\b/.test(p)) {
-    const content =
-      `Que bom que ${exp.destination} chamou sua atenção. ✨ ${exp.title} é uma jornada da NeoSenses nesse destino. ${exp.summary} ` +
-      `As próximas saídas estão sob consulta. Você pode conhecer a proposta completa em /experiencias/${exp.slug}. O que mais desperta seu interesse nessa jornada?`;
-
-    return {
-      content,
-      cards: [{
-        type: "experience" as const,
-        id: `site:${exp.slug}`,
-        title: exp.title,
-        slug: exp.slug,
-        destination: exp.destination,
-        duration: exp.itinerary.length ? `${Math.max(...exp.itinerary.map((d) => d.day))} dias` : "",
-        publishedPrice: "",
-        url: `/experiencias/${exp.slug}`,
-        image: exp.hero,
-        summary: exp.summary,
-        position: 1,
-      }],
-    };
-  }
-
-  if (ehPedidoDeCatalogoLocal(mensagem)) {
-    const selecionadas = migratedExperiences.slice(0, 3);
-    return {
-      content: `Claro. Separei algumas jornadas publicadas para você começar a explorar. ✨ Se me contar o que deseja viver nesta viagem, consigo refinar a curadoria. Você já tem um destino em mente ou prefere começar pelo tipo de experiência?`,
-      cards: selecionadas.map((exp, i) => ({
-        type: "experience" as const,
-        id: `site:${exp.slug}`,
-        title: exp.title,
-        slug: exp.slug,
-        destination: exp.destination,
-        duration: exp.itinerary.length ? `${Math.max(...exp.itinerary.map((d) => d.day))} dias` : "",
-        publishedPrice: "",
-        url: `/experiencias/${exp.slug}`,
-        image: exp.hero,
-        summary: exp.summary,
-        position: i + 1,
-      })),
-    };
-  }
-
-  if (/\b(descansar|reconectar|reconexao|pausa|natureza|desacelerar)\b/.test(p)) {
-    const expReconexao =
-      migratedExperiences.find((e) => e.slug === "chapada-dos-veadeiros") ??
-      migratedExperiences[0];
-    if (!expReconexao) return null;
-    return {
-      content:
-        `Entendo. Quando a vontade é desacelerar e se reconectar, vale escolher uma viagem que respeite esse momento. 🌿 ${expReconexao.title}, na ${expReconexao.destination}, pode ser um caminho interessante. ` +
-        `${expReconexao.summary} As próximas saídas estão sob consulta. Você imagina algo mais contemplativo, em contato com a natureza, ou uma vivência com práticas e espiritualidade?`,
-      cards: [{
-        type: "experience" as const,
-        id: `site:${expReconexao.slug}`,
-        title: expReconexao.title,
-        slug: expReconexao.slug,
-        destination: expReconexao.destination,
-        duration: "",
-        publishedPrice: "",
-        url: `/experiencias/${expReconexao.slug}`,
-        image: expReconexao.hero,
-        summary: expReconexao.summary,
-        position: 1,
-      }],
-    };
-  }
-
-  return null;
-}
-
 export async function POST(request: NextRequest) {
   const inicio = Date.now();
   let idioma: "pt" | "en" | "es" = "pt";
@@ -377,50 +273,6 @@ export async function POST(request: NextRequest) {
       if (error) console.error("[concierge] gravar mensagem do visitante:", error.message);
     }
 
-    const local = respostaLocalRapida(mensagem, idioma);
-    if (local) {
-      let mensagemId: string | null = null;
-
-      if (supabase && convId) {
-        const { data, error } = await supabase
-          .from("messages")
-          .insert({
-            conversation_id: convId,
-            role: "assistant",
-            content: local.content,
-            metadata: {
-              provider: "site",
-              model: "local-fast-path",
-              response_time_ms: Date.now() - inicio,
-            },
-          })
-          .select("id")
-          .single();
-
-        if (error) console.error("[concierge] gravar resposta local:", error.message);
-        else mensagemId = data.id;
-
-        await supabase
-          .from("conversations")
-          .update({ updated_at: new Date().toISOString() })
-          .eq("id", convId);
-      }
-
-      return NextResponse.json({
-        success: true,
-        conversationId: convId ?? null,
-        message: {
-          id: mensagemId,
-          role: "assistant",
-          content: local.content,
-          createdAt: new Date().toISOString(),
-        },
-        recommendations: local.cards,
-        handoffAvailable: true,
-        source: "site",
-      });
-    }
-
     // Respeita AI_PROVIDER/AI_MODEL e o auto-detect central. A rota estava
     // forçando NVIDIA DeepSeek sempre que NVIDIA_API_KEY existia, ignorando
     // a configuração escolhida no ambiente.
@@ -438,12 +290,19 @@ export async function POST(request: NextRequest) {
         .eq("conversation_id", convId)
         .order("created_at", { ascending: false })
         .limit(MAX_HISTORICO);
-      historico = (data ?? []).reverse();
+      historico = (data ?? []).reverse().filter((item) => {
+        if (item.role !== "assistant") return true;
+        const textoHistorico = normalizarComparacao(item.content);
+        // Uma resposta antiga não pode reativar uma oferta já retirada.
+        return !textoHistorico.includes("desvendando shakti") &&
+          !textoHistorico.includes("chapada dos veadeiros");
+      });
     }
 
     // ── Contexto ───────────────────────────────────────────────────────────
-    const contextoSite = buildSiteKnowledgeContext(mensagem, paginaOrigem);
-    let blocoContexto = contextoSite;
+    // O contexto de experiências vem exclusivamente do catálogo publicado no Supabase.
+    // Sem conexão ou sem registros atuais, o Concierge não inventa recomendações.
+    let blocoContexto = "";
     let experienciasDoContexto: Awaited<ReturnType<typeof retrieveNeoSensesContext>>["experiences"] = [];
 
     if (supabase) {
@@ -452,12 +311,10 @@ export async function POST(request: NextRequest) {
         const contextoBanco = formatContextForPrompt(contexto, idioma);
         experienciasDoContexto = contexto.experiences.slice(0, MAX_CARDS);
 
-        blocoContexto = (contexto.catalogoVazio && contextoSite
-          ? contextoSite
-          : [contextoBanco, contextoSite].filter(Boolean).join("\n\n")).slice(0, 6500);
+        blocoContexto = contextoBanco.slice(0, 6500);
       } catch (err) {
         console.error("[concierge] busca de contexto:", err instanceof Error ? err.message : err);
-        blocoContexto = contextoSite;
+        blocoContexto = "";
       }
     }
 
@@ -496,13 +353,6 @@ export async function POST(request: NextRequest) {
     }
 
     // ── Cards das jornadas realmente citadas ──────────────────────────────
-    const cardsSite = siteRecommendationsForResponse(
-      conteudoFinal,
-      mensagem,
-      paginaOrigem,
-      MAX_CARDS
-    );
-
     const experienciasMencionadasBanco = experienciasDoContexto.filter((e) =>
       experienciaFoiMencionada(conteudoFinal, e)
     );
@@ -524,26 +374,18 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    const cardsPorSlug = new Map<string, SiteRecommendation>();
-    for (const card of cardsSite) cardsPorSlug.set(card.slug, card);
-
-    for (const e of experienciasMencionadasBanco) {
-      const anterior = cardsPorSlug.get(e.slug);
-      cardsPorSlug.set(e.slug, {
-        type: "experience",
-        id: e.id,
-        title: e.title,
-        slug: e.slug,
-        destination: e.destination,
-        duration: e.duration,
-        publishedPrice: e.priceFrom,
-        url: e.url,
-        image: imagemPorId.get(e.id) || anterior?.image || "",
-        summary: anterior?.summary || e.shortDescription,
-      });
-    }
-
-    const cards = Array.from(cardsPorSlug.values()).slice(0, MAX_CARDS);
+    const cards = experienciasMencionadasBanco.slice(0, MAX_CARDS).map((e) => ({
+      type: "experience" as const,
+      id: e.id,
+      title: e.title,
+      slug: e.slug,
+      destination: e.destination,
+      duration: e.duration,
+      publishedPrice: e.priceFrom,
+      url: e.url,
+      image: imagemPorId.get(e.id) || "",
+      summary: e.shortDescription,
+    }));
 
     // ── Gravação da resposta ───────────────────────────────────────────────
     let mensagemId: string | null = null;
