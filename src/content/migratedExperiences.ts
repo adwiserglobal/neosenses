@@ -206,62 +206,6 @@ export const migratedExperiences: MigratedExperience[] = [
     sourceUrl: "https://www.neosenses.com.br/tailandia-iluminada/",
   },
   {
-    slug: "chapada-dos-veadeiros",
-    title: "Desvendando Shakti",
-    kicker: "Retiro · Chapada dos Veadeiros",
-    subtitle: "A reconexão com a intuição",
-    destination: "Chapada dos Veadeiros",
-    country: "Brasil",
-    period: "Próximas saídas sob consulta",
-    summary:
-      "Um retiro de autoconhecimento e transformação para reconectar corpo, ciclos, intimidade e essência em meio à natureza da Chapada dos Veadeiros.",
-    description:
-      "Desvendando Shakti é uma vivência de reconexão com a intuição e com a própria essência. A proposta reúne práticas de autoconhecimento em um território escolhido por sua natureza exuberante e atmosfera de recolhimento.\n\nA palavra Shakti representa poder e energia na tradição hindu e inspira o eixo simbólico do retiro: força divina, transformação e presença.",
-    why:
-      "A Chapada dos Veadeiros cria um cenário de natureza ampla, silêncio e contato com a terra para uma experiência voltada ao interior. A vivência foi desenhada para abrir espaço para percepção do corpo, dos ciclos e da intimidade.",
-    value:
-      "Um retiro intimista que combina facilitação terapêutica, natureza e acolhimento em um mesmo percurso de reconexão.",
-    forWhom:
-      "Para mulheres e pessoas interessadas em autoconhecimento, reconexão com a intuição, consciência corporal e uma experiência de retiro em contato profundo com a natureza.",
-    hero: "/images/destinations/brasil.jpg",
-    photos: ["/images/destinations/brasil.jpg"],
-    highlights: [
-      {
-        title: "Reconexão com a intuição",
-        description: "A vivência propõe um retorno à escuta interna e à percepção do próprio corpo.",
-      },
-      {
-        title: "Shakti",
-        description: "O conceito de poder e energia inspira o processo de transformação que dá nome ao retiro.",
-      },
-      {
-        title: "Chapada dos Veadeiros",
-        description: "Natureza exuberante e um território escolhido para sustentar pausa, presença e aprofundamento.",
-      },
-      {
-        title: "Sol da Meia Noite",
-        description: "A proposta original prevê hospedagem em ambiente de acolhimento e conforto na Chapada.",
-      },
-    ],
-    itinerary: [],
-    facilitators: [
-      {
-        name: "Letícia Bhakti",
-        role: "Facilitadora",
-        bio: "Terapeuta, escritora e facilitadora de retiros e cursos, dedicada a processos de cura, resgate e conexão com o eu interior.",
-      },
-      {
-        name: "Tarin Flores",
-        role: "Facilitadora",
-        bio: "Terapeuta e estudante do Budismo Tibetano, com atuação em jornadas para lugares de força e experiências de reconexão.",
-      },
-    ],
-    notes: [
-      "A edição exibida na página anterior ocorreu em junho de 2026. A nova página não anuncia essa data como futura.",
-    ],
-    sourceUrl: "https://www.neosenses.com.br/roteiros/chapadaveadeiros/",
-  },
-  {
     slug: "machu-picchu-xamanico",
     title: "Machu Picchu Xamânico",
     kicker: "Imersão espiritual · Peru",
