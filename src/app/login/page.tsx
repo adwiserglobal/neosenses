@@ -70,7 +70,7 @@ function FormularioLogin() {
       }
 
       const pedido = params.get("redirect") ?? "/admin";
-      const destino = /^\\/(?![/\\\\])/.test(pedido) ? pedido : "/admin";
+      const destino = pedido.startsWith("/") && !pedido.startsWith("//") && !pedido.includes("\\") ? pedido : "/admin";
       router.replace(destino);
       router.refresh();
     } catch (err) {
