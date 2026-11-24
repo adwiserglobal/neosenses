@@ -113,15 +113,22 @@ async function promoverAdmin(
   admin: ReturnType<typeof createAdminClient>,
   email: string
 ): Promise<{ success: boolean; error?: string }> {
-  const rpc = admin.rpc as unknown as (
-    nome: string,
-    args: Record<string, unknown>
-  ) => Promise<{ data: unknown; error: { message: string } | null }>;
+  // O método rpc depende do contexto interno do cliente Supabase.
+  // Usá-lo sem bind deixa this.rest indefinido e interrompe o primeiro acesso.
+  try {
+    const rpc = admin.rpc.bind(admin) as unknown as (
+      nome: string,
+      args: Record<string, unknown>
+    ) => Promise<{ data: unknown; error: { message: string } | null }>;
 
-  const { error } = await rpc("promover_admin", { email_alvo: email });
-  if (error) {
-    console.error("[auth] promoção do acesso interno:", error.message);
-    return { success: false, error: "A conta existe, mas não foi possível liberar o painel." };
+    const { error } = await rpc("promover_admin", { email_alvo: email });
+    if (error) {
+      console.error("[auth] promoção do acesso interno:", error.message);
+      return { success: false, error: "A conta existe, mas não foi possível liberar o painel." };
+    }
+  } catch (err) {
+    console.error("[auth] exceção ao promover o acesso interno:", err instanceof Error ? err.message : err);
+    return { success: false, error: "Não foi possível concluir a liberação do painel. Tente novamente." };
   }
 
   // RPC sem erro não basta: confirma que o perfil realmente recebeu o papel
