@@ -53,29 +53,33 @@ function FormularioLogin() {
     setLoading(true);
     setError("");
 
-    const resultado = await entrar(email, password);
+    try {
+      const resultado = await entrar(email, password);
 
-    if (!resultado.success) {
-      setError(resultado.error ?? "Não foi possível entrar.");
-      setLoading(false);
-      return;
-    }
+      if (!resultado.success) {
+        setError(resultado.error ?? "Não foi possível entrar.");
+        return;
+      }
 
-    // O redirecionamento acontece aqui, e não dentro da server action:
-    // `redirect()` numa action lança uma exceção de controle que o try/catch
-    // do formulário engoliria, deixando a tela travada em "Entrando...".
-    // Só caminhos internos: "//site.com" e "/\\site.com" começam com "/" mas o
-    // navegador os trata como outro domínio (redirecionamento aberto).
-    if (resultado.requiresPasswordChange) {
-      router.replace("/primeiro-acesso");
+      // O redirecionamento fica no cliente para não engolir a exceção de
+      // controle lançada por redirect() dentro de uma Server Action.
+      if (resultado.requiresPasswordChange) {
+        router.replace("/primeiro-acesso");
+        router.refresh();
+        return;
+      }
+
+      const pedido = params.get("redirect") ?? "/admin";
+      const destino = /^\\/(?![/\\\\])/.test(pedido) ? pedido : "/admin";
+      router.replace(destino);
       router.refresh();
-      return;
+    } catch (err) {
+      console.error("[login] falha inesperada ao entrar:", err);
+      setError("Não foi possível concluir o acesso agora. Tente novamente.");
+    } finally {
+      // Nunca deixar a tela presa em "Entrando..." após uma exceção.
+      setLoading(false);
     }
-
-    const pedido = params.get("redirect") ?? "/admin";
-    const destino = /^\/(?![/\\])/.test(pedido) ? pedido : "/admin";
-    router.replace(destino);
-    router.refresh();
   }
 
   return (
